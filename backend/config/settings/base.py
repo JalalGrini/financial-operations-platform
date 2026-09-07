@@ -386,7 +386,7 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="EFOP <noreply@efop.local>")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="3RB Extreme <noreply@efop.local>")
 
 # Twilio (SMS + WhatsApp) — placeholders until deployment
 TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")

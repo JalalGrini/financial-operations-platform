@@ -19,8 +19,22 @@ const FALLBACK_DESCRIPTION = "Plateforme d’opérations financières d’entrep
 const EXPERIENCE_INIT = `(function(){try{var locale=localStorage.getItem("efop.locale")||"en";var theme=localStorage.getItem("efop.theme")||"system";var root=document.documentElement;root.lang=locale;root.dir=locale==="ar"?"rtl":"ltr";var dark=theme==="dark"||(theme==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);root.classList.toggle("dark",dark);}catch(e){}})();`;
 
 export const metadata: Metadata = {
-  title: FALLBACK_TITLE,
+  title: {
+    default: FALLBACK_TITLE,
+    template: "%s · 3RB Extreme",
+  },
   description: FALLBACK_DESCRIPTION,
+  applicationName: "3RB Extreme",
+  openGraph: {
+    siteName: "3RB Extreme",
+    title: FALLBACK_TITLE,
+    description: FALLBACK_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: FALLBACK_TITLE,
+    description: FALLBACK_DESCRIPTION,
+  },
   icons: {
     icon: "/brand/3rb-logo-icon.png",
     apple: "/brand/3rb-logo-icon.png",

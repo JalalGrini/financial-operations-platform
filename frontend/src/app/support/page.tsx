@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import { PublicInfoPage } from "@/components/public-info-page";
+import { SourceText } from "@/components/i18n/SourceText";
+
+export const metadata: Metadata = { title: "3RB Extreme support" };
+
 export default function Page() {
   return (
     <PublicInfoPage
-      titleSource="EFOP support"
+      titleSource="3RB Extreme support"
       descriptionSource="When reporting a problem, include the operation name, page, record reference, time, and the exact displayed error. Never include passwords, tokens, database credentials, or private attachments."
     >
       <p>
@@ -15,4 +20,3 @@ export default function Page() {
     </PublicInfoPage>
   );
 }
-import { SourceText } from "@/components/i18n/SourceText";

@@ -2,6 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -38,9 +39,9 @@ class AuditEvent(BaseModel):
     entity_id = models.CharField(max_length=100, blank=True, db_index=True)
     entity_reference = models.CharField(max_length=100, blank=True)
     summary = models.CharField(max_length=500)
-    before = models.JSONField(default=dict, blank=True)
-    after = models.JSONField(default=dict, blank=True)
-    changes = models.JSONField(default=dict, blank=True)
+    before = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder)
+    after = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder)
+    changes = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder)
     request_method = models.CharField(max_length=10, blank=True)
     request_path = models.CharField(max_length=500, blank=True)
     result = models.CharField(

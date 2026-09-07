@@ -37,7 +37,7 @@ ALLOWED_HOSTS = production_allowed_hosts(
 if not ALLOWED_HOSTS:
     raise ImproperlyConfigured(
         "DJANGO_ALLOWED_HOSTS is empty. Set your public hostname "
-        "(e.g. api.example.com or <service>.up.railway.app)."
+        "(e.g. api.example.com or 3rb-extreme-backend.up.railway.app)."
     )
 
 # CORS - only allowed origins.

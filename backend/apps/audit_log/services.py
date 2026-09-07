@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import uuid
+from decimal import Decimal
 from typing import Any
 
 from apps.audit_log.models import AuditEvent, AuditResult
@@ -20,6 +22,23 @@ SENSITIVE_KEYS = {
 }
 
 
+def make_json_safe(obj: Any):
+    """Coerce audit payloads so JSONField / json.dumps never see UUID or Decimal."""
+    if isinstance(obj, dict):
+        return {str(k): make_json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [make_json_safe(i) for i in obj]
+    if isinstance(obj, uuid.UUID):
+        return str(obj)
+    if isinstance(obj, Decimal):
+        return float(obj)
+    if hasattr(obj, "isoformat"):
+        return obj.isoformat()
+    if hasattr(obj, "pk"):
+        return str(obj.pk)
+    return obj
+
+
 def redact(value: Any):
     if isinstance(value, dict):
         return {
@@ -28,11 +47,7 @@ def redact(value: Any):
         }
     if isinstance(value, (list, tuple)):
         return [redact(v) for v in value]
-    if hasattr(value, "isoformat"):
-        return value.isoformat()
-    if hasattr(value, "pk"):
-        return str(value.pk)
-    return value
+    return make_json_safe(value)
 
 
 def changes_between(before, after):
@@ -98,9 +113,9 @@ def record_event(
         entity_id=str(entity_id),
         entity_reference=str(entity_reference),
         summary=summary[:500],
-        before=redact(before or {}),
-        after=redact(after or {}),
-        changes=changes_between(before, after),
+        before=make_json_safe(redact(before or {})),
+        after=make_json_safe(redact(after or {})),
+        changes=make_json_safe(changes_between(before, after)),
         result=result,
         reason=reason,
         **request_metadata(request),

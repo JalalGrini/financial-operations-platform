@@ -16,10 +16,10 @@ def test_railway_injected_domains_are_merged():
     hosts = production_allowed_hosts(
         [],
         {
-            "RAILWAY_PUBLIC_DOMAIN": "efop-api.up.railway.app",
-            "RAILWAY_PRIVATE_DOMAIN": "efop-api.railway.internal",
+            "RAILWAY_PUBLIC_DOMAIN": "3rb-extreme-backend.up.railway.app",
+            "RAILWAY_PRIVATE_DOMAIN": "3rb-extreme-backend.railway.internal",
         },
     )
-    assert "efop-api.up.railway.app" in hosts
-    assert "efop-api.railway.internal" in hosts
+    assert "3rb-extreme-backend.up.railway.app" in hosts
+    assert "3rb-extreme-backend.railway.internal" in hosts
     assert "healthcheck.railway.app" in hosts

@@ -87,12 +87,12 @@ function buildRequestHeaders(request: NextRequest): Record<string, string> {
       headers[name] = value;
     }
   }
-  if (
-    !headers["content-type"] &&
-    request.method !== "GET" &&
-    request.method !== "HEAD"
-  ) {
-    headers["content-type"] = "application/json";
+  // Never invent Content-Type. Multipart uploads need the original
+  // multipart/form-data; boundary=... header. Defaulting to JSON strips it
+  // and Django rejects the file ("submitted data was not a file").
+  const contentType = request.headers.get("content-type");
+  if (contentType) {
+    headers["content-type"] = contentType;
   }
   // This hop is server-to-server. Forwarding the browser Origin/Referer makes
   // Django CSRF treat a same-origin Vercel proxy POST as cross-site against

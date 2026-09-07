@@ -858,6 +858,17 @@ class CNSSDeclarationSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
             "is_active_now",
         ]
 
+    def run_validators(self, value):
+        # UniqueConstraint condition_fields (is_currently_declared, is_archived)
+        # are omitted on partial PATCH. Copy them from the instance so DRF's
+        # UniqueTogetherValidator does not KeyError.
+        if self.instance is not None:
+            value = dict(value)
+            for field in ["person", "company", "is_currently_declared", "is_archived"]:
+                if field not in value:
+                    value[field] = getattr(self.instance, field)
+        super().run_validators(value)
+
     def get_is_active_now(self, obj):
         return obj.is_currently_active()
 
