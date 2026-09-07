@@ -1,7 +1,8 @@
 # Railway config for the Django API.
 #
 # Dashboard (required): Service → Settings → Root Directory = backend
-# Optional watch paths (repo-root relative): backend/**
+# Config-as-code path (required for this file to apply): /backend/railway.toml
+# Railway does not look in the Root Directory for railway.toml by default.
 #
 # Do not put a second railway.toml at the monorepo root — that would confuse a
 # later frontend service. This file is the backend service source of truth.
@@ -16,12 +17,12 @@
 # works for docker-compose / manual hosts.
 
 [build]
-builder = "RAILPACK"
+builder = "NIXPACKS"
 
 [deploy]
 # wsgi.py already defaults DJANGO_SETTINGS_MODULE to config.settings.production
 startCommand = "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
-releaseCommand = "python manage.py migrate --noinput && python manage.py collectstatic --noinput"
+preDeployCommand = "python manage.py migrate --noinput && python manage.py collectstatic --noinput"
 healthcheckPath = "/api/v1/health/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"

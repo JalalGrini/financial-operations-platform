@@ -57,7 +57,7 @@
 
 ## Railway
 
-Set the service **Root Directory** to `backend` (Service → Settings). That is what makes Railpack detect Python (`manage.py`, `requirements.txt`, `pyproject.toml`). Start and release commands are in `railway.toml`. Required env vars are listed in `.env.example`; production settings refuse to boot without a 50+ character `DJANGO_SECRET_KEY`, `REDIS_URL`, `USE_S3_STORAGE=True` plus R2 credentials, and `DJANGO_DEBUG=False`. Railway Postgres provides `DATABASE_URL` (supported). Do not commit `.env`.
+Set the service **Root Directory** to `backend` (Service → Settings). That is what makes Nixpacks detect Python (`manage.py`, `requirements.txt`, `pyproject.toml`). Set Config-as-code path to `/backend/railway.toml`. Start and pre-deploy commands are in `railway.toml`. Python is pinned to 3.13 for Railway image builds. Required env vars are listed in `.env.example`; production settings refuse to boot without a 50+ character `DJANGO_SECRET_KEY`, `REDIS_URL`, `USE_S3_STORAGE=True` plus R2 credentials, and `DJANGO_DEBUG=False`. Railway Postgres provides `DATABASE_URL` (supported). Do not commit `.env`.
 
 ## Project Structure
 
