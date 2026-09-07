@@ -94,6 +94,14 @@ function buildRequestHeaders(request: NextRequest): Record<string, string> {
   ) {
     headers["content-type"] = "application/json";
   }
+  // This hop is server-to-server. Forwarding the browser Origin/Referer makes
+  // Django CSRF treat a same-origin Vercel proxy POST as cross-site against
+  // the Railway Host (403 "Origin checking failed"). Rewrite to the backend
+  // origin and mark the original client as HTTPS so cookie CSRF still works.
+  headers["origin"] = BACKEND_ORIGIN;
+  headers["referer"] = `${BACKEND_ORIGIN}/`;
+  headers["x-forwarded-proto"] = "https";
+  headers["x-forwarded-host"] = request.nextUrl.host;
   return headers;
 }
 

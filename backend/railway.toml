@@ -1,26 +1,11 @@
-# Railway config for the Django API (kept in sync with /railway.toml).
-#
-# Canonical config-as-code path is /railway.toml at the repository root.
-# Dashboard (required): Service → Settings → Root Directory = backend
-#
-# Env vars are NOT stored here (no secrets). Set them in the Railway dashboard.
-# Production settings refuse to boot without:
-#   DJANGO_SECRET_KEY (>= 50 chars, no placeholder)
-#   DJANGO_DEBUG=False
-#   REDIS_URL
-#   USE_S3_STORAGE=True plus R2_* credentials
-# Postgres: Railway's plugin injects DATABASE_URL (preferred). POSTGRES_* still
-# works for docker-compose / manual hosts.
-
+# Loaded when Railway Root Directory is `backend`.
 [build]
-builder = "NIXPACKS"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-# wsgi.py already defaults DJANGO_SETTINGS_MODULE to config.settings.production
-# One worker: Django 6 + Python 3.13 on Railway starter RAM OOMs with 2.
-# Healthcheck Host is healthcheck.railway.app (ALLOWED_HOSTS must include it).
-startCommand = "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
-preDeployCommand = "python manage.py migrate --noinput && python manage.py collectstatic --noinput"
+startCommand = "python -m gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
+preDeployCommand = "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py createsuperuser --noinput || true"
 healthcheckPath = "/api/v1/health/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"

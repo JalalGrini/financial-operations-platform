@@ -1,8 +1,50 @@
-# Service-root requirements for Railway / Railpack / Nixpacks.
-# Set the Railway service Root Directory to `backend` so this file is visible.
-# Local tests still install from requirements/development.txt (includes this
-# stack plus pytest). Do not duplicate pins here — include the existing files.
-#
-# Supported Python: >=3.13,<3.15 (3.14 preferred for production)
+# Flattened production requirements for Railway Railpack/Nixpacks.
+# Nested `-r requirements/*.txt` includes break Railpack (it copies only this
+# file, then `pip install -r requirements.txt` cannot open production.txt).
+# Keep requirements/base.txt, production.txt, and storage-r2.txt in sync.
 
--r requirements/production.txt
+# Core Framework
+Django==6.0.7
+djangorestframework==3.16.0
+
+# Database
+psycopg[binary]==3.2.13
+
+# CORS
+django-cors-headers==4.7.0
+
+# Filtering
+django-filter==24.3
+
+# API Documentation
+drf-spectacular==0.28.0
+
+# JWT Authentication
+djangorestframework-simplejwt==5.4.0
+
+# Environment Configuration
+django-environ==0.11.2
+
+# Image processing
+Pillow==12.3.0
+
+# XLSX generation
+openpyxl==3.1.5
+
+# Celery and Redis
+celery==5.4.0
+redis==5.2.1
+
+# PDF generation
+reportlab>=4.0,<6
+
+# Twilio (optional at runtime)
+twilio>=9.0,<11
+
+# Production WSGI + static files
+gunicorn==23.0.0
+whitenoise==6.9.0
+
+# Cloudflare R2 / S3 storage
+django-storages[s3]==1.14.4
+boto3==1.35.99

@@ -16,7 +16,21 @@
  *    every API call with correct cookie/CSRF/redirect handling and reads its
  *    backend address from BACKEND_INTERNAL_URL / NEXT_PUBLIC_API_BASE_URL.
  */
-const release = require("../RELEASE.json");
+const fs = require("fs");
+const path = require("path");
+function loadRelease() {
+  const candidates = [
+    path.join(__dirname, "RELEASE.json"),
+    path.join(__dirname, "..", "RELEASE.json"),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return require(candidate);
+    }
+  }
+  return { release_id: "unknown", source_revision: "unknown" };
+}
+const release = loadRelease();
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 const nextConfig = {
@@ -25,7 +39,8 @@ const nextConfig = {
     root: __dirname,
   },
   skipTrailingSlashRedirect: true,
-  output: "standalone",
+  // Vercel serves Next.js itself; standalone is for Docker/Railway-style hosts.
+  ...(process.env.VERCEL ? {} : { output: "standalone" }),
   env: {
     NEXT_PUBLIC_RELEASE_ID: release.release_id,
     NEXT_PUBLIC_SOURCE_REVISION: release.source_revision,
