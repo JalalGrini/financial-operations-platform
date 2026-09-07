@@ -24,8 +24,11 @@ from apps.leaves.urls import urlpatterns as leaves_urls
 from config.views import DatabaseHealthView, HealthView, ReleaseVersionView
 
 urlpatterns = [
-    # Health checks
+    # Health checks. Keep both slash variants: Railway (and some dashboards)
+    # probe `/api/v1/health` without a trailing slash, and APPEND_SLASH would
+    # 301 that to `/api/v1/health/` — probes that do not follow redirects fail.
     path("health/", HealthView.as_view(), name="health"),
+    path("health", HealthView.as_view()),
     path("health/database/", DatabaseHealthView.as_view(), name="health-database"),
     path("health/version/", ReleaseVersionView.as_view(), name="health-version"),
     path("system/version/", ReleaseVersionView.as_view(), name="system-version"),

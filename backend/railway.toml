@@ -21,7 +21,9 @@ builder = "NIXPACKS"
 
 [deploy]
 # wsgi.py already defaults DJANGO_SETTINGS_MODULE to config.settings.production
-startCommand = "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+# One worker: Django 6 + Python 3.13 on Railway starter RAM OOMs with 2.
+# Healthcheck Host is healthcheck.railway.app (ALLOWED_HOSTS must include it).
+startCommand = "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
 preDeployCommand = "python manage.py migrate --noinput && python manage.py collectstatic --noinput"
 healthcheckPath = "/api/v1/health/"
 healthcheckTimeout = 300

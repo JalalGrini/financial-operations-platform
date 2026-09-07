@@ -173,3 +173,11 @@ class HealthEndpointThrottlingTests(APITestCase):
         for _ in range(120):
             response = self.client.get(HEALTH_URL, REMOTE_ADDR="198.51.100.78")
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_the_plain_health_endpoint_accepts_no_trailing_slash(self):
+        response = self.client.get("/api/v1/health", REMOTE_ADDR="198.51.100.79")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_root_health_alias_returns_200(self):
+        response = self.client.get("/health/", REMOTE_ADDR="198.51.100.80")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

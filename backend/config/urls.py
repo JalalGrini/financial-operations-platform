@@ -10,11 +10,17 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework.permissions import IsAdminUser
 
+from config.views import HealthView
+
 _STAFF_DOCS = {"permission_classes": [IsAdminUser]}
 
 urlpatterns = [
     # Admin
     path("admin/", admin.site.urls),
+    # Compatibility aliases if the Railway dashboard healthcheck is `/health`
+    # instead of `/api/v1/health/`. Same anonymous 200 as the API liveness view.
+    path("health/", HealthView.as_view()),
+    path("health", HealthView.as_view()),
     # API v1
     path("api/v1/", include("config.api_urls")),
     # OpenAPI — staff only (payroll/CNSS/auth surface must not be public).

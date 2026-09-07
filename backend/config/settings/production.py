@@ -2,10 +2,13 @@
 """
 Production settings for Financial Operations Platform.
 """
+import os
+
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403,F401
 from .base import env
+from .host_utils import production_allowed_hosts
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -19,7 +22,23 @@ DEBUG = False
 # "The ALLOWED_HOSTS setting must be a list or a tuple.", meaning the production
 # settings module could never boot. Use env.list() so the cast is explicit and
 # independent of the schema key.
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])  # noqa: F405
+#
+# Railway's deploy healthcheck sends Host: healthcheck.railway.app (see
+# https://docs.railway.com/deployments/healthchecks). An ALLOWED_HOSTS list
+# that only has the public hostname therefore returns 400 to the probe; Railway
+# retries, then marks the replica failed — typically ~1 minute after gunicorn
+# has already bound the port. Strip accidental https:// prefixes too: Django
+# matches hostnames, not origins.
+ALLOWED_HOSTS = production_allowed_hosts(
+    env.list("DJANGO_ALLOWED_HOSTS", default=[]),  # noqa: F405
+    os.environ,
+)
+
+if not ALLOWED_HOSTS:
+    raise ImproperlyConfigured(
+        "DJANGO_ALLOWED_HOSTS is empty. Set your public hostname "
+        "(e.g. api.example.com or <service>.up.railway.app)."
+    )
 
 # CORS - only allowed origins.
 # env.list() here too, so this does not silently depend on the schema key
@@ -147,6 +166,23 @@ if DEBUG:
 USE_S3_STORAGE = env.bool("USE_S3_STORAGE", default=True)  # noqa: F405
 if not USE_S3_STORAGE:
     raise ImproperlyConfigured("File storage must be S3/R2 in production")
+
+_r2_missing = [
+    name
+    for name, value in (
+        ("R2_ACCESS_KEY_ID", globals().get("AWS_ACCESS_KEY_ID", "")),
+        ("R2_SECRET_ACCESS_KEY", globals().get("AWS_SECRET_ACCESS_KEY", "")),
+        ("R2_BUCKET_NAME", globals().get("AWS_STORAGE_BUCKET_NAME", "")),
+        ("R2_ENDPOINT_URL", globals().get("AWS_S3_ENDPOINT_URL", "")),
+    )
+    if not str(value).strip()
+]
+if _r2_missing:
+    raise ImproperlyConfigured(
+        "USE_S3_STORAGE=True requires non-empty Cloudflare R2 credentials. "
+        "Missing or empty: " + ", ".join(_r2_missing) + ". "
+        "Set them in Railway Variables."
+    )
 
 # Logging - reduce verbosity in production
 LOGGING["root"]["level"] = "WARNING"  # noqa: F405

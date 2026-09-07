@@ -24,7 +24,10 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DJANGO_DEBUG")
+# Schema key is DEBUG, not DJANGO_DEBUG — pass an explicit default so a
+# missing Railway variable does not raise ImproperlyConfigured at import.
+# Production settings force DEBUG = False after this import.
+DEBUG = env.bool("DJANGO_DEBUG", default=False)
 
 # BUGFIX (audit finding M-7): this previously read ``env("DJANGO_ALLOWED_HOSTS")``.
 # The list cast declared in environ.Env(...) above is keyed on "ALLOWED_HOSTS",
@@ -119,12 +122,23 @@ ASGI_APPLICATION = "config.asgi.application"
 # Railway's Postgres plugin injects DATABASE_URL (postgresql://...). When that
 # is set, it wins. Local docker-compose and existing .env files keep using
 # POSTGRES_*. Do not require both.
-_database_url = env("DATABASE_URL", default="")
+_database_url = env("DATABASE_URL", default="").strip()
 if _database_url:
-    DATABASES = {"default": env.db("DATABASE_URL")}
+    try:
+        _parsed_db = environ.Env.db_url_config(_database_url)
+    except Exception as exc:
+        from django.core.exceptions import ImproperlyConfigured
+
+        raise ImproperlyConfigured(
+            "DATABASE_URL is set but could not be parsed. Expected "
+            "postgresql://USER:PASSWORD@HOST:PORT/NAME "
+            f"(parser error: {exc})."
+        ) from exc
+    DATABASES = {"default": _parsed_db}
     DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql"
     DATABASES["default"]["CONN_MAX_AGE"] = env.int("POSTGRES_CONN_MAX_AGE", default=60)
-    DATABASES["default"].setdefault("OPTIONS", {})
+    if not isinstance(DATABASES["default"].get("OPTIONS"), dict):
+        DATABASES["default"]["OPTIONS"] = {}
     DATABASES["default"]["OPTIONS"].setdefault("connect_timeout", 10)
 else:
     DATABASES = {
