@@ -14,6 +14,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Lock, Menu, X } from "lucide-react";
 import { SourceText } from "@/components/i18n/SourceText";
+import { sourceText } from "@/lib/i18n/source-catalog";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { ThemeSwitch } from "@/components/ui/theme-switch-button";
 import { PUBLIC_COMPANIES } from "./public-companies";
@@ -21,9 +22,9 @@ import { PUBLIC_COMPANIES } from "./public-companies";
 const NAV_LINKS = [
   { href: "/#hero", label: "Home" },
   { href: "/#conception", label: "Conception" },
-  { href: "/#services", label: "Solution&Services" },
+  { href: "/#services", label: "Services" },
   { href: "/#galery", label: "Gallery" },
-  { href: "/#equipe", label: "Partenaire & Client" },
+  { href: "/#equipe", label: "Partners" },
   { href: "/#contact", label: "Contact" },
 ] as const;
 
@@ -99,18 +100,18 @@ export function LandingNav({
         </span>
       </Link>
 
-      <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
+      <nav className="hidden items-center gap-1 lg:flex" aria-label={sourceText("Main navigation")}>
         <a
           href="/#hero"
           className="rounded-full px-3.5 py-2 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground transition-colors duration-150 hover:bg-[hsl(var(--primary)/0.07)] hover:text-foreground"
         >
-          Home
+          <SourceText source="Home" />
         </a>
         <a
           href="/#conception"
           className="rounded-full px-3.5 py-2 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground transition-colors duration-150 hover:bg-[hsl(var(--primary)/0.07)] hover:text-foreground"
         >
-          Conception
+          <SourceText source="Conception" />
         </a>
         <div
           ref={groupRef}
@@ -166,25 +167,25 @@ export function LandingNav({
           href="/#services"
           className="rounded-full px-3.5 py-2 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground transition-colors duration-150 hover:bg-[hsl(var(--primary)/0.07)] hover:text-foreground"
         >
-          Solution&Services
+          <SourceText source="Services" />
         </a>
         <a
           href="/#galery"
           className="rounded-full px-3.5 py-2 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground transition-colors duration-150 hover:bg-[hsl(var(--primary)/0.07)] hover:text-foreground"
         >
-          Gallery
+          <SourceText source="Gallery" />
         </a>
         <a
           href="/#equipe"
           className="rounded-full px-3.5 py-2 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground transition-colors duration-150 hover:bg-[hsl(var(--primary)/0.07)] hover:text-foreground"
         >
-          Partenaire & Client
+          <SourceText source="Partners" />
         </a>
         <a
           href="/#contact"
           className="rounded-full px-3.5 py-2 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground transition-colors duration-150 hover:bg-[hsl(var(--primary)/0.07)] hover:text-foreground"
         >
-          Contact
+          <SourceText source="Contact" />
         </a>
       </nav>
 
@@ -197,10 +198,10 @@ export function LandingNav({
         >
           <Lock className="h-3.5 w-3.5" aria-hidden="true" />
           <span className="hidden sm:inline">
-            <SourceText source="Espace client" />
+            <SourceText source="Client space" />
           </span>
           <span className="sm:hidden">
-            <SourceText source="Espace client" />
+            <SourceText source="Client space" />
           </span>
         </Link>
         <button
@@ -208,7 +209,7 @@ export function LandingNav({
           className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground lg:hidden"
           aria-expanded={mobileOpen}
           aria-controls="landing-mobile-nav"
-          aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-label={mobileOpen ? sourceText("Close menu") : sourceText("Open menu")}
           onClick={() => setMobileOpen((open) => !open)}
         >
           {mobileOpen ? (
@@ -229,7 +230,7 @@ export function LandingNav({
             transition={{ duration: 0.18 }}
             className="fixed inset-x-0 top-16 z-40 border-b border-border bg-background/95 shadow-lg backdrop-blur-xl lg:hidden"
           >
-            <nav className="flex flex-col gap-1 px-4 py-4" aria-label="Mobile">
+            <nav className="flex flex-col gap-1 px-4 py-4" aria-label={sourceText("Mobile navigation")}>
               {NAV_LINKS.slice(0, 2).map((link) => (
                 <a
                   key={link.href}
@@ -237,7 +238,7 @@ export function LandingNav({
                   onClick={() => setMobileOpen(false)}
                   className="rounded-xl px-3 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-foreground hover:bg-primary/5"
                 >
-                  {link.label}
+                  <SourceText source={link.label} />
                 </a>
               ))}
               <p className="px-3 pt-2 text-[0.6875rem] font-bold uppercase tracking-[0.16em] text-muted-foreground">
@@ -262,7 +263,7 @@ export function LandingNav({
                   onClick={() => setMobileOpen(false)}
                   className="rounded-xl px-3 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-foreground hover:bg-primary/5"
                 >
-                  {link.label}
+                  <SourceText source={link.label} />
                 </a>
               ))}
             </nav>

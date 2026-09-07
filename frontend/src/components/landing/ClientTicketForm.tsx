@@ -298,11 +298,11 @@ export function ClientTicketForm() {
             </h3>
             {ticketNumber ? (
               <p className="mt-2 text-lg font-black text-[hsl(var(--brand-primary))]">
-                Ticket #{ticketNumber}
+                <SourceText source="Ticket" /> #{ticketNumber}
               </p>
             ) : (
               <p className="mt-2 text-sm font-semibold text-[hsl(var(--brand-primary))]">
-                Votre demande a bien été enregistrée.
+                <SourceText source="Your request has been recorded." />
               </p>
             )}
             <p className={`mt-2 max-w-[52ch] ${TYPE.body} text-muted-foreground`}>
@@ -460,7 +460,9 @@ export function ClientTicketForm() {
             </option>
             {COMPANIES.map((company) => (
               <option key={company} value={company}>
-                {COMPANY_LABELS[company]}
+                {company === "other"
+                  ? sourceText("Other / not sure")
+                  : COMPANY_LABELS[company]}
               </option>
             ))}
           </select>
@@ -474,7 +476,7 @@ export function ClientTicketForm() {
 
         <div className={`${fieldWrap} sm:col-span-2`}>
           <label htmlFor="ticket-subject" className={labelClass}>
-            Sujet
+            <SourceText source="Subject" />
           </label>
           <Input
             id="ticket-subject"
@@ -483,7 +485,7 @@ export function ClientTicketForm() {
             onChange={(event) => setField("subject", event.target.value)}
             aria-invalid={Boolean(errors.subject)}
             aria-describedby={describedBy("subject")}
-            placeholder="Objet de votre demande"
+            placeholder={sourceText("Subject of your request")}
           />
           {errors.subject ? (
             <p id="ticket-subject-error" className={errorClass}>
@@ -530,7 +532,7 @@ export function ClientTicketForm() {
 
         <div className={`${fieldWrap} sm:col-span-2`}>
           <label htmlFor="ticket-attachment" className={labelClass}>
-            Pièce jointe
+            <SourceText source="Attachment" />
           </label>
           <Input
             id="ticket-attachment"
@@ -541,7 +543,7 @@ export function ClientTicketForm() {
             }
           />
           <p className="text-[0.75rem] text-muted-foreground">
-            Le nom du fichier est transmis avec votre message.
+            <SourceText source="The file name is sent with your message." />
           </p>
         </div>
       </div>

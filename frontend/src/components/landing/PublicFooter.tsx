@@ -5,7 +5,7 @@ import { SourceText } from "@/components/i18n/SourceText";
 import { CONTAINER } from "./design-system";
 
 const FOOTER_LINKS = [
-  { href: "/#hero", label: "Accueil" },
+  { href: "/#hero", label: "Home" },
   { href: "/#services", label: "Services" },
   { href: "/#contact", label: "Contact" },
   { href: "/#tickets", label: "Tickets" },
@@ -26,7 +26,7 @@ export function PublicFooter() {
                 className="h-9 w-9 object-contain"
               />
               <span className="text-[0.9375rem] font-black">
-                {String("Groupe 3.R.B Extreme")}
+                {String("Groupe 3.R.B")}
               </span>
             </div>
             <p className="mt-4 max-w-sm text-[0.875rem] leading-relaxed text-white/60">
@@ -48,7 +48,7 @@ export function PublicFooter() {
                     href={link.href}
                     className="text-[0.875rem] text-white/70 transition-colors duration-150 hover:text-white"
                   >
-                    {link.label}
+                    <SourceText source={link.label} />
                   </a>
                 </li>
               ))}
@@ -99,7 +99,7 @@ export function PublicFooter() {
 
         <div className="mt-12 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center">
           <p className="text-[0.8125rem] text-white/45">
-            {String("\u00a9 2026 Groupe 3.R.B Extreme")}
+            {String("\u00a9 2026 Groupe 3.R.B")}
           </p>
           <p className="text-[0.8125rem] text-white/45">
             <SourceText source="Operating across Morocco since 2014" />

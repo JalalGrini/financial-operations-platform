@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { SourceText } from "@/components/i18n/SourceText";
+import { sourceText } from "@/lib/i18n/source-catalog";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { CompanyTicketForm } from "@/components/landing/CompanyTicketForm";
 import { CONTAINER, HEADER_BLOCK, SECTION, TYPE } from "@/components/landing/design-system";
-import {
-  GROUP_INTRO_SOURCE,
-  getPublicCompanyCard,
-} from "@/components/landing/public-company-cards";
+import { getPublicCompanyCard } from "@/components/landing/public-company-cards";
 import { getPublicCompany } from "@/components/landing/public-companies";
 
 export function PublicCompanyView({ slug }: { slug: string }) {
@@ -68,10 +66,7 @@ export function PublicCompanyView({ slug }: { slug: string }) {
 
       <section className={`${SECTION.base} bg-background`}>
         <div className={CONTAINER}>
-          <p className={`max-w-3xl ${TYPE.lead} text-muted-foreground`}>
-            <SourceText source={GROUP_INTRO_SOURCE} />
-          </p>
-          <h2 className={`${HEADER_BLOCK.kickerGap} ${TYPE.h2} text-foreground`}>
+          <h2 className={`${TYPE.h2} text-foreground`}>
             {card.name}
           </h2>
           <p className="mt-2 text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-[hsl(var(--brand-blue-700))] dark:text-[hsl(var(--brand-blue-500))]">
@@ -86,7 +81,7 @@ export function PublicCompanyView({ slug }: { slug: string }) {
                 key={service}
                 className="inline-flex items-center rounded-full border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--primary)/0.06)] px-3 py-1 text-[0.75rem] font-semibold text-[hsl(var(--primary))]"
               >
-                {service}
+                <SourceText source={service} />
               </span>
             ))}
           </div>
@@ -112,7 +107,7 @@ export function PublicCompanyView({ slug }: { slug: string }) {
                 >
                   <Image
                     src={image.src}
-                    alt={image.alt}
+                    alt={sourceText(image.alt)}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover transition duration-300 group-hover:scale-105"
@@ -137,7 +132,7 @@ export function PublicCompanyView({ slug }: { slug: string }) {
               company={card.apiKey}
               companyLabel={card.name}
               combinedContact
-              submitLabel="Envoyer"
+              submitLabel="Send ticket"
             />
           </div>
         </div>
@@ -148,12 +143,14 @@ export function PublicCompanyView({ slug }: { slug: string }) {
           size="full"
           className="max-w-5xl border-none bg-transparent p-0 shadow-none"
         >
-          <DialogTitle className="sr-only">{active?.alt ?? card.name}</DialogTitle>
+          <DialogTitle className="sr-only">
+            {active ? sourceText(active.alt) : card.name}
+          </DialogTitle>
           {active ? (
             <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-black">
               <Image
                 src={active.src}
-                alt={active.alt}
+                alt={sourceText(active.alt)}
                 fill
                 sizes="100vw"
                 className="object-contain"

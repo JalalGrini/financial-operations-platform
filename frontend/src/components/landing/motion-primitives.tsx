@@ -32,6 +32,8 @@ import {
   type ElementType,
   type ReactNode,
 } from "react";
+import { useExperience } from "@/lib/experience";
+import { translateSource } from "@/lib/i18n/source-catalog";
 import { EASE_CSS } from "./design-system";
 
 const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
@@ -229,7 +231,9 @@ export function WordMaskReveal({
   accentWords,
 }: WordMaskRevealProps) {
   const ref = useRef<HTMLElement | null>(null);
-  const words = text.split(" ").filter(Boolean);
+  const { locale } = useExperience();
+  const resolved = translateSource(text, locale);
+  const words = resolved.split(" ").filter(Boolean);
   const accent = new Set((accentWords ?? []).map((w) => w.toLowerCase()));
 
   useEffect(() => {
@@ -325,7 +329,7 @@ export function WordMaskReveal({
       });
       el.dataset.revealed = "true";
     };
-  }, [duration, lead, step, text]);
+  }, [duration, lead, resolved, step]);
 
   return createElement(
     as,

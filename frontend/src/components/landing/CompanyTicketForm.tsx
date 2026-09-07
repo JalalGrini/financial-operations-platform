@@ -13,6 +13,7 @@
 import { AlertCircle, Check, Loader2, Send } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
+import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { Input, Textarea } from "@/components/ui/input";
 import { FOCUS_RING, RADIUS, TYPE } from "./design-system";
@@ -39,20 +40,20 @@ interface CompanyTicketFormProps {
 /* ---------------------------------------------------------------- schema */
 
 const schema = z.object({
-  name: z.string().trim().min(2, "Veuillez saisir votre nom complet.").max(120),
-  email: z.string().trim().min(1, "Veuillez saisir votre email.").email("Email invalide."),
+  name: z.string().trim().min(2, "Please enter your full name.").max(120, "That name is too long."),
+  email: z.string().trim().min(1, "Please enter your email address.").email("Please enter a valid email address."),
   phone: z
     .string()
     .trim()
-    .min(6, "Veuillez saisir un numéro de téléphone.")
-    .max(32)
-    .regex(/^[+()\d\s.-]+$/, "Chiffres, espaces, +, - ou parenthèses uniquement."),
-  subject: z.string().trim().min(3, "Veuillez saisir un sujet.").max(160),
+    .min(6, "Please enter a reachable phone number.")
+    .max(32, "That phone number is too long.")
+    .regex(/^[+()\d\s.-]+$/, "Use digits, spaces, +, - or brackets only."),
+  subject: z.string().trim().min(3, "Please enter a subject.").max(160, "That subject is too long."),
   message: z
     .string()
     .trim()
-    .min(20, "Décrivez votre demande en au moins 20 caractères.")
-    .max(2000),
+    .min(20, "Please describe your request in at least 20 characters.")
+    .max(2000, "Please keep the message under 2000 characters."),
   attachmentName: z.string().optional(),
 });
 
@@ -101,7 +102,7 @@ async function submitCompanyTicket(
   });
 
   if (!response.ok) {
-    let detail = `Échec de l'envoi (${response.status}).`;
+    let detail = `Ticket submission failed (${response.status}).`;
     try {
       const body = (await response.json()) as Record<string, unknown>;
       const first = Object.entries(body)[0];
@@ -133,7 +134,7 @@ export function CompanyTicketForm({
   company,
   companyLabel,
   combinedContact = false,
-  submitLabel = "Envoyer le ticket",
+  submitLabel = "Send ticket",
 }: CompanyTicketFormProps) {
   const [values, setValues] = useState<Record<FieldName, string>>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
@@ -171,9 +172,10 @@ export function CompanyTicketForm({
         window.sessionStorage.getItem(throttleKeyRef.current) ?? 0,
       );
       if (last && Date.now() - last < THROTTLE_MS) {
-        const wait = Math.ceil((THROTTLE_MS - (Date.now() - last)) / 1000);
         setStatus("error");
-        setFormError(`Veuillez patienter ${wait} secondes avant d'envoyer un autre ticket.`);
+        setFormError(
+          "You have just sent a ticket. Please wait before sending another.",
+        );
         return;
       }
 
@@ -197,7 +199,7 @@ export function CompanyTicketForm({
 
       const next: Partial<Record<FieldName, string>> = {};
       if (combinedContact && !contactIsEmail && !contactIsPhone) {
-        next.contact = "Veuillez saisir un email ou un numéro de téléphone.";
+        next.contact = "Please enter an email or a phone number.";
       }
       if (!parsed.success) {
         for (const issue of parsed.error.issues) {
@@ -212,7 +214,7 @@ export function CompanyTicketForm({
         firstErrorRef.current =
           (Object.keys(next)[0] as FieldName | undefined) ?? null;
         setStatus("error");
-        setFormError("Veuillez corriger les champs signalés.");
+        setFormError("Please correct the highlighted fields.");
         return;
       }
       if (!parsed.success) return;
@@ -232,7 +234,9 @@ export function CompanyTicketForm({
         setValues(EMPTY);
       } catch {
         setStatus("error");
-        setFormError("Nous n'avons pas pu envoyer votre ticket. Veuillez réessayer ou nous appeler directement.");
+        setFormError(
+          "We could not send your ticket. Please try again, or call us directly.",
+        );
       }
     },
     [status, values, company, combinedContact],
@@ -271,19 +275,19 @@ export function CompanyTicketForm({
           </span>
           <div>
             <h3 className={`${TYPE.h3} text-foreground`}>
-              Votre ticket a bien été enregistré.
+              <SourceText source="Your ticket has been recorded." />
             </h3>
             {ticketNumber ? (
               <p className="mt-2 text-lg font-black text-[hsl(var(--brand-primary))]">
-                Ticket #{ticketNumber}
+                <SourceText source="Ticket" /> #{ticketNumber}
               </p>
             ) : (
               <p className="mt-2 text-sm font-semibold text-[hsl(var(--brand-primary))]">
-                Votre demande a bien été enregistrée.
+                <SourceText source="Your request has been recorded." />
               </p>
             )}
             <p className={`mt-2 max-w-[52ch] ${TYPE.body} text-muted-foreground`}>
-              Notre équipe traite les tickets clients pendant les heures ouvrables et vous répondra à l'email et au numéro fournis.
+              <SourceText source="Our team reviews client tickets during working hours and will reply to the email and phone number you provided. For anything urgent, call us directly." />
             </p>
           </div>
           <button
@@ -291,7 +295,7 @@ export function CompanyTicketForm({
             onClick={() => { setTicketNumber(null); setStatus("idle"); }}
             className={`${RADIUS.pill} ${FOCUS_RING} border border-[hsl(var(--primary)/0.18)] px-4 py-2 text-[0.8125rem] font-semibold text-foreground transition-colors duration-150 hover:border-[hsl(var(--brand-blue-500)/0.5)]`}
           >
-            Envoyer un autre ticket
+            <SourceText source="Send another ticket" />
           </button>
         </div>
       </div>
@@ -327,7 +331,7 @@ export function CompanyTicketForm({
       {/* Company (read-only) */}
       <div className="mb-5 flex items-center gap-3 rounded-xl border border-[hsl(var(--primary)/0.12)] bg-[hsl(var(--primary)/0.04)] px-4 py-3">
         <span className="text-[0.75rem] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-          Entreprise
+          <SourceText source="Company" />
         </span>
         <span className="text-[0.9375rem] font-bold text-foreground">{companyLabel}</span>
       </div>
@@ -335,7 +339,9 @@ export function CompanyTicketForm({
       <div className="grid gap-5 sm:grid-cols-2">
         {/* Nom complet */}
         <div className={fw}>
-          <label htmlFor={id("name")} className={lc}>Nom complet</label>
+          <label htmlFor={id("name")} className={lc}>
+            <SourceText source="Full name" />
+          </label>
           <Input
             id={id("name")}
             name="name"
@@ -344,19 +350,21 @@ export function CompanyTicketForm({
             autoComplete="name"
             aria-invalid={Boolean(errors.name)}
             aria-describedby={err("name")}
-            placeholder="Ahmed Benali"
+            placeholder={String("Ahmed Benali")}
           />
           {errors.name && (
             <p id={`${id("name")}-error`} className={ec}>
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              {errors.name}
+              <SourceText source={errors.name} />
             </p>
           )}
         </div>
 
         {combinedContact ? (
           <div className={fw}>
-            <label htmlFor={id("contact")} className={lc}>Email ou Téléphone</label>
+            <label htmlFor={id("contact")} className={lc}>
+              <SourceText source="Email or phone" />
+            </label>
             <Input
               id={id("contact")}
               name="contact"
@@ -365,19 +373,21 @@ export function CompanyTicketForm({
               autoComplete="email"
               aria-invalid={Boolean(errors.contact)}
               aria-describedby={err("contact")}
-              placeholder="nom@entreprise.ma ou +212 6 00 00 00 00"
+              placeholder={sourceText("name@company.ma or +212 6 00 00 00 00")}
             />
             {errors.contact && (
               <p id={`${id("contact")}-error`} className={ec}>
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                {errors.contact}
+                <SourceText source={errors.contact} />
               </p>
             )}
           </div>
         ) : (
           <>
             <div className={fw}>
-              <label htmlFor={id("email")} className={lc}>Email</label>
+              <label htmlFor={id("email")} className={lc}>
+                <SourceText source="Email" />
+              </label>
               <Input
                 id={id("email")}
                 name="email"
@@ -393,12 +403,14 @@ export function CompanyTicketForm({
               {errors.email && (
                 <p id={`${id("email")}-error`} className={ec}>
                   <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  {errors.email}
+                  <SourceText source={errors.email} />
                 </p>
               )}
             </div>
             <div className={fw}>
-              <label htmlFor={id("phone")} className={lc}>Téléphone</label>
+              <label htmlFor={id("phone")} className={lc}>
+                <SourceText source="Phone number" />
+              </label>
               <Input
                 id={id("phone")}
                 name="phone"
@@ -414,7 +426,7 @@ export function CompanyTicketForm({
               {errors.phone && (
                 <p id={`${id("phone")}-error`} className={ec}>
                   <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  {errors.phone}
+                  <SourceText source={errors.phone} />
                 </p>
               )}
             </div>
@@ -423,7 +435,9 @@ export function CompanyTicketForm({
 
         {/* Sujet */}
         <div className={fw}>
-          <label htmlFor={id("subject")} className={lc}>Sujet</label>
+          <label htmlFor={id("subject")} className={lc}>
+            <SourceText source="Subject" />
+          </label>
           <Input
             id={id("subject")}
             name="subject"
@@ -431,19 +445,21 @@ export function CompanyTicketForm({
             onChange={(e) => setField("subject", e.target.value)}
             aria-invalid={Boolean(errors.subject)}
             aria-describedby={err("subject")}
-            placeholder="Objet de votre demande"
+            placeholder={sourceText("Subject of your request")}
           />
           {errors.subject && (
             <p id={`${id("subject")}-error`} className={ec}>
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              {errors.subject}
+              <SourceText source={errors.subject} />
             </p>
           )}
         </div>
 
         {/* Message */}
         <div className={`${fw} sm:col-span-2`}>
-          <label htmlFor={id("message")} className={lc}>Message</label>
+          <label htmlFor={id("message")} className={lc}>
+            <SourceText source="Message" />
+          </label>
           <Textarea
             id={id("message")}
             name="message"
@@ -452,13 +468,15 @@ export function CompanyTicketForm({
             onChange={(e) => setField("message", e.target.value)}
             aria-invalid={Boolean(errors.message)}
             aria-describedby={err("message")}
-            placeholder="Décrivez votre demande, le site concerné et vos délais éventuels."
+            placeholder={sourceText(
+              "Tell us which service you need, the site or city concerned, and any deadline you are working to.",
+            )}
           />
           <div className="flex items-start justify-between gap-4">
             {errors.message ? (
               <p id={`${id("message")}-error`} className={ec}>
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                {errors.message}
+                <SourceText source={errors.message} />
               </p>
             ) : <span />}
             <span className="shrink-0 text-[0.75rem] tabular-nums text-muted-foreground" aria-hidden="true">
@@ -469,7 +487,9 @@ export function CompanyTicketForm({
 
         {/* Pièce jointe */}
         <div className={`${fw} sm:col-span-2`}>
-          <label htmlFor={id("attachmentName")} className={lc}>Pièce jointe (optionnel)</label>
+          <label htmlFor={id("attachmentName")} className={lc}>
+            <SourceText source="Attachment (optional)" />
+          </label>
           <Input
             id={id("attachmentName")}
             name="attachment"
@@ -477,7 +497,7 @@ export function CompanyTicketForm({
             onChange={(e) => setField("attachmentName", e.target.files?.[0]?.name ?? "")}
           />
           <p className="text-[0.75rem] text-muted-foreground">
-            Le nom du fichier est transmis avec votre message.
+            <SourceText source="The file name is sent with your message." />
           </p>
         </div>
       </div>
@@ -486,7 +506,7 @@ export function CompanyTicketForm({
         {formError && (
           <p className={`mt-4 ${ec}`}>
             <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            {formError}
+            <SourceText source={formError} />
           </p>
         )}
       </div>
@@ -501,19 +521,19 @@ export function CompanyTicketForm({
           {status === "submitting" ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              Envoi en cours…
+              <SourceText source="Sending" />
             </>
           ) : (
             <>
               <Send className="h-4 w-4" aria-hidden="true" />
-              {submitLabel}
+              <SourceText source={submitLabel} />
             </>
           )}
         </MagneticButton>
 
         <p className="flex items-center gap-2 text-[0.8125rem] text-muted-foreground">
           <Check className="h-3.5 w-3.5 text-[hsl(var(--success))]" aria-hidden="true" />
-          Vos données sont utilisées uniquement pour répondre à votre demande.
+          <SourceText source="Your details are used only to answer your request." />
         </p>
       </div>
     </form>

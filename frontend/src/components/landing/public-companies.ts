@@ -29,44 +29,44 @@ export const PUBLIC_COMPANIES: readonly PublicCompany[] = [
     description:
       "3RB Extreme propose des services de nettoyage professionnel pour les entreprises et les particuliers. Nos équipes qualifiées et expérimentées assurent le nettoyage de bureaux, de commerces, d’immeubles, de chantiers et bien d’autres espaces. Nous utilisons des produits respectueux de l’environnement et sommes à l’écoute de nos clients pour répondre à leurs besoins spécifiques. En ce qui concerne la désinfection, notre entreprise dispose de toutes les compétences et des équipements nécessaires pour éliminer les bactéries, les virus et autres agents pathogènes de votre environnement. Notre service de gestion personnelle technique propose des solutions pour l’entretien et la maintenance de vos équipements. Enfin, nous proposons également des services d’évènementiels pour l’organisation et la gestion d’évènements privés ou professionnels.",
     services: [
-      "Nettoyage professionnel",
-      "Désinfection",
-      "Gestion Personnelle Technique",
-      "Évènementiels",
-      "Nettoyage de bureaux",
-      "Nettoyage de commerces",
-      "Nettoyage immeubles",
-      "Nettoyage des chantiers",
+      "Professional cleaning",
+      "Disinfection",
+      "Technical personnel management",
+      "Events",
+      "Office cleaning",
+      "Retail cleaning",
+      "Building cleaning",
+      "Construction site cleaning",
     ],
     heroImage: "/images/companies/3rb-extreme/hero.jpg",
     gallery: [
       {
         src: "/images/companies/3rb-extreme/gallery-01.jpg",
-        alt: "Nettoyage de bureaux",
+        alt: "Office cleaning",
       },
       {
         src: "/images/companies/3rb-extreme/gallery-02.png",
-        alt: "Nettoyage de commerces",
+        alt: "Retail cleaning",
       },
       {
         src: "/images/companies/3rb-extreme/gallery-03.jpg",
-        alt: "Nettoyage d’immeubles",
+        alt: "Building cleaning",
       },
       {
         src: "/images/companies/3rb-extreme/gallery-04.jpg",
-        alt: "Nettoyage des chantiers",
+        alt: "Construction site cleaning",
       },
       {
         src: "/images/companies/3rb-extreme/gallery-05.jpg",
-        alt: "Lavage des véhicules",
+        alt: "Vehicle washing",
       },
       {
         src: "/images/companies/3rb-extreme/gallery-06.jpg",
-        alt: "Nettoyage d’espaces",
+        alt: "Space cleaning",
       },
       {
         src: "/images/companies/3rb-extreme/gallery-07.jpg",
-        alt: "Équipes 3.R.B Extrême",
+        alt: "3.R.B Extreme teams",
       },
     ],
   },
@@ -79,33 +79,33 @@ export const PUBLIC_COMPANIES: readonly PublicCompany[] = [
     description:
       "3.R.B Maroc spécialisée dans le domaine de gardiennage propose des services de sécurité pour les entreprises et les particuliers. Nous sommes en mesure de répondre à tous vos besoins de sécurité, que ce soit pour la protection de votre entreprise, de votre résidence, ou lors d’événements spéciaux. Nos agents de sécurité sont formés et qualifiés pour assurer la protection de vos biens et de vos personnes. Nous proposons des services de surveillance et de patrouille, de contrôle d’accès, et de sécurité événementielle.",
     services: [
-      "Protection des entreprises",
-      "Protection des résidences",
-      "Protection des événements spéciaux",
-      "Surveillance et patrouille",
-      "Contrôle d’accès",
+      "Enterprise protection",
+      "Residence protection",
+      "Special event protection",
+      "Surveillance and patrol",
+      "Access control",
     ],
     heroImage: "/images/companies/3rb-maroc/hero.jpg",
     gallery: [
       {
         src: "/images/companies/3rb-maroc/gallery-01.jpg",
-        alt: "Protection des entreprises",
+        alt: "Enterprise protection",
       },
       {
         src: "/images/companies/3rb-maroc/gallery-02.jpg",
-        alt: "Protection des résidences",
+        alt: "Residence protection",
       },
       {
         src: "/images/companies/3rb-maroc/gallery-03.jpg",
-        alt: "Protection des événements spéciaux",
+        alt: "Special event protection",
       },
       {
         src: "/images/companies/3rb-maroc/gallery-04.jpg",
-        alt: "Agents de sécurité 3.R.B Maroc",
+        alt: "Security agents of 3.R.B Maroc",
       },
       {
         src: "/images/companies/3rb-maroc/gallery-05.jpg",
-        alt: "Gardiennage",
+        alt: "Guarding",
       },
       {
         src: "/images/companies/3rb-maroc/gallery-06.jpg",
@@ -122,15 +122,15 @@ export const PUBLIC_COMPANIES: readonly PublicCompany[] = [
     description:
       "EL RHRIB CASH est une entreprise spécialisée dans le transfert d’argent, les services de facilitation de facturation et la messagerie. Nous sommes passionnés par notre métier et nous nous efforçons constamment de fournir les meilleurs services possibles à nos clients. Notre entreprise propose des solutions innovantes pour les transferts d’argent à travers le monde, en partenariat avec des institutions financières et des opérateurs de téléphonie mobile. Nous offrons également des services de facilitation de facturation pour les entreprises et les particuliers, ainsi que des services de messagerie.",
     services: [
-      "Transfert d'argent",
-      "Facilitation de facturation",
-      "Messagerie",
+      "Money transfer",
+      "Billing facilitation",
+      "Courier service",
     ],
     heroImage: "/images/companies/el-rhrib-cash/hero.jpg",
     gallery: [
       {
         src: "/images/companies/el-rhrib-cash/gallery-01.jpg",
-        alt: "EL RHRIB CASH — transfert d’argent et messagerie",
+        alt: "EL RHRIB CASH — money transfer and courier",
       },
     ],
   },

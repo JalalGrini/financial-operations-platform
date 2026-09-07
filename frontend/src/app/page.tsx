@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { SourceText } from "@/components/i18n/SourceText";
+import { sourceText } from "@/lib/i18n/source-catalog";
 import { LandingExperienceControls } from "@/components/product/LandingExperienceControls";
 import { ThemeSwitch } from "@/components/ui/theme-switch-button";
 import { BlurFade } from "@/components/ui/blur-fade";
@@ -144,12 +145,12 @@ export default function HomePage() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
+        <nav className="hidden items-center gap-1 lg:flex" aria-label={sourceText("Main navigation")}>
           <a href="/#hero" className={navLinkClass}>
-            Home
+            <SourceText source="Home" />
           </a>
           <a href="/#services" className={navLinkClass}>
-            Services
+            <SourceText source="Services" />
           </a>
           <details className="group relative">
             <summary
@@ -171,10 +172,10 @@ export default function HomePage() {
             </div>
           </details>
           <a href="/#realisations" className={navLinkClass}>
-            Réalisations
+            <SourceText source="Work" />
           </a>
           <a href="/#contact" className={navLinkClass}>
-            Contact
+            <SourceText source="Contact" />
           </a>
         </nav>
 
@@ -186,7 +187,7 @@ export default function HomePage() {
             className="landing-cta-button inline-flex h-10 items-center gap-2 rounded-full bg-[hsl(var(--primary))] px-4 text-[0.875rem] font-bold text-primary-foreground transition-transform duration-150 hover:scale-[1.02]"
           >
             <Lock className="h-3.5 w-3.5" aria-hidden="true" />
-            Espace client
+            <SourceText source="Client space" />
           </Link>
         </div>
       </TopBar>
@@ -333,12 +334,12 @@ export default function HomePage() {
                   <SourceText source="Already working with us?" />
                 </h2>
                 <p className="mt-2 text-[0.9375rem] text-muted-foreground">
-                  <SourceText source="Connectez-vous à l’espace client pour suivre vos sites et vos demandes." />
+                  <SourceText source="Sign in to the client space to follow your sites and your requests." />
                 </p>
               </div>
               <MagneticLink href="/login" variant="primary" size="lg">
                 <Lock className="h-4 w-4" aria-hidden="true" />
-                <SourceText source="Espace client" />
+                <SourceText source="Client space" />
                 <ArrowRight className="h-4 w-4 rtl:rotate-180" />
               </MagneticLink>
             </div>
@@ -365,7 +366,7 @@ export default function HomePage() {
                 <SourceText source="Tell us what you need. A director will answer." />
               </h2>
               <p className={`mt-4 ${HEADER_BLOCK.lead}`}>
-                <SourceText source="Écrivez-nous et un directeur vous répondra. Pour toute urgence, nos lignes restent ouvertes." />
+                <SourceText source="Write to us and a director will reply. For anything urgent, our lines stay open." />
               </p>
 
               <div className="mt-10">

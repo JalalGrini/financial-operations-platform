@@ -19,15 +19,15 @@ export const PUBLIC_COMPANY_CARDS: readonly PublicCompanyCard[] = [
     slug: "3rb-extreme",
     apiKey: "3rb_extreme",
     name: "3.R.B Extreme",
-    role: "Guarding, cleaning and disinfection",
-    body: "The operational core of the group: trained security agents, cleaning teams and certified disinfection, deployed across enterprises, residences, retail premises and construction sites.",
+    role: "Cleaning, disinfection, technical staffing and events",
+    body: "Professional cleaning for businesses and individuals, certified disinfection, technical maintenance, and the organisation of private or professional events.",
   },
   {
     slug: "3rb-maroc",
     apiKey: "3rb_maroc",
     name: "3.R.B Maroc",
-    role: "Technical personnel, gardening and events",
-    body: "Technical staffing under our own payroll and CNSS declarations, plus landscaping and full event organisation including catering, receptions and coffee breaks.",
+    role: "Guarding and security",
+    body: "3.R.B Maroc specialises in guarding and provides security for companies and individuals: businesses, residences and special events. Trained agents handle surveillance, patrols, access control and event security.",
   },
   {
     slug: "el-rhrib-cash",
@@ -39,7 +39,7 @@ export const PUBLIC_COMPANY_CARDS: readonly PublicCompanyCard[] = [
 ];
 
 export const GROUP_INTRO_SOURCE =
-  "Founded in 2014, Groupe 3.R.B Extreme brings three service companies under a single standard: satisfying our clients through the quality of our services, and assuring them through devotion to our craft.";
+  "Founded in 2014, Groupe 3.R.B brings three service companies under a single standard: satisfying our clients through the quality of our services, and assuring them through devotion to our craft.";
 
 export function publicCompanyHref(slug: string): string {
   return `/${slug}`;

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Lock } from "lucide-react";
 import { SourceText } from "@/components/i18n/SourceText";
+import { sourceText } from "@/lib/i18n/source-catalog";
 import { LandingExperienceControls } from "@/components/product/LandingExperienceControls";
 import { ThemeSwitch } from "@/components/ui/theme-switch-button";
 import { TopBar } from "@/components/landing/TopBar";
@@ -34,7 +35,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
+        <nav className="hidden items-center gap-1 lg:flex" aria-label={sourceText("Main navigation")}>
           <a href="/#hero" className={navLinkClass}>
             <SourceText source="Home" />
           </a>
@@ -73,7 +74,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
             className="landing-cta-button inline-flex h-10 items-center gap-2 rounded-full bg-[hsl(var(--primary))] px-4 text-[0.875rem] font-bold text-primary-foreground transition-transform duration-150 hover:scale-[1.02]"
           >
             <Lock className="h-3.5 w-3.5" aria-hidden="true" />
-            <SourceText source="Espace client" />
+            <SourceText source="Client space" />
           </Link>
         </div>
       </TopBar>

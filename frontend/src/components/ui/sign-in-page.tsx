@@ -70,15 +70,15 @@ const loginSchema = z.object({
 const FEATURES = [
   {
     Icon: ShieldCheck,
-    text: "Accès sécurisé aux opérations du groupe",
+    text: "Secure access to group operations",
   },
   {
     Icon: Database,
-    text: "Personnel, paie, CNSS et trésorerie unifiés",
+    text: "Personnel, payroll, CNSS and treasury in one place",
   },
   {
     Icon: Gauge,
-    text: "Suivi en temps réel des dossiers et tickets",
+    text: "Live tracking of records and tickets",
   },
 ] as const;
 
@@ -329,14 +329,14 @@ export function LoginPage() {
                   className="mt-1 text-[0.8125rem] font-semibold uppercase tracking-[0.18em]"
                   style={{ color: "rgba(255,255,255,0.65)" }}
                 >
-                  Services &amp; Opérations
+                  <SourceText source="Services and operations" />
                 </p>
                 {/* Separator dots */}
                 <p
                   className="mt-1 text-[0.75rem]"
                   style={{ color: "rgba(255,255,255,0.40)" }}
                 >
-                  Maroc &middot; Depuis 2014
+                  <SourceText source="Morocco · Since 2014" />
                 </p>
               </div>
             </motion.div>
@@ -416,7 +416,7 @@ export function LoginPage() {
                   className="text-sm font-semibold"
                   style={{ color: "rgba(255,255,255,0.88)" }}
                 >
-                  {text}
+                  <SourceText source={text} />
                 </p>
               </motion.div>
             ))}
@@ -434,7 +434,7 @@ export function LoginPage() {
               className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <ArrowLeft className="size-4" aria-hidden="true" />
-              Accueil
+              <SourceText source="Home" />
             </Link>
             <div className="flex items-center gap-2">
               <button
@@ -443,7 +443,7 @@ export function LoginPage() {
                 className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <LifeBuoy className="size-3.5" />
-                Aide
+                <SourceText source="Help" />
               </button>
               <LandingExperienceControls />
               <ThemeSwitch />
@@ -469,10 +469,10 @@ export function LoginPage() {
                   }}
                 />
                 <h2 className="text-[1.75rem] font-black tracking-[-0.04em] text-foreground">
-                  Bienvenue
+                  <SourceText source="Welcome" />
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Connectez-vous à votre espace EFOP
+                  <SourceText source="Sign in to your operations workspace" />
                 </p>
               </motion.div>
 
@@ -487,7 +487,7 @@ export function LoginPage() {
                   className="space-y-2"
                 >
                   <Label htmlFor="email" className="text-[0.8125rem] font-semibold">
-                    Email
+                    <SourceText source="Email" />
                   </Label>
                   <GradientBorderInput
                     id="email"
@@ -507,7 +507,7 @@ export function LoginPage() {
                   className="space-y-2"
                 >
                   <Label htmlFor="password" className="text-[0.8125rem] font-semibold">
-                    Mot de passe
+                    <SourceText source="Password" />
                   </Label>
                   <GradientBorderInput
                     id="password"
@@ -562,7 +562,7 @@ export function LoginPage() {
                     type="checkbox"
                     className="size-4 rounded border-input accent-[hsl(var(--primary))]"
                   />
-                  Se souvenir de moi
+                  <SourceText source="Remember me" />
                 </motion.label>
 
                 {/* Submit */}
@@ -597,7 +597,7 @@ export function LoginPage() {
                       href="/forgot-password"
                       className="text-sm font-semibold text-primary hover:underline"
                     >
-                      Mot de passe oublié ?
+                      <SourceText source="Forgot password?" />
                     </Link>
                   </div>
                 </motion.div>
@@ -610,7 +610,7 @@ export function LoginPage() {
                 transition={{ delay: 0.5 }}
                 className="mt-10 text-center text-[0.75rem] text-muted-foreground/60"
               >
-                Groupe 3.R.B &mdash; Plateforme opérationnelle interne
+                <SourceText source="Groupe 3.R.B — Internal operations platform" />
               </motion.p>
             </div>
           </div>
