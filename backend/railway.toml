@@ -1,0 +1,28 @@
+# Railway config for the Django API.
+#
+# Dashboard (required): Service → Settings → Root Directory = backend
+# Optional watch paths (repo-root relative): backend/**
+#
+# Do not put a second railway.toml at the monorepo root — that would confuse a
+# later frontend service. This file is the backend service source of truth.
+#
+# Env vars are NOT stored here (no secrets). Set them in the Railway dashboard.
+# Production settings refuse to boot without:
+#   DJANGO_SECRET_KEY (>= 50 chars, no placeholder)
+#   DJANGO_DEBUG=False
+#   REDIS_URL
+#   USE_S3_STORAGE=True plus R2_* credentials
+# Postgres: Railway's plugin injects DATABASE_URL (preferred). POSTGRES_* still
+# works for docker-compose / manual hosts.
+
+[build]
+builder = "RAILPACK"
+
+[deploy]
+# wsgi.py already defaults DJANGO_SETTINGS_MODULE to config.settings.production
+startCommand = "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+releaseCommand = "python manage.py migrate --noinput && python manage.py collectstatic --noinput"
+healthcheckPath = "/api/v1/health/"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

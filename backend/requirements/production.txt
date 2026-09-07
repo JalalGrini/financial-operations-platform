@@ -8,3 +8,9 @@
 
 # Production WSGI/ASGI Server
 gunicorn==23.0.0
+
+# Serve STATIC_ROOT on Railway (no nginx in front of gunicorn).
+whitenoise==6.9.0
+
+# Object storage is mandatory in production settings (USE_S3_STORAGE=True).
+-r storage-r2.txt

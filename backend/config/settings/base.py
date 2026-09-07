@@ -115,20 +115,32 @@ ASGI_APPLICATION = "config.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB"),
-        "USER": env("POSTGRES_USER"),
-        "PASSWORD": env("POSTGRES_PASSWORD"),
-        "HOST": env("POSTGRES_HOST"),
-        "PORT": env("POSTGRES_PORT"),
-        "CONN_MAX_AGE": env.int("POSTGRES_CONN_MAX_AGE", default=60),
-        "OPTIONS": {
-            "connect_timeout": 10,
-        },
+#
+# Railway's Postgres plugin injects DATABASE_URL (postgresql://...). When that
+# is set, it wins. Local docker-compose and existing .env files keep using
+# POSTGRES_*. Do not require both.
+_database_url = env("DATABASE_URL", default="")
+if _database_url:
+    DATABASES = {"default": env.db("DATABASE_URL")}
+    DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql"
+    DATABASES["default"]["CONN_MAX_AGE"] = env.int("POSTGRES_CONN_MAX_AGE", default=60)
+    DATABASES["default"].setdefault("OPTIONS", {})
+    DATABASES["default"]["OPTIONS"].setdefault("connect_timeout", 10)
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("POSTGRES_DB"),
+            "USER": env("POSTGRES_USER"),
+            "PASSWORD": env("POSTGRES_PASSWORD"),
+            "HOST": env("POSTGRES_HOST"),
+            "PORT": env("POSTGRES_PORT"),
+            "CONN_MAX_AGE": env.int("POSTGRES_CONN_MAX_AGE", default=60),
+            "OPTIONS": {
+                "connect_timeout": 10,
+            },
+        }
     }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

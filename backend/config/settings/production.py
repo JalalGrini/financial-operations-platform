@@ -61,8 +61,16 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")  # noqa: F405
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")  # noqa: F405
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@example.com")  # noqa: F405
 
-# Static files served by nginx in production
+# Static files: nginx in a VM deploy; WhiteNoise on Railway (no nginx).
 # STATIC_ROOT is already set in base.py
+if "whitenoise.middleware.WhiteNoiseMiddleware" not in MIDDLEWARE:  # noqa: F405
+    _security_idx = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")  # noqa: F405
+    MIDDLEWARE.insert(  # noqa: F405
+        _security_idx + 1, "whitenoise.middleware.WhiteNoiseMiddleware"
+    )
+STORAGES["staticfiles"] = {  # noqa: F405
+    "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+}
 
 # ---------------------------------------------------------------------------
 # Startup safety assertions (audit finding M-4)

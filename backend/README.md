@@ -12,7 +12,8 @@
 
 2. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements/development.txt  # local + tests
+   # pip install -r requirements.txt            # production (gunicorn, WhiteNoise, R2)
    ```
 
 3. Copy environment example and configure:
@@ -53,6 +54,10 @@
 - Make migrations: `python manage.py makemigrations`
 - Apply migrations: `python manage.py migrate`
 - Check Django config: `python manage.py check`
+
+## Railway
+
+Set the service **Root Directory** to `backend` (Service → Settings). That is what makes Railpack detect Python (`manage.py`, `requirements.txt`, `pyproject.toml`). Start and release commands are in `railway.toml`. Required env vars are listed in `.env.example`; production settings refuse to boot without a 50+ character `DJANGO_SECRET_KEY`, `REDIS_URL`, `USE_S3_STORAGE=True` plus R2 credentials, and `DJANGO_DEBUG=False`. Railway Postgres provides `DATABASE_URL` (supported). Do not commit `.env`.
 
 ## Project Structure
 
