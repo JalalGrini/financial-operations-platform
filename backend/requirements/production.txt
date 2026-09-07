@@ -1,0 +1,10 @@
+# Production Requirements
+# Supported Python: >=3.13,<3.15 (3.14 preferred for production)
+# Generated: 2026-07-14
+# Rule: Do not upgrade major versions without explicit approval and compatibility verification.
+
+# Base requirements
+-r base.txt
+
+# Production WSGI/ASGI Server
+gunicorn==23.0.0

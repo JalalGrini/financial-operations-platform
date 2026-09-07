@@ -1,0 +1,1649 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        color-scheme: light;
+
+        /* Brand */
+        --brand-primary: 224 71% 36%;        /* Deep navy blue #1A3A7C */
+        --brand-accent: 175 70% 38%;         /* Teal #1B9B8A */
+        --brand-gold: 38 85% 52%;            /* Warm gold #E8970F */
+
+        /* Backgrounds */
+        --background: 220 25% 97%;           /* Warm off-white #F4F6FB */
+        --foreground: 222 47% 11%;           /* Near-black #0F1829 */
+        --card: 0 0% 100%;
+        --card-foreground: 222 47% 11%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222 47% 11%;
+
+        /* ── Brand primary (navy) ───────────────────────────────── */
+        --primary: 224 71% 36%;
+        --primary-foreground: 0 0% 100%;
+        --ring: 224 71% 36%;
+
+        /* ── Secondary / muted ──────────────────────────────────── */
+        --secondary: 175 70% 38%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 220 20% 94%;
+        --muted-foreground: 215 25% 48%;
+
+        /* ── Gold accent ────────────────────────────────────────── */
+        --accent: 38 85% 52%;
+        --accent-foreground: 222 47% 11%;
+
+        /* ── Destructive ────────────────────────────────────────── */
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 0 0% 100%;
+
+        /* ── Borders & inputs ───────────────────────────────────── */
+        --border: 220 20% 88%;
+        --input: 220 20% 88%;
+
+        /* ── Semantic status ────────────────────────────────────── */
+        --success: 145 60% 36%;
+        --success-foreground: 0 0% 100%;
+        --success-surface: 152 60% 93%;
+        --success-border: 152 50% 80%;
+        --warning: 38 95% 48%;
+        --warning-foreground: 0 0% 100%;
+        --warning-surface: 40 80% 93%;
+        --warning-border: 40 70% 80%;
+        --danger: 356 72% 44%;
+        --danger-foreground: 0 0% 100%;
+        --danger-surface: 356 70% 94%;
+        --danger-border: 356 55% 82%;
+        --info: 226 41% 38%;
+        --info-foreground: 0 0% 100%;
+        --info-surface: 226 50% 93%;
+        --info-border: 226 45% 80%;
+
+        /* ── 3RB Orange warm accent  (#F08214) ──────────────────── */
+        /* Measured off public/brand/3rb-logo-icon.png by
+         * scripts/sample-logo-colors.js. The previous value (33 78% 48%,
+         * #D9821B) was an approximation; the logo's actual orange is
+         * hsl(30 88% 51%) = #F08214. */
+        --brand-warm: 30 88% 51%;         /* #F08214 — 3RB orange, measured */
+        --brand-surface: 226 44% 94%;
+
+        /* ── 3RB brand ramps, sampled from the logo ─────────────── */
+        /* The logo is a vivid azure, NOT the indigo used for --primary.
+         * These ramps exist so the public landing page can use the real
+         * brand identity without restyling all 63 app screens, which
+         * changing --primary would do. Consume as hsl(var(--token)). */
+        --brand-blue: 197 100% 41%;       /* #0096D2 — logo core blue */
+        --brand-blue-50: 197 100% 96%;
+        --brand-blue-100: 197 100% 90%;
+        --brand-blue-200: 197 95% 80%;
+        --brand-blue-300: 197 95% 66%;
+        --brand-blue-400: 197 100% 52%;
+        --brand-blue-500: 197 100% 41%;   /* #0096D2 */
+        --brand-blue-600: 201 100% 37%;   /* #0078BE */
+        --brand-blue-700: 204 100% 29%;   /* #005A96 */
+        --brand-blue-800: 206 100% 24%;
+        --brand-blue-900: 206 100% 17%;
+
+        --brand-orange: 30 88% 51%;       /* #F08214 — logo core orange */
+        --brand-orange-50: 30 80% 96%;
+        --brand-orange-100: 30 80% 90%;   /* #FAE6D2, logo cream */
+        --brand-orange-200: 30 67% 82%;   /* #F0D2B4 */
+        --brand-orange-300: 30 85% 71%;
+        --brand-orange-400: 30 90% 61%;
+        --brand-orange-500: 30 88% 51%;   /* #F08214 */
+        --brand-orange-600: 27 85% 44%;
+        --brand-orange-700: 24 82% 36%;
+        --brand-orange-800: 22 78% 29%;
+        --brand-orange-900: 20 75% 21%;
+
+        /* ── Layout & sidebar ───────────────────────────────────── */
+        --radius: 0.625rem;
+        --sidebar: 0 0% 99%;              /* near-white sidebar */
+        --sidebar-active: 226 48% 92%;    /* indigo-tinted active bg */
+        --surface-raised: 0 0% 100%;
+        --divider: 220 18% 91%;
+
+        /* ── Motion ─────────────────────────────────────────────── */
+        --sidebar-transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease;
+    }
+    .dark {
+        color-scheme: dark;
+
+        /* ── Neutral canvas ─────────────────────────────────────── */
+        --background: 222 47% 7%;         /* Very dark navy #0B0F1A */
+        --foreground: 210 30% 94%;
+        --card: 222 40% 10%;
+        --card-foreground: 210 30% 94%;
+        --popover: 222 40% 12%;
+        --popover-foreground: 210 30% 94%;
+
+        /* ── Brand primary (brighter navy in dark) ──────────────── */
+        --primary: 224 80% 60%;
+        --primary-foreground: 0 0% 100%;
+        --ring: 224 80% 60%;
+
+        /* ── Secondary / muted ──────────────────────────────────── */
+        --secondary: 175 65% 48%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 222 35% 14%;
+        --muted-foreground: 215 20% 55%;
+
+        /* ── Accent ─────────────────────────────────────────────── */
+        --accent: 38 85% 52%;
+        --accent-foreground: 222 47% 11%;
+
+        /* ── Destructive ────────────────────────────────────────── */
+        --destructive: 356 50% 48%;
+        --destructive-foreground: 0 0% 100%;
+
+        /* ── Borders & inputs ───────────────────────────────────── */
+        --border: 222 30% 18%;
+        --input: 222 30% 22%;
+
+        /* ── Semantic status ────────────────────────────────────── */
+        --success: 154 54% 45%;
+        --success-foreground: 226 28% 8%;
+        --success-surface: 154 45% 14%;
+        --success-border: 154 45% 24%;
+        --warning: 40 78% 55%;
+        --warning-foreground: 226 28% 8%;
+        --warning-surface: 40 60% 14%;
+        --warning-border: 40 60% 26%;
+        --danger: 356 65% 60%;
+        --danger-foreground: 226 28% 8%;
+        --danger-surface: 356 48% 14%;
+        --danger-border: 356 42% 26%;
+        --info: 234 38% 55%;
+        --info-foreground: 0 0% 100%;
+        --info-surface: 226 32% 18%;
+        --info-border: 226 32% 28%;
+
+        /* ── 3RB Orange ─────────────────────────────────────────── */
+        --brand-warm: 30 85% 58%;         /* logo orange, lifted for dark */
+        --brand-surface: 226 30% 17%;
+
+        /* ── 3RB brand ramps (dark) ─────────────────────────────── */
+        /* Same hues, rebalanced lightness: on a near-black canvas the deep
+         * end of a ramp disappears, so the mid/high steps carry the identity
+         * and the dark steps become surfaces rather than ink. */
+        --brand-blue: 197 95% 55%;
+        --brand-blue-50: 206 100% 12%;
+        --brand-blue-100: 206 100% 16%;
+        --brand-blue-200: 204 95% 22%;
+        --brand-blue-300: 201 90% 32%;
+        --brand-blue-400: 199 92% 44%;
+        --brand-blue-500: 197 95% 55%;
+        --brand-blue-600: 197 100% 65%;
+        --brand-blue-700: 197 100% 75%;
+        --brand-blue-800: 197 100% 85%;
+        --brand-blue-900: 197 100% 93%;
+
+        --brand-orange: 30 90% 60%;
+        --brand-orange-50: 22 70% 12%;
+        --brand-orange-100: 22 72% 17%;
+        --brand-orange-200: 24 76% 24%;
+        --brand-orange-300: 27 80% 36%;
+        --brand-orange-400: 29 86% 48%;
+        --brand-orange-500: 30 90% 60%;
+        --brand-orange-600: 31 92% 68%;
+        --brand-orange-700: 32 94% 77%;
+        --brand-orange-800: 32 95% 86%;
+        --brand-orange-900: 33 96% 93%;
+
+        /* ── Layout & sidebar ───────────────────────────────────── */
+        --sidebar: 226 30% 9%;            /* #0F1521 — deep sidebar */
+        --sidebar-active: 226 36% 20%;    /* indigo-tinted active */
+        --surface-raised: 226 28% 14%;
+        --divider: 226 24% 18%;
+    }
+    * {
+        @apply border-border;
+    }
+    html {
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+    }
+    body {
+        @apply bg-background text-foreground antialiased;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        /* Subtle indigo whisper — never distracting */
+        background-image:
+            radial-gradient(ellipse 60% 40% at 0% 0%, hsl(var(--primary) / 0.06), transparent),
+            radial-gradient(ellipse 40% 30% at 100% 100%, hsl(var(--brand-warm) / 0.04), transparent);
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+        -webkit-font-smoothing: antialiased;
+    }
+    h1,
+    h2,
+    h3 {
+        text-wrap: balance;
+    }
+    button,
+    a,
+    input,
+    select,
+    textarea {
+        -webkit-tap-highlight-color: transparent;
+    }
+    *:focus-visible {
+        @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    }
+    ::selection {
+        background: hsl(var(--primary) / 0.18);
+        color: hsl(var(--foreground));
+    }
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: hsl(var(--border));
+        border-radius: 999px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: hsl(var(--muted-foreground) / 0.45);
+        background-clip: content-box;
+    }
+}
+
+@layer components {
+    .gradient-primary {
+        background: linear-gradient(135deg, hsl(224, 71%, 36%) 0%, hsl(240, 60%, 45%) 100%);
+    }
+    .gradient-accent {
+        background: linear-gradient(135deg, hsl(175, 70%, 38%) 0%, hsl(195, 65%, 42%) 100%);
+    }
+    .gradient-card {
+        background: linear-gradient(145deg, hsl(220, 25%, 98%) 0%, hsl(220, 30%, 95%) 100%);
+    }
+    .dark .gradient-card {
+        background: linear-gradient(145deg, hsl(222, 40%, 11%) 0%, hsl(222, 35%, 9%) 100%);
+    }
+    .gradient-mesh {
+        background-color: hsl(224, 71%, 36%);
+        background-image:
+            radial-gradient(at 40% 20%, hsl(224, 80%, 45%) 0px, transparent 50%),
+            radial-gradient(at 80% 0%, hsl(175, 70%, 38%) 0px, transparent 50%),
+            radial-gradient(at 0% 50%, hsl(240, 60%, 30%) 0px, transparent 50%),
+            radial-gradient(at 80% 50%, hsl(195, 65%, 35%) 0px, transparent 50%),
+            radial-gradient(at 0% 100%, hsl(224, 71%, 25%) 0px, transparent 50%);
+        background-size: 180% 180%;
+        animation: mesh-cycle 20s ease-in-out infinite;
+    }
+    .tabular {
+        font-variant-numeric: tabular-nums;
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+    }
+    .efop-workspace {
+        @apply mx-auto w-full max-w-[1600px] space-y-6;
+    }
+    .efop-panel {
+        @apply rounded-2xl border bg-card shadow-[0_12px_34px_rgba(15,23,42,.06)];
+    }
+    .efop-panel-interactive {
+        @apply efop-panel transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_18px_36px_rgba(24,32,63,.10)];
+    }
+    .efop-kicker {
+        @apply text-[11px] font-semibold uppercase tracking-[.14em] text-muted-foreground;
+    }
+    .efop-financial {
+        @apply tabular-nums font-semibold tracking-[-.015em];
+    }
+    .btn-primary {
+        @apply inline-flex min-h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 active:scale-[.98];
+    }
+    .efop-table-region {
+        @apply overflow-hidden rounded-2xl border bg-card shadow-[0_10px_30px_rgba(15,23,42,.05)];
+    }
+    .efop-table-region table {
+        @apply w-full text-sm;
+    }
+    .efop-table-region thead {
+        @apply sticky top-0 z-10 bg-background/92 backdrop-blur;
+    }
+    .efop-table-region th {
+        @apply h-11 whitespace-nowrap px-4 text-start text-xs font-semibold uppercase tracking-[.06em] text-muted-foreground;
+    }
+    .efop-table-region td {
+        @apply border-t border-[hsl(var(--divider))] px-4 py-3 align-middle;
+    }
+    .efop-table-region tbody tr {
+        @apply transition-colors hover:bg-muted/45;
+    }
+}
+
+@layer utilities {
+    .tabular-nums {
+        font-variant-numeric: tabular-nums;
+    }
+    .text-balance {
+        text-wrap: balance;
+    }
+    .glass {
+        @apply border bg-background/92 backdrop-blur-xl;
+    }
+    .efop-hover-lift {
+        transition:
+            transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 260ms ease,
+            border-color 260ms ease,
+            background-color 260ms ease;
+    }
+    .efop-hover-lift:hover {
+        transform: translateY(-3px);
+    }
+    .efop-hover-lift:active {
+        transform: translateY(-1px) scale(0.985);
+    }
+    .efop-hover-sheen {
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+    }
+    .efop-hover-sheen::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            110deg,
+            transparent 28%,
+            hsl(0 0% 100% / 0.24),
+            transparent 62%
+        );
+        transform: translateX(-135%);
+        transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+        pointer-events: none;
+        z-index: 0;
+    }
+    .efop-hover-sheen:hover::before {
+        transform: translateX(135%);
+    }
+    .efop-state-button {
+        box-shadow: 0 14px 34px hsl(var(--primary) / 0.2);
+    }
+    .efop-state-button:hover {
+        box-shadow: 0 22px 48px hsl(var(--primary) / 0.26);
+    }
+    .efop-state-button::after {
+        content: "";
+        position: absolute;
+        inset: auto 14% -55% 14%;
+        height: 75%;
+        border-radius: 999px;
+        background: radial-gradient(
+            circle,
+            hsl(var(--primary-foreground) / 0.18),
+            transparent 72%
+        );
+        opacity: 0;
+        transition: opacity 260ms ease;
+        pointer-events: none;
+        z-index: 0;
+    }
+    .efop-state-button:hover::after,
+    .efop-state-button:focus-visible::after {
+        opacity: 1;
+    }
+    .efop-surface-glow {
+        background-image: linear-gradient(
+            135deg,
+            hsl(var(--card)),
+            hsl(var(--card)) 58%,
+            hsl(var(--accent) / 0.24)
+        );
+        box-shadow: 0 18px 44px hsl(var(--foreground) / 0.07);
+    }
+    .efop-upload-zone {
+        position: relative;
+        border: 1px dashed hsl(var(--primary) / 0.22);
+        background: linear-gradient(
+            135deg,
+            hsl(var(--background) / 0.94),
+            hsl(var(--accent) / 0.14)
+        );
+        transition:
+            transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+            border-color 260ms ease,
+            box-shadow 260ms ease,
+            background-color 260ms ease;
+    }
+    .efop-upload-zone:hover {
+        transform: translateY(-2px);
+        border-color: hsl(var(--primary) / 0.42);
+        box-shadow: 0 16px 36px hsl(var(--foreground) / 0.08);
+    }
+    .efop-file-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border-radius: 999px;
+        border: 1px solid hsl(var(--primary) / 0.16);
+        background: hsl(var(--primary) / 0.08);
+        color: hsl(var(--foreground));
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+        line-height: 1rem;
+        transition:
+            transform 220ms ease,
+            border-color 220ms ease,
+            background-color 220ms ease;
+    }
+    .efop-file-chip:hover {
+        transform: translateY(-1px);
+        border-color: hsl(var(--primary) / 0.26);
+        background: hsl(var(--primary) / 0.12);
+    }
+    .efop-reveal {
+        animation: efop-reveal 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .efop-pop {
+        animation: efop-pop 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .efop-stagger > * {
+        animation: efop-reveal 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .efop-stagger > *:nth-child(2) {
+        animation-delay: 45ms;
+    }
+    .efop-stagger > *:nth-child(3) {
+        animation-delay: 90ms;
+    }
+    .efop-stagger > *:nth-child(4) {
+        animation-delay: 135ms;
+    }
+    .efop-stagger > *:nth-child(5) {
+        animation-delay: 180ms;
+    }
+    .efop-stagger > *:nth-child(6) {
+        animation-delay: 225ms;
+    }
+    .animate-in,
+    .animate-fade-in,
+    .animate-fade-in-up {
+        animation: efop-reveal 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .animate-slide-in-right {
+        animation: efop-slide 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .animate-shimmer {
+        background: linear-gradient(
+            90deg,
+            transparent,
+            hsl(var(--foreground) / 0.05),
+            transparent
+        );
+        background-size: 200% 100%;
+        animation: efop-shimmer 1.6s linear infinite;
+    }
+}
+
+@keyframes efop-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@keyframes efop-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+@keyframes efop-slide {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@keyframes efop-shimmer {
+    to {
+        background-position: -200% 0;
+    }
+}
+
+[dir="rtl"] body {
+    font-family: var(--font-sans), "Noto Sans Arabic", Arial, sans-serif;
+}
+[dir="rtl"] svg[data-directional="true"] {
+    transform: scaleX(-1);
+}
+[dir="rtl"] .ltr-only {
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+@media (max-width: 639px) {
+    .efop-workspace {
+        @apply space-y-4;
+    }
+    .efop-table-region {
+        @apply overflow-x-auto;
+        scrollbar-gutter: stable;
+    }
+    .efop-table-region th,
+    .efop-table-region td {
+        @apply px-3;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Public landing system: BILL-inspired density with Watermelon-style motion. */
+@layer components {
+    .landing-shell {
+        --landing-ink: 229 30% 11%;
+        --landing-cream: 36 33% 97%;
+        background-image: radial-gradient(
+                circle at 12% 5%,
+                hsl(var(--primary) / 0.07),
+                transparent 28rem
+            ),
+            linear-gradient(hsl(var(--background)), hsl(var(--background)));
+    }
+    .landing-nav {
+        box-shadow: 0 12px 45px hsl(var(--foreground) / 0.035);
+    }
+    .landing-logo-wrap::after {
+        content: "";
+        position: absolute;
+        inset: -60%;
+        background: linear-gradient(
+            115deg,
+            transparent 42%,
+            rgb(255 255 255 / 0.72) 50%,
+            transparent 58%
+        );
+        transform: translateX(-75%) rotate(8deg);
+        transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .landing-logo-wrap:hover::after {
+        transform: translateX(75%) rotate(8deg);
+    }
+    .landing-cta-button {
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 30px hsl(var(--primary) / 0.2);
+        transition:
+            transform 250ms ease,
+            box-shadow 250ms ease;
+    }
+    .landing-cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 42px hsl(var(--primary) / 0.28);
+    }
+    .landing-cta-button::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            105deg,
+            transparent 35%,
+            rgb(255 255 255 / 0.2),
+            transparent 65%
+        );
+        transform: translateX(-120%);
+        transition: transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .landing-cta-button:hover::before {
+        transform: translateX(120%);
+    }
+    .landing-grid {
+        background-image: linear-gradient(
+                hsl(var(--border) / 0.45) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                90deg,
+                hsl(var(--border) / 0.45) 1px,
+                transparent 1px
+            );
+        background-size: 72px 72px;
+        mask-image: linear-gradient(to bottom, black, transparent 88%);
+    }
+    .landing-grid-dark {
+        background-image: linear-gradient(
+                rgb(255 255 255 / 0.08) 1px,
+                transparent 1px
+            ),
+            linear-gradient(90deg, rgb(255 255 255 / 0.08) 1px, transparent 1px);
+        background-size: 72px 72px;
+        mask-image: radial-gradient(circle at center, black, transparent 78%);
+    }
+    .landing-orb {
+        pointer-events: none;
+        opacity: 0.52;
+        animation: landing-orb-drift 12s ease-in-out infinite alternate;
+    }
+    .landing-orb-one {
+        background: hsl(var(--brand-blue-500) / 0.3);
+    }
+    .landing-orb-two {
+        background: hsl(var(--brand-orange-500) / 0.26);
+        animation-delay: -5s;
+    }
+    /* The logo's own two hues, in the logo's own order: azure into orange.
+     * Previously ran --primary (the app's indigo) into --brand-warm, which
+     * mixed a colour the mark does not contain into the brand gradient. */
+    .landing-gradient-text {
+        color: transparent;
+        background: linear-gradient(
+            110deg,
+            hsl(var(--brand-blue-600)),
+            hsl(var(--brand-blue-400)) 34%,
+            hsl(var(--brand-orange-500)) 82%
+        );
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+    .landing-product-stage {
+        perspective: 1200px;
+        animation: landing-stage-in 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .landing-product-glow {
+        background: linear-gradient(
+            135deg,
+            hsl(var(--primary) / 0.36),
+            hsl(var(--brand-warm) / 0.22)
+        );
+    }
+    .landing-window {
+        transform: rotateY(-3deg) rotateX(1deg);
+        transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    [dir="rtl"] .landing-window {
+        transform: rotateY(3deg) rotateX(1deg);
+    }
+    .landing-product-stage:hover .landing-window {
+        transform: none;
+    }
+    .landing-mini-card {
+        transition:
+            transform 250ms ease,
+            border-color 250ms ease,
+            box-shadow 250ms ease;
+    }
+    .landing-mini-card:hover {
+        transform: translateY(-3px);
+        border-color: hsl(var(--primary) / 0.35);
+        box-shadow: 0 12px 32px hsl(var(--foreground) / 0.08);
+    }
+    .landing-bars > span {
+        transform-origin: bottom;
+        animation: landing-bar-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .landing-live-dot::before {
+        content: "";
+        display: inline-block;
+        width: 0.4rem;
+        height: 0.4rem;
+        margin-inline-end: 0.35rem;
+        border-radius: 999px;
+        background: #10b981;
+        box-shadow: 0 0 0 0 rgb(16 185 129 / 0.42);
+        animation: landing-live-pulse 1.8s infinite;
+    }
+    .landing-float-card {
+        animation: landing-float 4.5s ease-in-out infinite;
+    }
+    .landing-float-two {
+        animation-delay: -2.2s;
+    }
+    .landing-marquee-track {
+        animation: landing-marquee 34s linear infinite;
+    }
+    [dir="rtl"] .landing-marquee-track {
+        animation-direction: reverse;
+    }
+    .landing-marquee:hover .landing-marquee-track {
+        animation-play-state: paused;
+    }
+    .landing-module-card,
+    .landing-service-card {
+        transition:
+            transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+            border-color 320ms ease,
+            box-shadow 320ms ease;
+    }
+    .landing-module-card:hover,
+    .landing-service-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 24px 70px hsl(var(--foreground) / 0.12);
+    }
+    .landing-service-card {
+        background: rgb(255 255 255 / 0.045);
+    }
+    .landing-service-sheen {
+        background: radial-gradient(
+            circle at 80% 0%,
+            rgb(255 255 255 / 0.15),
+            transparent 48%
+        );
+    }
+    .landing-tone-orange {
+        color: #ff9a62;
+    }
+    .landing-tone-indigo {
+        color: #9eacff;
+    }
+    .landing-tone-green {
+        color: #79d5a6;
+    }
+    .landing-tone-blue {
+        color: #7dc5ff;
+    }
+    .landing-tone-violet {
+        color: #c9a6ff;
+    }
+    .landing-tone-amber {
+        color: #ffd06f;
+    }
+    .landing-service-card h3 {
+        color: hsl(var(--background));
+    }
+    .landing-service-card p {
+        color: hsl(var(--background) / 0.78);
+    }
+    .landing-rings {
+        animation: landing-ring-spin 26s linear infinite;
+    }
+    .landing-rings::before,
+    .landing-rings::after {
+        content: "";
+        position: absolute;
+        border-radius: inherit;
+        border: 1px solid rgb(255 255 255 / 0.12);
+    }
+    .landing-rings::before {
+        inset: 14%;
+    }
+    .landing-rings::after {
+        inset: 30%;
+    }
+    .landing-rings-two {
+        animation-direction: reverse;
+        animation-duration: 19s;
+    }
+    .landing-stat-number {
+        color: transparent;
+        background: linear-gradient(
+            120deg,
+            hsl(var(--brand-blue-600)),
+            hsl(var(--brand-orange-500))
+        );
+        background-clip: text;
+        -webkit-background-clip: text;
+    }
+    .landing-faq summary::-webkit-details-marker {
+        display: none;
+    }
+    .landing-faq[open] {
+        border-color: hsl(var(--primary) / 0.28);
+        box-shadow: 0 15px 45px hsl(var(--foreground) / 0.06);
+    }
+    .landing-faq[open] p {
+        animation: efop-reveal 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .landing-contact {
+        box-shadow: 0 45px 100px hsl(var(--foreground) / 0.22);
+    }
+    /*
+     * Partner marks come from the group's own media library, so they arrive at
+     * fifteen different aspect ratios and several sit on a baked-in white
+     * background. A fixed tile with object-contain is what makes them read as
+     * one row instead of fifteen pasted images, and the white plate keeps the
+     * dark-background marks legible in dark mode.
+     */
+    .landing-logo-tile {
+        filter: grayscale(1);
+        opacity: 0.72;
+        transition:
+            filter 300ms ease,
+            opacity 300ms ease,
+            transform 300ms ease;
+    }
+    .landing-logo-tile:hover {
+        filter: grayscale(0);
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+    .landing-service-media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to bottom,
+            transparent 35%,
+            hsl(var(--foreground) / 0.85)
+        );
+    }
+    .landing-gallery-item {
+        transition:
+            transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 320ms ease;
+    }
+    .landing-gallery-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 24px 60px hsl(var(--foreground) / 0.16);
+    }
+
+    /* Popover entrance. Short and opacity+translate only, so it never delays a
+     * click and matches the medium contextual level of the motion system. */
+    .efop-popover-in {
+        animation: efop-popover-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    /* Native range input, styled. The filled portion is a gradient whose stop is
+     * --slider-fill, set inline by the component, so dragging costs no React
+     * render. Both -webkit- and -moz- thumbs are needed; there is no shared
+     * pseudo-element for them. */
+    .efop-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 1.25rem;
+        background: transparent;
+        cursor: pointer;
+    }
+    .efop-slider::-webkit-slider-runnable-track {
+        height: 0.375rem;
+        border-radius: 999px;
+        background: linear-gradient(
+            to right,
+            hsl(var(--brand-blue-500)) var(--slider-fill, 0%),
+            hsl(var(--muted)) var(--slider-fill, 0%)
+        );
+    }
+    [dir="rtl"] .efop-slider::-webkit-slider-runnable-track {
+        background: linear-gradient(
+            to left,
+            hsl(var(--brand-blue-500)) var(--slider-fill, 0%),
+            hsl(var(--muted)) var(--slider-fill, 0%)
+        );
+    }
+    .efop-slider::-moz-range-track {
+        height: 0.375rem;
+        border-radius: 999px;
+        background: hsl(var(--muted));
+    }
+    .efop-slider::-moz-range-progress {
+        height: 0.375rem;
+        border-radius: 999px;
+        background: hsl(var(--brand-blue-500));
+    }
+    .efop-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        margin-top: -0.3125rem;
+        height: 1rem;
+        width: 1rem;
+        border-radius: 999px;
+        background: hsl(var(--background));
+        border: 2px solid hsl(var(--brand-blue-500));
+        box-shadow: 0 1px 4px hsl(var(--foreground) / 0.2);
+        transition: transform 150ms ease;
+    }
+    .efop-slider::-moz-range-thumb {
+        height: 1rem;
+        width: 1rem;
+        border-radius: 999px;
+        background: hsl(var(--background));
+        border: 2px solid hsl(var(--brand-blue-500));
+        box-shadow: 0 1px 4px hsl(var(--foreground) / 0.2);
+    }
+    .efop-slider:active::-webkit-slider-thumb {
+        transform: scale(1.15);
+    }
+    .efop-slider:focus-visible::-webkit-slider-thumb {
+        outline: 2px solid hsl(var(--ring));
+        outline-offset: 2px;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+     * Adapted open-source components. Each one is owned in EFOP's
+     * source tree rather than pulled in as a runtime dependency, so
+     * nothing here adds a package. See the component file headers for
+     * the source pattern and what was changed.
+     * ───────────────────────────────────────────────────────────── */
+
+    /* AuroraBackdrop — Aceternity "Aurora Background", CSS-only rebuild. */
+    .aurora-layer {
+        position: absolute;
+        inset: -35%;
+        border-radius: 50%;
+        filter: blur(90px);
+        will-change: transform;
+    }
+    .aurora-layer-blue {
+        background: conic-gradient(
+            from 120deg at 50% 50%,
+            hsl(var(--brand-blue-500) / 0.55),
+            hsl(var(--brand-blue-300) / 0.28),
+            transparent 55%
+        );
+        animation: aurora-drift-a 18s ease-in-out infinite alternate;
+    }
+    .aurora-layer-orange {
+        background: conic-gradient(
+            from 300deg at 50% 50%,
+            hsl(var(--brand-orange-500) / 0.42),
+            hsl(var(--brand-orange-300) / 0.22),
+            transparent 58%
+        );
+        animation: aurora-drift-b 22s ease-in-out infinite alternate;
+    }
+
+    /* Marquee — Magic UI "Marquee", RTL-aware with a mask instead of overlays. */
+    .efop-marquee {
+        overflow: hidden;
+        mask-image: linear-gradient(
+            to right,
+            transparent,
+            black 8%,
+            black 92%,
+            transparent
+        );
+        -webkit-mask-image: linear-gradient(
+            to right,
+            transparent,
+            black 8%,
+            black 92%,
+            transparent
+        );
+    }
+    .efop-marquee-track {
+        animation: efop-marquee-scroll 38s linear infinite;
+    }
+    .efop-marquee-slow {
+        animation-duration: 56s;
+    }
+    .efop-marquee-fast {
+        animation-duration: 24s;
+    }
+    [dir="rtl"] .efop-marquee-track {
+        animation-direction: reverse;
+    }
+    .efop-marquee:hover .efop-marquee-track {
+        animation-play-state: paused;
+    }
+
+    /* SpotlightCard — Aceternity "Card Spotlight", brand two-stop gradient. */
+    .efop-spotlight {
+        overflow: hidden;
+    }
+    .efop-spotlight-glow {
+        background: radial-gradient(
+            var(--spot-radius, 320px) circle at var(--spot-x, 50%)
+                var(--spot-y, 50%),
+            hsl(var(--brand-blue-500) / 0.22),
+            hsl(var(--brand-orange-500) / 0.12) 45%,
+            transparent 70%
+        );
+    }
+
+    /* ShineBorder — Magic UI "Shine Border", masked to the border box. */
+    .efop-shine {
+        padding: 1px;
+        border-radius: var(--shine-radius, 1.5rem);
+        overflow: hidden;
+    }
+    .efop-shine::before {
+        content: "";
+        position: absolute;
+        inset: -150%;
+        z-index: -1;
+        background: conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            hsl(var(--brand-blue-500)) 60deg,
+            hsl(var(--brand-orange-500)) 140deg,
+            transparent 220deg,
+            transparent 360deg
+        );
+        animation: efop-shine-spin 5s linear infinite;
+    }
+    .efop-shine-inner {
+        border-radius: calc(var(--shine-radius, 1.5rem) - 1px);
+        background: hsl(var(--card));
+        height: 100%;
+    }
+}
+
+@keyframes aurora-drift-a {
+    from {
+        transform: translate3d(-6%, -4%, 0) rotate(0deg) scale(1);
+    }
+    to {
+        transform: translate3d(7%, 5%, 0) rotate(38deg) scale(1.12);
+    }
+}
+@keyframes aurora-drift-b {
+    from {
+        transform: translate3d(5%, 6%, 0) rotate(0deg) scale(1.08);
+    }
+    to {
+        transform: translate3d(-7%, -5%, 0) rotate(-32deg) scale(1);
+    }
+}
+@keyframes efop-marquee-scroll {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+    to {
+        transform: translate3d(-50%, 0, 0);
+    }
+}
+@keyframes efop-shine-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes efop-popover-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/*
+ * Reduced motion for the adapted components. The global rule earlier in this
+ * file zeroes animation duration, which is right for entrances but wrong for
+ * these three: a zero-duration infinite animation leaves the aurora frozen
+ * mid-drift, the marquee stopped halfway through a logo, and the shine border
+ * parked on one hue. Each is given a deliberate resting state instead.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .aurora-layer-blue,
+    .aurora-layer-orange {
+        animation: none !important;
+        transform: none !important;
+    }
+    .efop-marquee-track {
+        animation: none !important;
+        transform: none !important;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: center;
+    }
+    .efop-shine::before {
+        animation: none !important;
+        background: linear-gradient(
+            135deg,
+            hsl(var(--brand-blue-500)),
+            hsl(var(--brand-orange-500))
+        );
+    }
+}
+
+@keyframes landing-stage-in {
+    from {
+        opacity: 0;
+        transform: translateY(32px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@keyframes landing-orb-drift {
+    to {
+        transform: translate3d(36px, -22px, 0) scale(1.08);
+    }
+}
+@keyframes landing-bar-rise {
+    from {
+        transform: scaleY(0.08);
+        opacity: 0.25;
+    }
+    to {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+}
+@keyframes landing-live-pulse {
+    70% {
+        box-shadow: 0 0 0 8px rgb(16 185 129 / 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgb(16 185 129 / 0);
+    }
+}
+@keyframes landing-float {
+    0%,
+    100% {
+        transform: translateY(0) rotate(-1deg);
+    }
+    50% {
+        transform: translateY(-10px) rotate(1deg);
+    }
+}
+@keyframes landing-marquee {
+    to {
+        transform: translateX(-50%);
+    }
+}
+@keyframes landing-ring-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 1023px) {
+    .landing-product-stage {
+        max-width: 720px;
+    }
+    .landing-window {
+        transform: none;
+    }
+}
+@media (max-width: 639px) {
+    .landing-hero {
+        min-height: auto;
+    }
+    .landing-window {
+        border-radius: 1.15rem;
+    }
+    .landing-product-stage {
+        margin-inline: -0.5rem;
+        width: calc(100% + 1rem);
+    }
+}
+
+/* EFOP enterprise UI refinement */
+:root {
+    --app-canvas: 220 33% 98%;
+    --glass: 0 0% 100%;
+}
+.dark {
+    --app-canvas: 216 34% 7%;
+    --glass: 216 30% 11%;
+}
+.auth-enterprise-grid {
+    background-image: radial-gradient(
+        circle at 85% 10%,
+        hsl(var(--primary) / 0.08),
+        transparent 28%
+    );
+}
+.auth-brand-panel {
+    /* Uses actual 3RB Indigo palette — dark → mid → primary */
+    background:
+        radial-gradient(circle at 15% 15%, rgba(217, 130, 27, 0.28), transparent 34%),
+        linear-gradient(145deg, #071324 0%, #1a2755 52%, #394988 100%);
+}
+.auth-orb {
+    position: absolute;
+    border-radius: 9999px;
+    opacity: 0.55;
+    animation: efop-float 8s ease-in-out infinite;
+}
+.auth-orb-one {
+    width: 18rem;
+    height: 18rem;
+    right: -7rem;
+    top: 18%;
+    background: rgba(255, 255, 255, 0.12);
+}
+.auth-orb-two {
+    width: 12rem;
+    height: 12rem;
+    left: 28%;
+    bottom: -5rem;
+    background: rgba(240, 96, 48, 0.28);
+    animation-delay: -3s;
+}
+.efop-table-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+}
+.efop-table-scroll::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+.efop-table-scroll::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: hsl(var(--border));
+}
+.dashboard-brand-panel {
+    background: linear-gradient(
+        135deg,
+        hsl(var(--primary) / 0.12),
+        hsl(var(--accent) / 0.55)
+    );
+    border: 1px solid hsl(var(--primary) / 0.14);
+}
+@keyframes efop-float {
+    50% {
+        transform: translate3d(0, -14px, 0) scale(1.03);
+    }
+}
+@media (max-width: 639px) {
+    .efop-workspace {
+        max-width: 100%;
+        overflow-x: clip;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .auth-orb {
+        animation: none !important;
+    }
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
+
+/* ==========================================================================
+   EFOP v17.29 — New premium animation keyframes
+   Sources: Magic UI, Motion Primitives, React Bits patterns
+   Adapted for EFOP design system.
+   ========================================================================== */
+
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes mesh-cycle {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+@keyframes field-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-field-shake {
+  animation: field-shake 0.42s ease;
+}
+
+.btn-shimmer-loading {
+  background-image: linear-gradient(
+    110deg,
+    hsl(224, 71%, 36%) 0%,
+    hsl(175, 70%, 38%) 40%,
+    hsl(224, 71%, 36%) 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-btn 1.1s linear infinite;
+}
+
+@keyframes shimmer-btn {
+  from { background-position: 100% 50%; }
+  to   { background-position: 0% 50%; }
+}
+
+@keyframes word-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes landing-bar-rise {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+@keyframes landing-stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) rotateY(-4deg) rotateX(2deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer utilities {
+  .animate-gradient-shift {
+    animation: gradient-shift 6s ease infinite;
+    background-size: 200% auto;
+  }
+  .animate-shimmer-btn {
+    animation: shimmer-btn 2.4s linear infinite;
+    background-size: 200% 100%;
+  }
+  .animate-word-in {
+    animation: word-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  /* Ensure landing page controls are accessible on mobile */
+  .landing-nav .landing-controls-mobile {
+    display: flex;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   EFOP Design System V3 — added by Phase-1 patch
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Hover-accent token (Azure light / Orange dark) ── */
+:root {
+  --hover-accent:      197 100% 41%;   /* Azure  #0096D2 */
+  --shadow-ambient:    rgba(57, 73, 136, 0.06);
+}
+.dark {
+  --hover-accent:      30 88% 51%;     /* Orange #F08214 */
+  --shadow-ambient:    rgba(240, 130, 20, 0.04);
+}
+
+/* ── Theme-color transition on every element ── */
+* {
+  transition-property: background-color, border-color, color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0ms;
+}
+*:not(.no-theme-transition) {
+  transition-duration: 200ms;
+}
+.bg-transition-fast { transition-duration: 150ms !important; }
+
+/* ── Utility classes ── */
+.app-gradient-bg {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%,
+      hsl(var(--primary) / 0.04) 0%,
+      transparent 70%);
+}
+.dark .app-gradient-bg {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%,
+      hsl(var(--primary) / 0.06) 0%,
+      transparent 70%);
+}
+
+.row-hover {
+  transition: background-color 120ms ease;
+}
+.row-hover:hover {
+  background-color: hsl(var(--hover-accent) / 0.06);
+}
+
+.hover-accent-icon {
+  transition: color 150ms ease;
+}
+.hover-accent-icon:hover {
+  color: hsl(var(--hover-accent));
+}
+
+/* ── Border-beam ── */
+.border-beam-orbit {
+  --beam-w:    1.5px;
+  --beam-size: 200px;
+  --beam-dur:  8s;
+  --beam-from: hsl(var(--brand-blue-500, 197 100% 41%));
+  --beam-to:   hsl(var(--primary));
+  position:    absolute;
+  inset:       0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.border-beam-orbit::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--beam-w) * -1);
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--beam-angle, 0deg),
+    var(--beam-from) 0deg,
+    var(--beam-to)  60deg,
+    transparent   120deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+  mask:         linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: var(--beam-w);
+  animation: border-beam-spin var(--beam-dur) linear infinite;
+}
+
+/* ── Skeleton brand ── */
+.skeleton-brand {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted))        0%,
+    hsl(var(--primary) / 0.08) 40%,
+    hsl(var(--muted))        80%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-brand-shimmer 1.8s ease-in-out infinite;
+}
+
+/* ── Utility animation classes ── */
+.animate-border-beam   { animation: border-beam-spin 8s linear infinite; }
+.animate-gradient-x    { animation: gradient-x 6s ease infinite; }
+.animate-ripple        { animation: ripple 2s ease-out infinite; }
+.animate-shimmer-slide { animation: shimmer-slide 2s linear infinite; }
+
+/* ── Keyframes ── */
+@keyframes border-beam-spin {
+  to { --beam-angle: 360deg; }
+}
+@property --beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes gradient-x {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes ripple {
+  0%   { transform: scale(1);   opacity: 0.55; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes shimmer-slide {
+  from { background-position: 100% 50%; }
+  to   { background-position: 0%   50%; }
+}
+@keyframes skeleton-brand-shimmer {
+  from { background-position:  200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient-x,
+  .animate-ripple,
+  .animate-shimmer-slide,
+  .skeleton-brand,
+  .border-beam-orbit::before {
+    animation: none !important;
+  }
+  .border-beam-orbit {
+    border: var(--beam-w, 1.5px) solid hsl(var(--brand-blue-500, 197 100% 41%) / 0.4);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE 6 — MOBILE & RESPONSIVE UTILITIES
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Safe area insets (iOS notch / home indicator) ── */
+.safe-top    { padding-top:    env(safe-area-inset-top);    }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-left   { padding-left:   env(safe-area-inset-left);  }
+.safe-right  { padding-right:  env(safe-area-inset-right); }
+
+/* ── Touch targets (WCAG 2.5.5: min 44x44px) ── */
+.touch-target {
+  min-height: 44px;
+  min-width:  44px;
+}
+
+/* ── Mobile bottom nav ── */
+.mobile-nav-pip {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  border-radius: 9999px;
+  background-color: hsl(var(--primary));
+}
+
+/* ── Mobile card view (table → card on xs screens) ── */
+@media (max-width: 639px) {
+  .mobile-card-table thead {
+    display: none;
+  }
+  .mobile-card-table tbody tr {
+    display: block;
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: 1rem;
+    margin-bottom: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: hsl(var(--card));
+    box-shadow: 0 1px 4px rgba(15,23,42,0.04);
+  }
+  .mobile-card-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    font-size: 0.8125rem;
+    border: none;
+  }
+  .mobile-card-table tbody td::before {
+    content: attr(data-label);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: hsl(var(--muted-foreground));
+    flex-shrink: 0;
+    margin-inline-end: 0.75rem;
+  }
+  /* Hide last (actions) column label */
+  .mobile-card-table tbody td:last-child::before {
+    display: none;
+  }
+  .mobile-card-table tbody td:last-child {
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+  }
+}
+
+/* ── Smooth momentum scroll on iOS ── */
+.scroll-smooth-ios {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* ── Hide scrollbar on overflow containers but keep scrollable ── */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Full-bleed section on mobile (remove card padding) ── */
+@media (max-width: 639px) {
+  .mobile-full-bleed {
+    margin-inline: -1rem;
+    border-radius: 0;
+    border-inline: none;
+  }
+}
+
+/* ── Responsive page header ── */
+@media (max-width: 639px) {
+  .efop-workspace {
+    /* Give bottom nav breathing room */
+    padding-bottom: 4.5rem;
+  }
+  /* Stack hero actions vertically on xs */
+  .page-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .page-hero-actions > * {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+/* ── Responsive stat strip ── */
+@media (max-width: 479px) {
+  /* Force 2-col on very small screens when Tailwind sm: doesn't kick in */
+  .stat-strip-responsive {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ── Bottom sheet slide-up ── */
+@keyframes slide-up-sheet {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.sheet-slide-up {
+  animation: slide-up-sheet 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Prevent body scroll when mobile menu open ── */
+body.mobile-menu-open {
+  overflow: hidden;
+  touch-action: none;
+}

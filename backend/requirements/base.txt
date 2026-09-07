@@ -1,0 +1,50 @@
+# Requirements for backend project foundation
+# Supported Python: >=3.13,<3.15 (3.14 preferred for production)
+# Generated: 2026-07-14
+# Rule: Do not upgrade major versions without explicit approval and compatibility verification.
+
+# Core Framework
+Django==6.0.7
+djangorestframework==3.16.0
+
+# Database
+psycopg[binary]==3.2.13
+
+# CORS
+django-cors-headers==4.7.0
+
+# Filtering
+django-filter==24.3
+
+# API Documentation
+drf-spectacular==0.28.0
+
+# JWT Authentication
+djangorestframework-simplejwt==5.4.0
+
+# Environment Configuration
+django-environ==0.11.2
+
+# Image processing (for future validated image uploads)
+Pillow==12.3.0
+
+# XLSX generation (imported by apps.personnel.services.ReportService._build_xlsx).
+# This was a real missing declaration: the code imported openpyxl but it was
+# never listed here, so a clean install produced ModuleNotFoundError and three
+# failing report-export tests.
+openpyxl==3.1.5
+
+# Celery and Redis (installed but not configured for workers in this milestone)
+celery==5.4.0
+redis==5.2.1
+# PDF generation for report exports (ReportService._build_pdf). Range pin:
+# this is a new dependency and the sandbox carried 5.0.0; the 4.x/5.x
+# platypus API used here is stable across both. Tighten to an exact version
+# after the first install resolves.
+reportlab>=4.0,<6
+
+# Twilio (SMS + WhatsApp ticket replies). Optional at runtime — messaging
+# falls back with a clear error when credentials are placeholders.
+twilio>=9.0,<11
+
+

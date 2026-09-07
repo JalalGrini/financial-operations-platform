@@ -1,0 +1,7 @@
+from django.db import migrations, models
+class Migration(migrations.Migration):
+    dependencies = [("parties", "0001_initial")]
+    operations = [
+        migrations.AddField(model_name="client", name="client_kind", field=models.CharField(choices=[("individual", "Individual"), ("organization", "Organization")], db_index=True, default="organization", max_length=20, verbose_name="client kind")),
+        migrations.AddField(model_name="client", name="first_name", field=models.CharField(blank=True, default="", max_length=150, verbose_name="first name"), preserve_default=False), migrations.AddField(model_name="client", name="last_name", field=models.CharField(blank=True, default="", max_length=150, verbose_name="last name"), preserve_default=False), migrations.AddField(model_name="client", name="national_id", field=models.CharField(blank=True, max_length=100, null=True, unique=True, verbose_name="national ID")), migrations.AddField(model_name="client", name="passport_number", field=models.CharField(blank=True, max_length=100, null=True, unique=True, verbose_name="passport number")), migrations.AddIndex(model_name="client", index=models.Index(fields=["client_kind"], name="client_kind_idx")), migrations.AddConstraint(model_name="client", constraint=models.CheckConstraint(condition=(models.Q(client_kind="organization") & ~models.Q(name="")) | (models.Q(client_kind="individual") & ~models.Q(first_name="") & ~models.Q(last_name="")), name="client_kind_identity_required")),
+    ]

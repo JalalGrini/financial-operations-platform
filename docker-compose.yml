@@ -1,0 +1,55 @@
+# Docker Compose — local development services for the EFOP backend.
+#
+# The platform runs on PostgreSQL everywhere (production, development, tests,
+# CI); SQLite exists only behind the explicit USE_SQLITE_FOR_TESTS opt-in for
+# offline sandboxes. This file provides the PostgreSQL service the backend
+# expects, plus Redis (shared cache for login rate limiting — required in
+# production — and the Celery broker).
+#
+# Usage:
+#   docker compose up -d                 # start postgres + redis
+#   docker compose ps                    # both should report "healthy"
+#   cd backend && python manage.py migrate && python manage.py runserver
+#
+# Interpolation reads the project-root .env file (not backend/.env). Keep those
+# two files in sync so Compose and Django target the same database.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: efop-postgres
+    restart: unless-stopped
+    env_file:
+      - backend/.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-efop_qa}
+      POSTGRES_USER: ${POSTGRES_USER:-financial_ops_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-financial_ops_pass}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: efop-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:

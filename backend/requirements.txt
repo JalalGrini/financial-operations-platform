@@ -1,0 +1,8 @@
+# Root requirements.txt - provides simple development installation path
+# Install with: pip install -r requirements.txt
+# Supported Python: >=3.13,<3.15 (3.14 preferred for production)
+# Generated: 2026-07-14
+
+-r requirements/development.txt
+
+Pillow>=10.0.0
