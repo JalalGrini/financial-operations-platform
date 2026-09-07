@@ -1,4 +1,5 @@
-# Nixpacks config. Railway service Root Directory must be `backend`.
+# Nixpacks config. Railway service Root Directory must be `backend`
+# so Nixpacks finds ./requirements.txt in this directory.
 providers = ["python"]
 
 [variables]

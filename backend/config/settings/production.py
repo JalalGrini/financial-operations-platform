@@ -54,6 +54,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 JWT_AUTH_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+TRUST_X_FORWARDED_FOR = True
 SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31536000)  # noqa: F405
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
@@ -173,6 +174,7 @@ _r2_missing = [
         ("R2_ACCESS_KEY_ID", globals().get("AWS_ACCESS_KEY_ID", "")),
         ("R2_SECRET_ACCESS_KEY", globals().get("AWS_SECRET_ACCESS_KEY", "")),
         ("R2_BUCKET_NAME", globals().get("AWS_STORAGE_BUCKET_NAME", "")),
+        ("R2_ACCOUNT_ID", globals().get("R2_ACCOUNT_ID", "")),
         ("R2_ENDPOINT_URL", globals().get("AWS_S3_ENDPOINT_URL", "")),
     )
     if not str(value).strip()

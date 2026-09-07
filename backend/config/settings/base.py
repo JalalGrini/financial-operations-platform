@@ -56,6 +56,7 @@ THIRD_PARTY_APPS = [
     "django_filters",
     "drf_spectacular",
     "rest_framework_simplejwt.token_blacklist",
+    "storages",
 ]
 
 LOCAL_APPS = [
@@ -198,7 +199,18 @@ if USE_S3_STORAGE:
     AWS_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY")
     AWS_STORAGE_BUCKET_NAME = env("R2_BUCKET_NAME")
     AWS_S3_REGION_NAME = env("R2_REGION", default="auto")
-    AWS_S3_ENDPOINT_URL = env("R2_ENDPOINT_URL")
+    R2_ACCOUNT_ID = env("R2_ACCOUNT_ID", default="")
+    _r2_endpoint = env("R2_ENDPOINT_URL", default="").strip()
+    if not _r2_endpoint:
+        if not str(R2_ACCOUNT_ID).strip():
+            from django.core.exceptions import ImproperlyConfigured
+
+            raise ImproperlyConfigured(
+                "USE_S3_STORAGE=True requires R2_ACCOUNT_ID or R2_ENDPOINT_URL "
+                "so AWS_S3_ENDPOINT_URL can be set for Cloudflare R2."
+            )
+        _r2_endpoint = f"https://{str(R2_ACCOUNT_ID).strip()}.r2.cloudflarestorage.com"
+    AWS_S3_ENDPOINT_URL = _r2_endpoint
     AWS_DEFAULT_ACL = None
     AWS_S3_FILE_OVERWRITE = False
     AWS_QUERYSTRING_AUTH = True

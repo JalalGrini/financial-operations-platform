@@ -1,11 +1,7 @@
-# Railway config for the Django API.
+# Railway config for the Django API (kept in sync with /railway.toml).
 #
+# Canonical config-as-code path is /railway.toml at the repository root.
 # Dashboard (required): Service → Settings → Root Directory = backend
-# Config-as-code path (required for this file to apply): /backend/railway.toml
-# Railway does not look in the Root Directory for railway.toml by default.
-#
-# Do not put a second railway.toml at the monorepo root — that would confuse a
-# later frontend service. This file is the backend service source of truth.
 #
 # Env vars are NOT stored here (no secrets). Set them in the Railway dashboard.
 # Production settings refuse to boot without:

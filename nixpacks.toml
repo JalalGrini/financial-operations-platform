@@ -1,0 +1,11 @@
+# Used only if the Railway build context is the repository root.
+# Production service Root Directory must be `backend` so backend/requirements.txt
+# is auto-detected instead of this file.
+providers = ["python"]
+
+[variables]
+NIXPACKS_PYTHON_VERSION = "3.13"
+DJANGO_SETTINGS_MODULE = "config.settings.production"
+
+[start]
+cmd = "cd backend && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
