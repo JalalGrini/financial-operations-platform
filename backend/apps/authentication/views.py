@@ -91,7 +91,7 @@ def _serialize_user(user, include_last_login=False):
         "roles": roles,
         "permissions": sorted(user.get_all_permissions()),
         "must_change_password": user.must_change_password,
-        "avatar_url": f"/api/v1/accounts/users/{user.pk}/avatar/" if user.avatar else None,
+        "avatar_url": user.avatar_api_url(),
     }
     if include_last_login:
         data["last_login"] = user.last_login.isoformat() if user.last_login else None

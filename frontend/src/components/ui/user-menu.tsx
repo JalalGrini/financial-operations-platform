@@ -63,6 +63,7 @@ export function UserMenu({ user, onLogout, isOpen, onClose }: UserMenuProps) {
         <Avatar className="h-9 w-9">
           {currentUser?.avatar_url && (
             <AvatarImage
+              key={currentUser.avatar_url}
               src={currentUser.avatar_url}
               alt={currentUser?.full_name || currentUser?.email || "User"}
             />

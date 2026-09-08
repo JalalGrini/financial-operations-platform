@@ -200,7 +200,7 @@ class AccountSerializer(serializers.ModelSerializer):
         return obj.groups.filter(name__in=ROLE_NAMES).values_list("name", flat=True).first()
 
     def get_avatar_url(self, obj):
-        return f"/api/v1/accounts/users/{obj.pk}/avatar/" if obj.avatar else None
+        return obj.avatar_api_url()
 
 
 class AccountCreateSerializer(serializers.Serializer):
@@ -284,7 +284,7 @@ class SelfProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "email", "full_name", "avatar_url")
 
     def get_avatar_url(self, obj):
-        return f"/api/v1/accounts/users/{obj.pk}/avatar/" if obj.avatar else None
+        return obj.avatar_api_url()
 
 
 class AvatarUploadSerializer(serializers.Serializer):

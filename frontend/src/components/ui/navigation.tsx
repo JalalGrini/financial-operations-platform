@@ -419,6 +419,7 @@ function UserMenu({ user, collapsed = false, onLogout, isOpen, onClose }: UserMe
           <Avatar className="h-7 w-7 shrink-0 ring-2 ring-background">
             {user?.avatar_url && (
               <AvatarImage
+                key={user.avatar_url}
                 src={user.avatar_url}
                 alt={user?.full_name ?? sourceText("User")}
               />

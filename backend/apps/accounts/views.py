@@ -368,11 +368,17 @@ class AccountAvatarView(APIView):
             )
         serializer = AvatarUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        old = request.user.avatar
+        previous = request.user.avatar
+        previous_name = previous.name if previous else ""
         request.user.avatar = serializer.validated_data["avatar"]
         request.user.save(update_fields=["avatar", "updated_at"])
-        if old:
-            old.delete(save=False)
+        request.user.refresh_from_db(fields=["avatar", "updated_at"])
+        # file_overwrite keeps the same storage key. Deleting `previous` in
+        # that case removes the file that was just written, so GET 404s
+        # while this endpoint still reports success.
+        new_name = request.user.avatar.name if request.user.avatar else ""
+        if previous_name and previous_name != new_name:
+            previous.delete(save=False)
         record_event(
             action="update",
             summary="Updated own profile picture",
@@ -384,7 +390,7 @@ class AccountAvatarView(APIView):
             {
                 "success": True,
                 "message": "Profile picture updated.",
-                "data": {"avatar_url": f"/api/v1/accounts/users/{request.user.pk}/avatar/"},
+                "data": {"avatar_url": request.user.avatar_api_url()},
             }
         )
 

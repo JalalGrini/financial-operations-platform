@@ -129,3 +129,30 @@ class AccountManagementSecurityTests(APITestCase):
             closer()
         response._resource_closers.clear()
         self.assertEqual(self.client.delete("/api/v1/accounts/me/avatar/").status_code, 204)
+
+    def _jpeg(self, name, color):
+        image = Image.new("RGB", (128, 128), color)
+        data = BytesIO()
+        image.save(data, format="JPEG")
+        data.seek(0)
+        return SimpleUploadedFile(name, data.read(), content_type="image/jpeg")
+
+    def test_replacing_avatar_keeps_a_readable_file(self):
+        self.client.force_authenticate(self.assistant)
+        first = self.client.put(
+            "/api/v1/accounts/me/avatar/",
+            {"avatar": self._jpeg("avatar.jpg", "blue")},
+            format="multipart",
+        )
+        self.assertEqual(first.status_code, 200, first.data)
+        second = self.client.put(
+            "/api/v1/accounts/me/avatar/",
+            {"avatar": self._jpeg("avatar.jpg", "navy")},
+            format="multipart",
+        )
+        self.assertEqual(second.status_code, 200, second.data)
+        response = self.client.get(f"/api/v1/accounts/users/{self.assistant.pk}/avatar/")
+        self.assertEqual(response.status_code, 200)
+        for closer in response._resource_closers:
+            closer()
+        response._resource_closers.clear()

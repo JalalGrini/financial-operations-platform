@@ -26,6 +26,7 @@ interface AuthContextType {
     confirmPassword: string,
   ) => Promise<void>;
   refetchUser: () => Promise<void>;
+  patchUser: (patch: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,15 +36,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUser = async () => {
+  const fetchUser = async (options?: { silent?: boolean }) => {
+    const silent = options?.silent === true;
     try {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       const me = await apiClient.getMe();
       setUser(me ?? null);
     } catch {
-      setUser(null);
+      if (!silent) setUser(null);
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
 
@@ -126,7 +128,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refetchUser = async () => {
-    await fetchUser();
+    await fetchUser({ silent: true });
+  };
+
+  const patchUser = (patch: Partial<User>) => {
+    setUser((current) => (current ? { ...current, ...patch } : current));
   };
 
   const value = {
@@ -138,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshTokens,
     changePassword,
     refetchUser,
+    patchUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

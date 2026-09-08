@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "@/components/ui/toast";
 import { Camera, Mail, ShieldCheck, User2 } from "lucide-react";
 
@@ -24,6 +24,7 @@ export default function ProfilePage() {
     <ProfileEditor
       key={auth.user.id}
       user={auth.user}
+      patchUser={auth.patchUser}
       refetchUser={auth.refetchUser}
       changePassword={auth.changePassword}
     />
@@ -51,17 +52,20 @@ function formatProfileDateTime(
 
 function ProfileEditor({
   user,
+  patchUser,
   refetchUser,
   changePassword,
 }: {
   user: CurrentUser;
+  patchUser: AuthState["patchUser"];
   refetchUser: AuthState["refetchUser"];
   changePassword: AuthState["changePassword"];
 }) {
   const { locale, theme, setLocale, setTheme, t } = useExperience();
   const [firstName, setFirstName] = useState(user.first_name ?? "");
   const [lastName, setLastName] = useState(user.last_name ?? "");
-  const [avatarVersion, setAvatarVersion] = useState(0);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const uploadGeneration = useRef(0);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [passwords, setPasswords] = useState({
@@ -70,13 +74,17 @@ function ProfileEditor({
     confirm: "",
   });
 
+  useEffect(() => {
+    return () => {
+      if (localPreview) URL.revokeObjectURL(localPreview);
+    };
+  }, [localPreview]);
+
   const initials =
     `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase() ||
     (user.email?.[0] ?? "?").toUpperCase();
 
-  const avatar = user.avatar_url
-    ? `${user.avatar_url}?v=${avatarVersion}`
-    : null;
+  const avatar = localPreview ?? user.avatar_url ?? null;
 
   // `avatar_url` only tells us the row names a file, not that the file is still
   // in storage. When the fetch 404s we fall back to the initials tile rather
@@ -115,12 +123,22 @@ function ProfileEditor({
       toast.error(sourceText("Each file must be 10 MB or smaller."));
       return;
     }
+    const generation = ++uploadGeneration.current;
+    const preview = URL.createObjectURL(file);
+    setLocalPreview(preview);
     try {
-      await accountsApi.uploadAvatar(file);
-      setAvatarVersion((version) => version + 1);
+      const { avatar_url } = await accountsApi.uploadAvatar(file);
+      if (generation !== uploadGeneration.current) return;
+      if (avatar_url) {
+        patchUser({ avatar_url });
+      }
       await refetchUser();
+      if (generation !== uploadGeneration.current) return;
+      setLocalPreview(null);
       toast.success(sourceText("Profile picture updated"));
     } catch (error) {
+      if (generation !== uploadGeneration.current) return;
+      setLocalPreview(null);
       toast.error(
         error instanceof Error
           ? error.message
@@ -130,9 +148,11 @@ function ProfileEditor({
   };
 
   const remove = async () => {
+    uploadGeneration.current += 1;
     try {
       await accountsApi.removeAvatar();
-      setAvatarVersion((version) => version + 1);
+      patchUser({ avatar_url: undefined });
+      setLocalPreview(null);
       await refetchUser();
       toast.success(sourceText("Profile picture removed"));
     } catch (error) {
@@ -204,7 +224,11 @@ function ProfileEditor({
                     type="file"
                     accept="image/png,image/jpeg"
                     className="hidden"
-                    onChange={(event) => upload(event.target.files?.[0])}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      event.target.value = "";
+                      void upload(file);
+                    }}
                   />
                 </label>
               </div>

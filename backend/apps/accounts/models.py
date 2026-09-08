@@ -82,6 +82,13 @@ class User(AbstractUser, TimeStampedModel):
         null=True,
         blank=True,
     )
+
+    def avatar_api_url(self):
+        """Same-origin URL the UI uses to fetch this user's stored picture."""
+        if not self.avatar:
+            return None
+        stamp = int(self.updated_at.timestamp()) if self.updated_at else 0
+        return f"/api/v1/accounts/users/{self.pk}/avatar/?v={stamp}"
     must_change_password = models.BooleanField(
         _("must change password"),
         default=False,
