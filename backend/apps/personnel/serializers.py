@@ -91,6 +91,8 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
             "region",
             "date_of_birth",
             "nationality",
+            "notes",
+            "observations",
             "status",
             "photo",
             "completeness_percentage",

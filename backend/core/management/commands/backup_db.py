@@ -42,7 +42,8 @@ class Command(BaseCommand):
             endpoint_url=settings.AWS_S3_ENDPOINT_URL,
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name="auto",
+            aws_session_token=os.environ.get("AWS_SESSION_TOKEN") or None,
+            region_name=getattr(settings, "AWS_S3_REGION_NAME", None) or "auto",
         )
         s3.upload_file(dump_path, "3rb-backups", f"db/{filename}")
         try:

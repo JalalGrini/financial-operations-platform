@@ -242,11 +242,29 @@ export default function EditPersonnelPage() {
         // this is one request rather than a JSON save followed by an upload -
         // two requests could leave the row updated and the photo missing.
         const form = new FormData();
-        for (const [key, value] of Object.entries(data)) {
-          if (value === undefined || value === null) continue;
+        const allowed = [
+          "first_name",
+          "last_name",
+          "middle_name",
+          "cin",
+          "phone",
+          "email",
+          "address",
+          "city",
+          "province",
+          "region",
+          "date_of_birth",
+          "nationality",
+          "notes",
+          "observations",
+          "status",
+        ] as const;
+        for (const key of allowed) {
+          const value = data[key];
+          if (value === undefined || value === null || value === "") continue;
           form.append(key, String(value));
         }
-        form.append("photo", photoFile);
+        form.append("photo", photoFile, photoFile.name);
         await personnelApi.updateWithPhoto(id, form);
       } else if (photoRemoved) {
         // `photo` is a nullable ImageField, so DRF's generated field is

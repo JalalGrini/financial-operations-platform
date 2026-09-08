@@ -223,7 +223,7 @@ if USE_S3_STORAGE:
         _r2_endpoint = f"https://{str(R2_ACCOUNT_ID).strip()}.r2.cloudflarestorage.com"
     AWS_S3_ENDPOINT_URL = _r2_endpoint
     AWS_DEFAULT_ACL = None
-    AWS_S3_FILE_OVERWRITE = False
+    AWS_S3_FILE_OVERWRITE = True
     AWS_QUERYSTRING_AUTH = True
     AWS_S3_SIGNATURE_VERSION = "s3v4"
     AWS_S3_ADDRESSING_STYLE = "path"

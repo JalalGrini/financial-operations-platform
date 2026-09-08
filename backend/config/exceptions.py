@@ -98,6 +98,9 @@ def custom_exception_handler(exc, context):
 
     response = exception_handler(exc, context)
     if response is not None:
+        if response.status_code == 400:
+            view = context.get("view") if context else None
+            logger.warning("API 400 in %s: %s", view, response.data)
         original = response.data
         payload = {
             "success": False,
