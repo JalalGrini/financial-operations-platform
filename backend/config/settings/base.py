@@ -208,6 +208,11 @@ USE_S3_STORAGE = env.bool("USE_S3_STORAGE", default=_s3_default)
 if USE_S3_STORAGE:
     AWS_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY")
+    # Temporary R2 S3 credentials include a session token. Permanent dashboard
+    # tokens do not; leave the env var unset in that case.
+    _aws_session_token = env("AWS_SESSION_TOKEN", default="").strip()
+    if _aws_session_token:
+        AWS_SESSION_TOKEN = _aws_session_token
     AWS_STORAGE_BUCKET_NAME = env("R2_BUCKET_NAME")
     AWS_S3_REGION_NAME = env("R2_REGION", default="auto")
     R2_ACCOUNT_ID = env("R2_ACCOUNT_ID", default="")

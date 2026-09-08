@@ -205,3 +205,46 @@ class CompanyDefaultLanguageContractTests(APITestCase):
         self.assertEqual(data["default_language"], "en")
         company.refresh_from_db()
         self.assertEqual(company.default_language, "en")
+
+
+class PersonnelPhotoMultipartTests(APITestCase):
+    """Photo save is multipart. Empty optional fields must not 400 the file."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = _admin(create_test_user())
+        self.client.force_authenticate(user=self.user)
+
+    def test_patch_photo_with_empty_optional_fields(self):
+        from io import BytesIO
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        person = create_test_person(user=self.user)
+        buffer = BytesIO()
+        Image.new("RGB", (32, 32), "blue").save(buffer, format="JPEG")
+        photo = SimpleUploadedFile(
+            "headshot.jpg", buffer.getvalue(), content_type="image/jpeg"
+        )
+        url = reverse("personnel:personnel-person-detail", kwargs={"pk": person.id})
+        response = self.client.patch(
+            url,
+            {
+                "first_name": person.first_name,
+                "last_name": person.last_name,
+                "status": person.status,
+                "date_of_birth": "",
+                "cin": "",
+                "email": "",
+                "notes": "photo save",
+                "observations": "keep",
+                "photo": photo,
+            },
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        person.refresh_from_db()
+        self.assertTrue(person.photo)
+        self.assertEqual(person.notes, "photo save")
+        self.assertIsNone(person.cin)

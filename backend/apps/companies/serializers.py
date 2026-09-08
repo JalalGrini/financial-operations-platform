@@ -2,6 +2,7 @@
 """
 Company Serializers.
 """
+from django.utils.datastructures import MultiValueDict
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -19,11 +20,15 @@ class EmptyStringToNullMixin:
     empty_to_null_fields = ()
 
     def to_internal_value(self, data):
-        if isinstance(data, dict):
-            data = dict(data)
-            for field in self.empty_to_null_fields:
-                if field in data and data[field] == "":
-                    data[field] = None
+        if isinstance(data, MultiValueDict):
+            data = {key: data.get(key) for key in data}
+        elif isinstance(data, dict):
+            data = {key: data[key] for key in data}
+        else:
+            return super().to_internal_value(data)
+        for field in self.empty_to_null_fields:
+            if field in data and data[field] == "":
+                data[field] = None
         return super().to_internal_value(data)
 
 
