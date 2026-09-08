@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { STAT_CARDS_GRID } from "@/components/ui/stat-card";
 
 interface CollapsibleStatsProps {
   children: ReactNode;
@@ -21,7 +22,7 @@ export function CollapsibleStats({
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{children}</div>
+      <div className={STAT_CARDS_GRID}>{children}</div>
       {showAll && extra}
       {hasExtra && (
         <button

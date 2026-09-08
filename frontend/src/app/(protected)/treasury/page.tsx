@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1533,8 +1533,8 @@ export default function TreasuryPage() {
         description={sourceText("Company accounts and balances, money movements, inter-account transfers and bank reconciliations — all in one place.")}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={WalletCards} label={sourceText("Accounts")} value={accountsSummaryQuery.data?.count ?? 0} tone="primary" />
           <StatCard icon={ReceiptText} label={sourceText("Transactions")} value={transactionsSummaryQuery.data?.count ?? 0} tone="indigo" />
           <StatCard icon={Landmark} label={sourceText("Reconciliations")} value={reconciliationsSummaryQuery.data?.count ?? 0} tone="emerald" />

@@ -64,7 +64,8 @@ import { Amount } from "@/components/ui/amount";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
+import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
 import { Breadcrumb } from "@/components/ui/page-components";
 import {
   StatusBadge,
@@ -147,6 +148,7 @@ const densityLabels: Record<"comfortable" | "compact" | "dense", string> = {
 
 export default function PayrollListPage() {
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useViewMode("payroll", "table");
   const [filterSelected, setFilterSelected] = useState<Record<string, string[]>>({}); 
   const statusFilter = filterSelected.status?.[0] ?? "";
   const companyFilter = filterSelected.company?.[0] ?? "";
@@ -572,8 +574,8 @@ export default function PayrollListPage() {
         </>}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={FileText} label={sourceText("Visible records")} value={payrollData?.count ?? 0} tone="primary" />
           <StatCard icon={AlertCircle} label={sourceText("Drafts")} value={draftCount} tone="amber" />
           <StatCard icon={Calculator} label={sourceText("Calculated")} value={calculatedCount} tone="emerald" />
@@ -659,6 +661,7 @@ export default function PayrollListPage() {
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
+            <ViewToggle mode={viewMode} onChange={setViewMode} />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -679,6 +682,35 @@ export default function PayrollListPage() {
             </div>
           ) : (
             <>
+              {viewMode === "card" ? (
+                <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {(payrollData?.results || []).map((row) => (
+                    <div key={row.id} className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/30 hover:shadow-md">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-mono text-xs font-semibold text-primary">{row.reference}</span>
+                        <StatusBadge status={row.status} variant="payroll" />
+                      </div>
+                      <p className="font-semibold leading-tight text-foreground">{row.employee_name}</p>
+                      <p className="text-xs text-muted-foreground">{row.company_name}</p>
+                      <p className="text-xs text-muted-foreground">{row.year}-{String(row.month).padStart(2, "0")}</p>
+                      <div className="mt-auto flex items-center justify-end gap-1 pt-1">
+                        <TagAction resourceType="personnel.monthlypayrollrecord" targetId={row.id} compact />
+                        <ExpandingActions
+                          actions={row.is_archived ? [
+                            { label: sourceText("Restore"), icon: <RotateCcw size={14} />, onClick: () => restorePayroll(row.id), variant: "success" as const, permission: "write" as const },
+                          ] : [
+                            { label: sourceText("View"), icon: <Eye size={14} />, onClick: () => router.push(`/personnel/payroll/${row.id}`) },
+                            { label: sourceText("Edit"), icon: <Edit size={14} />, onClick: () => router.push(`/personnel/payroll/${row.id}/edit`), permission: "write" as const },
+                            ...(row.status === PayrollStatus.DRAFT ? [{ label: sourceText("Calculate"), icon: <Calculator size={14} />, onClick: () => handleCalculate(row.id), permission: "write" as const }] : []),
+                            ...(row.status === PayrollStatus.CALCULATED ? [{ label: sourceText("Approve"), icon: <CheckCircle size={14} />, onClick: () => handleApprove(row.id), variant: "success" as const, permission: "write" as const }] : []),
+                            { label: sourceText("Archive"), icon: <Archive size={14} />, onClick: () => setConfirmState({ open: true, action: 'archive', id: row.id }), variant: "warning" as const, permission: "write" as const },
+                          ]}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="overflow-hidden">
                 <div className="overflow-x-auto"><Table>
                   <TableHeader>
@@ -750,6 +782,7 @@ export default function PayrollListPage() {
                   </TableBody>
                 </Table></div>
               </div>
+              )}
               {payrollData && payrollData.count > pageSize && (
                 <Pagination
                   currentPage={page}

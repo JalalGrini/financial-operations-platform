@@ -53,6 +53,7 @@ import { Stagger, FadeIn } from "@/components/ui/stagger";
 import { MovingBorder } from "@/components/ui/moving-border";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { ShineBorder } from "@/components/ui/shine-border";
+import { STAT_CARDS_GRID } from "@/components/ui/stat-card";
 
 type ActionTile = {
   href: string;
@@ -496,7 +497,7 @@ export default function DashboardPage() {
               </AnimatedGradientText>
             </h2>
           </div>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className={STAT_CARDS_GRID}>
             {/* Headcount */}
             <SpotlightCard className="rounded-2xl border border-border/70 bg-card/80 p-0 overflow-hidden">
               <div className="px-5 pt-4 pb-2 flex items-center gap-2">

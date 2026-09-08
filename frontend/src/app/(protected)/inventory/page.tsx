@@ -27,7 +27,7 @@ import { useExperience } from "@/lib/experience";
 import { getEffectiveRoles } from "@/lib/navigation";
 import { operationError } from "@/lib/form-errors";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
 import { SourceText } from "@/components/i18n/SourceText";
 import { Button } from "@/components/ui/button";
@@ -199,7 +199,7 @@ export default function InventoryPage() {
         </WriteOnly>}
       />
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className={STAT_CARDS_GRID}>
         <StatCard icon={Package} label={sourceText("Total items")} value={totalItems} tone="primary" />
         <StatCard icon={Archive} label={sourceText("Archived view")} value={archived ? totalItems : 0} tone="amber" />
         <StatCard icon={RotateCcw} label={sourceText("Active view")} value={archived ? 0 : totalItems} tone="emerald" />

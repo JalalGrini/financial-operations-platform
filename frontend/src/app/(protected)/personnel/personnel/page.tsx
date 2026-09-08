@@ -66,7 +66,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
+import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
 import {
   Breadcrumb,
   ActionCard,
@@ -169,6 +170,7 @@ export default function PersonnelListPage() {
   const { user } = useAuth();
   const isAdministrator = getEffectiveRoles(user).includes("Administrator");
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useViewMode("personnel", "table");
   const [filterSelected, setFilterSelected] = useState<Record<string, string[]>>({});
   const statusFilter = filterSelected.status?.[0] ?? "";
   const companyFilter = filterSelected.company?.[0] ?? "";
@@ -579,8 +581,8 @@ export default function PersonnelListPage() {
         </WriteOnly>}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={Eye} label={sourceText("Visible records")} value={personnelData?.count || 0} tone="primary" />
           <StatCard icon={RotateCcw} label={sourceText("Active rows")} value={activeRows} tone="emerald" />
           <StatCard icon={Briefcase} label={sourceText("Employments")} value={currentEmployments} tone="indigo" />
@@ -645,6 +647,7 @@ export default function PersonnelListPage() {
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
+            <ViewToggle mode={viewMode} onChange={setViewMode} />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -667,6 +670,54 @@ export default function PersonnelListPage() {
             </div>
           ) : (
             <>
+              {viewMode === "card" ? (
+                <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {(personnelData?.results || []).map((row) => (
+                    <div
+                      key={row.id}
+                      className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/30 hover:shadow-md"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(row.id)}
+                            onChange={(e) => handleSelectionChange(row.id, e.target.checked)}
+                            className="h-4 w-4 shrink-0 rounded border-border text-primary"
+                          />
+                          <PersonnelAvatar name={row.full_name} email={row.email} size="sm" />
+                          <div className="min-w-0">
+                            <p className="font-semibold leading-tight text-foreground">{row.full_name}</p>
+                            {row.email && <p className="truncate text-xs text-muted-foreground">{row.email}</p>}
+                          </div>
+                        </div>
+                        <StatusBadge status={row.status} variant="personnel" />
+                      </div>
+                      <p className="text-xs text-muted-foreground font-mono">{row.reference}</p>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{row.cin || sourceText("—")}</span>
+                        <span className={row.completeness_percentage >= 80 ? "text-emerald-600" : row.completeness_percentage >= 50 ? "text-amber-600" : "text-rose-600"}>
+                          {row.completeness_percentage}%
+                        </span>
+                      </div>
+                      <div className="mt-auto flex items-center justify-end gap-1 pt-1">
+                        <TagAction resourceType="personnel.personnelperson" targetId={row.id} compact />
+                        <ExpandingActions
+                          actions={row.is_archived ? [
+                            { label: sourceText("View"), icon: <Eye size={14} />, onClick: () => router.push(`/personnel/personnel/${row.id}`) },
+                            { label: sourceText("Restore"), icon: <RotateCcw size={14} />, onClick: () => openRestoreDialog(row.id), variant: "success" as const, permission: "write" as const },
+                            ...(isAdministrator ? [{ label: sourceText("Delete Permanently"), icon: <Trash2 size={14} />, onClick: () => setDeleteConfirm({ open: true, id: row.id }), variant: "danger" as const, permission: "delete" as const }] : []),
+                          ] : [
+                            { label: sourceText("View"), icon: <Eye size={14} />, onClick: () => router.push(`/personnel/personnel/${row.id}`) },
+                            { label: sourceText("Edit"), icon: <Edit size={14} />, onClick: () => router.push(`/personnel/personnel/${row.id}/edit`), permission: "write" as const },
+                            { label: sourceText("Archive"), icon: <Archive size={14} />, onClick: () => openArchiveDialog(row.id), variant: "warning" as const, permission: "write" as const },
+                          ]}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="overflow-hidden">
                 <div className="overflow-x-auto"><Table>
                   <TableHeader>
@@ -761,6 +812,7 @@ export default function PersonnelListPage() {
                   </TableBody>
                 </Table></div>
               </div>
+              )}
               {personnelData && personnelData.count > pageSize && (
                 <Pagination
                   currentPage={page}

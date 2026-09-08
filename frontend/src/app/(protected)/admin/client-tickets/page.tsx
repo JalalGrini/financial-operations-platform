@@ -51,7 +51,7 @@ import { Input, Textarea } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHero } from "@/components/ui/page-hero";
 import { SkeletonTable } from "@/components/ui/page-skeletons";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import {
   Table,
   TableBody,
@@ -89,6 +89,12 @@ interface ClientTicket {
   replied_by_name: string | null;
   resolved_at: string | null;
   resolved_by_name: string | null;
+  attachments?: Array<{
+    id: number;
+    file_name: string;
+    size_bytes: number;
+    download_url: string;
+  }>;
 }
 
 /**
@@ -206,6 +212,26 @@ function TicketDialog({
               {ticket.message}
             </p>
           </div>
+
+          {(ticket.attachments?.length ?? 0) > 0 ? (
+            <div>
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                <SourceText source="Attachments" />
+              </Label>
+              <ul className="mt-1 space-y-1 text-sm">
+                {ticket.attachments?.map((item) => (
+                  <li key={item.id}>
+                    <a
+                      href={item.download_url}
+                      className="text-primary underline-offset-2 hover:underline"
+                    >
+                      {item.file_name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
 
           {ticket.replied_at ? (
             <p className="text-xs text-muted-foreground">
@@ -379,7 +405,7 @@ export default function ClientTicketsPage() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={STAT_CARDS_GRID}>
         <StatCard
           icon={Mail}
           label={sourceText("Unread")}

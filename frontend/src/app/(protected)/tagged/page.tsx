@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { collaborationApi, Mention } from "@/features/collaboration/api";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -54,7 +54,7 @@ export default function TaggedPage() {
         description={sourceText("Records explicitly routed to you for review, follow-up and cross-team coordination.")}
       />
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className={STAT_CARDS_GRID}>
         <StatCard icon={AtSign} label={sourceText("Active tags")} value={rows.length} tone="primary" />
         <StatCard icon={Link2} label={sourceText("Open records")} value={rows.filter((row) => !row.resolved_at).length} tone="amber" />
         <StatCard icon={CheckCheck} label={sourceText("Resolved")} value={rows.filter((row) => !!row.resolved_at).length} tone="emerald" />

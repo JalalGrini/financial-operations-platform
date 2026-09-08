@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import {
   useUpdatePersonnel,
@@ -336,8 +336,8 @@ export default function EditPersonnelPage() {
         }
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={Hash} label={sourceText("Reference")} value={personnelData?.reference || sourceText("Unavailable")} tone="primary" />
           <StatCard icon={Check} label={sourceText("Status")} value={statusValue ? statusLabelMap[statusValue] || sourceText("Unknown") : sourceText("Unknown")} tone="indigo" />
           <StatCard icon={Mail} label={sourceText("Email")} value={personnelData?.email || sourceText("No email")} tone="emerald" />

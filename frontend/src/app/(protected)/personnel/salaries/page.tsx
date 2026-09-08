@@ -49,7 +49,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Breadcrumb } from "@/components/ui/page-components";
 import { DateDisplay } from "@/features/personnel/components/common";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -390,8 +390,8 @@ export default function SalaryListPage() {
         </WriteOnly>}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={Archive} label={sourceText("Visible entries")} value={salaryData?.count ?? 0} tone="primary" />
           <StatCard icon={Eye} label={sourceText("Current salaries")} value={currentCount} tone="emerald" />
           <StatCard icon={RotateCcw} label={sourceText("Archived")} value={archivedCount} tone="amber" />

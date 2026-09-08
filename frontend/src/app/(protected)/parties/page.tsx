@@ -14,7 +14,7 @@ import { Building2, Landmark, Users2,
   RefreshCw
 } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -1009,8 +1009,8 @@ export default function PartiesPage() {
         description={sourceText("Suppliers, external parties and associated persons — reusable counterparties for financial documents and treasury workflows.")}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={Building2} label={sourceText("Suppliers")} value={suppliersQuery.data?.count ?? 0} tone="primary" />
           <StatCard icon={Landmark} label={sourceText("External Parties")} value={externalPartiesQuery.data?.count ?? 0} tone="indigo" />
           <StatCard icon={Users2} label={sourceText("Associated Persons")} value={associatedPeopleQuery.data?.count ?? 0} tone="emerald" />

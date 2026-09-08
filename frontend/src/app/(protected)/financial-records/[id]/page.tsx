@@ -1,5 +1,6 @@
 "use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { validateSingleUpload } from "@/lib/upload-limits";
 import { SourceText } from "@/components/i18n/SourceText";
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
@@ -25,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Breadcrumb } from "@/components/ui/page-components";
 import { PageHero } from "@/components/ui/page-hero";
 import { useRevealOnOpen } from "@/hooks/useRevealOnOpen";
@@ -440,6 +441,13 @@ export default function FinancialRecordWorkspacePage() {
   };
   const uploadAttachment = async () => {
     if (!attachmentFile) return;
+    const problem = validateSingleUpload(attachmentFile, {
+      extensions: new Set([".pdf", ".jpg", ".jpeg", ".png", ".csv", ".xlsx"]),
+    });
+    if (problem) {
+      toast.error(sourceText(problem));
+      return;
+    }
     try {
       await uploadMutation.mutateAsync(attachmentFile);
       setAttachmentFile(null);
@@ -532,8 +540,8 @@ export default function FinancialRecordWorkspacePage() {
         }
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={ShieldCheck} label={sourceText("Status")} value={recordStatusLabels[record.status] || record.status} tone="primary" />
           <StatCard icon={ReceiptText} label={sourceText("Total debits")} value={money(record.debit_total, record.currency)} tone="indigo" />
           <StatCard icon={ReceiptText} label={sourceText("Total credits")} value={money(record.credit_total, record.currency)} tone="amber" />

@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -124,7 +124,7 @@ export default function TransfersPage() {
         </div>}
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className={STAT_CARDS_GRID}>
         <StatCard label={sourceText("Total")} value={summaryData?.total_count ?? 0} icon={ArrowLeftRight} />
         <StatCard label={sourceText("Drafts")} value={summaryData?.draft_count ?? 0} icon={Clock} tone="amber" />
         <StatCard label={sourceText("Confirmed")} value={summaryData?.confirmed_count ?? 0} icon={CheckCircle2} tone="emerald" />

@@ -21,13 +21,14 @@ import {
 } from "lucide-react";
 import { deadlinesApi } from "@/features/deadlines/api";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
+import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
 import { DeadlinePeriodTracker } from "@/features/deadlines/PeriodTracker";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { TagAction } from "@/components/collaboration/TagAction";
-import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { WriteOnly } from "@/components/auth/WriteOnly";
 import { FilterPopover } from "@/components/ui/filter-popover";
@@ -73,6 +74,7 @@ export default function DeadlinesPage() {
 
   // Search / filter
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useViewMode("deadlines", "card");
   const [filter, setFilter] = useState("active");
 
 
@@ -174,7 +176,7 @@ export default function DeadlinesPage() {
       />
 
       {/* ── Stat strip ── */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={STAT_CARDS_GRID}>
         <StatCard
           icon={CalendarClock}
           label={sourceText("Visible")}
@@ -240,6 +242,7 @@ export default function DeadlinesPage() {
               >
                 {listQuery.isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               </Button>
+              <ViewToggle mode={viewMode} onChange={setViewMode} />
             </div>
           </div>
           {/* Filter tabs */}
@@ -281,6 +284,63 @@ export default function DeadlinesPage() {
               icon={CalendarClock}
               title={sourceText("No deadlines match")}
             />
+          ) : viewMode === "table" ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{sourceText("Title")}</TableHead>
+                    <TableHead className="hidden md:table-cell">{sourceText("Status")}</TableHead>
+                    <TableHead className="hidden lg:table-cell">{sourceText("Due")}</TableHead>
+                    <TableHead className="w-40"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((row) => (
+                    <TableRow className="row-hover" key={row.id}>
+                      <TableCell>
+                        <p className="font-medium">{row.title}</p>
+                        <p className="text-xs text-muted-foreground">{row.company_name || sourceText("All companies")}</p>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold", STATUS_BADGE[row.computed_status] ?? STATUS_BADGE.upcoming)}>
+                          {row.computed_status.replace("_", " ")}
+                        </span>
+                      </TableCell>
+                      <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">
+                        {new Date(row.due_at).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex shrink-0 justify-end gap-2">
+                          {row.status === "completed" ? (
+                            <WriteOnly>
+                            <Button variant="outline" size="sm" onClick={() => restoreMutation.mutate(row.id)} disabled={restoreMutation.isPending}>
+                              <RefreshCcw className="mr-1 h-3.5 w-3.5" />
+                              {sourceText("Reopen")}
+                            </Button>
+                            </WriteOnly>
+                          ) : (
+                            <Button size="sm" onClick={() => completeMutation.mutate(row.id)} disabled={completeMutation.isPending}>
+                              <Check className="mr-1 h-3.5 w-3.5" />
+                              {sourceText("Complete")}
+                            </Button>
+                          )}
+                          <TagAction resourceType="deadlines.deadline" targetId={String(row.id)} compact />
+                          <WriteOnly>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600" title={sourceText("Archive")} onClick={() => archiveMutation.mutate(row.id)} disabled={archiveMutation.isPending}>
+                              <Trash2 size={14} />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" asChild title={sourceText("Edit")}>
+                              <Link href={`/deadlines/${row.id}/edit`}><Edit size={14} /></Link>
+                            </Button>
+                          </WriteOnly>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <div className="space-y-3">
               {rows.map((row) => (

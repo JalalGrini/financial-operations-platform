@@ -30,6 +30,7 @@ import {
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { ExportButton } from "@/components/ui/export-button";
 import { listExportApi, type ListExportKey } from "@/features/exports/api";
+import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
 
 /**
  * Reusable entity-section: search + archive toggle + table + create/edit
@@ -139,6 +140,7 @@ export function EntitySection<
 }: EntitySectionProps<T>) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useViewMode(queryKey, "table");
   const [showArchived, setShowArchived] = useState(false);
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -372,6 +374,7 @@ export function EntitySection<
               <SourceText source="New" leading trailing />
             </Button>
           </WriteOnly>
+          <ViewToggle mode={viewMode} onChange={setViewMode} />
         </div>
       </div>
 
@@ -383,6 +386,7 @@ export function EntitySection<
         emptyMessage={sourceText("No results found")}
         striped
         hoverable
+        viewMode={viewMode}
       />
       {data && data.count > 25 && (
         <Pagination

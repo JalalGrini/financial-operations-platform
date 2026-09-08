@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { WriteOnly } from "@/components/auth/WriteOnly";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { SkeletonTable } from "@/components/ui/page-skeletons";
 import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
@@ -137,7 +137,7 @@ export default function LeavesListPage() {
 
       {/* Stat strip */}
       <ScrollReveal delay={80}>
-        <Stagger className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Stagger className={STAT_CARDS_GRID}>
           <FadeIn><StatCard icon={Calendar}     label={sourceText("Total leaves")}    value={statAll}      tone="primary" /></FadeIn>
           <FadeIn><StatCard icon={CheckCircle2} label={sourceText("Currently active")} value={statActive}   tone="emerald" /></FadeIn>
           <FadeIn><StatCard icon={TrendingUp}   label={sourceText("Upcoming")}         value={statUpcoming} tone="amber" /></FadeIn>

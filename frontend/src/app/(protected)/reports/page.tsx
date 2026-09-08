@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
@@ -319,8 +319,8 @@ export default function ReportsRegistryPage() {
         </WriteOnly>}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={FileCheck} label={sourceText("Pending review")} value={pendingCount} tone="amber" />
           <StatCard icon={CheckCircle} label={sourceText("Approved")} value={approvedCount} tone="emerald" />
           <StatCard icon={RotateCcw} label={sourceText("Source drift")} value={driftCount} tone="rose" />

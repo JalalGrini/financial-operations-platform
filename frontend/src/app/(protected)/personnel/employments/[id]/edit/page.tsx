@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import {
   useUpdateEmployment,
@@ -425,8 +425,8 @@ export default function EditEmploymentPage() {
         }
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={Briefcase} label={sourceText("Reference")} value={employmentData?.employee_reference || sourceText("Unavailable")} tone="primary" />
           <StatCard icon={FileText} label={sourceText("Contract mode")} value={contractType ? sourceText(contractType) : sourceText("Unknown")} tone="indigo" />
           <StatCard icon={AlertCircle} label={sourceText("Status")} value={employmentStatus ? sourceText(employmentStatus) : sourceText("Unknown")} tone="amber" />

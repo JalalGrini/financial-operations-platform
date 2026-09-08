@@ -65,7 +65,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
+import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
 import { Breadcrumb } from "@/components/ui/page-components";
 import {
   StatusBadge,
@@ -174,6 +175,7 @@ const densityLabels: Record<"comfortable" | "compact" | "dense", string> = {
 
 export default function CNSSListPage() {
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useViewMode("cnss", "table");
   const [filterSelected, setFilterSelected] = useState<Record<string, string[]>>({});
   const statusFilter = filterSelected.status?.[0] ?? "";
   const companyFilter = filterSelected.company?.[0] ?? "";
@@ -605,10 +607,10 @@ export default function CNSSListPage() {
         </>}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+      <section className="space-y-4">
         <CollapsibleStats
           extra={
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className={STAT_CARDS_GRID}>
               <StatCard icon={AlertCircle} label={sourceText("Stopped")} value={stoppedCount} tone="rose" />
               <StatCard icon={Archive} label={sourceText("Archived")} value={archivedCount} tone="amber" />
               <StatCard icon={CalendarDays} label={sourceText("Date range")} value={dateRangeLabel} tone="indigo" />
@@ -689,6 +691,7 @@ export default function CNSSListPage() {
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
+            <ViewToggle mode={viewMode} onChange={setViewMode} />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -713,6 +716,30 @@ export default function CNSSListPage() {
             </div>
           ) : (
             <>
+              {viewMode === "card" ? (
+                <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {(cnssData?.results || []).map((row) => (
+                    <div key={row.id} className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/30 hover:shadow-md">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-semibold leading-tight text-foreground">{row.person_name || sourceText("—")}</p>
+                        <StatusBadge status={row.situation} variant="cnssSituation" showDot />
+                      </div>
+                      <p className="text-xs text-muted-foreground">{row.reference}</p>
+                      <p className="text-xs text-muted-foreground">{row.company_name || sourceText("—")}</p>
+                      <div className="mt-auto flex items-center justify-end gap-1 pt-1">
+                        <TagAction resourceType="personnel.cnssdeclaration" targetId={row.id} compact />
+                        <ExpandingActions
+                          actions={[
+                            { label: sourceText("View"), icon: <Eye size={14} />, onClick: () => router.push(`/personnel/cnss/${row.id}`) },
+                            ...(!row.is_archived ? [{ label: sourceText("Edit"), icon: <Edit size={14} />, onClick: () => router.push(`/personnel/cnss/${row.id}/edit`), permission: "write" as const }] : [{ label: sourceText("Restore"), icon: <RotateCcw size={14} />, onClick: () => openRestoreDialog(row.id), variant: "success" as const, permission: "write" as const }]),
+                            ...(!row.is_archived ? [{ label: sourceText("Archive"), icon: <Archive size={14} />, onClick: () => openArchiveDialog(row.id), variant: "warning" as const, permission: "write" as const }] : []),
+                          ]}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="overflow-hidden">
                 <div className="overflow-x-auto"><Table>
                   <TableHeader>
@@ -766,6 +793,7 @@ export default function CNSSListPage() {
                   </TableBody>
                 </Table></div>
               </div>
+              )}
               {cnssData && cnssData.count > pageSize && (
                 <Pagination
                   currentPage={page}

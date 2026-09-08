@@ -13,7 +13,7 @@ import { operationError } from "@/lib/form-errors";
 import { SourceText } from "@/components/i18n/SourceText";
 import { Breadcrumb } from "@/components/ui/page-components";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -215,8 +215,8 @@ export default function AuditLogPage() {
           </Button>
         </WriteOnly>}
       />
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={ShieldCheck} label={sourceText("Visible events")} value={data?.count ?? 0} tone="primary" />
           <StatCard icon={CheckCircle2} label={sourceText("Successful")} value={successCount} tone="emerald" />
           <StatCard icon={XCircle} label={sourceText("Denied")} value={deniedCount} tone="rose" />

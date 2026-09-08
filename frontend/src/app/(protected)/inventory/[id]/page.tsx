@@ -35,7 +35,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toast";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { DefinitionList } from "@/components/ui/definition-list";
 import { Breadcrumb } from "@/components/ui/page-components";
 import {
@@ -209,7 +209,7 @@ export default function InventoryDetailPage() {
         }
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className={STAT_CARDS_GRID}>
         <StatCard
           icon={Package}
           label={sourceText("Available quantity")}

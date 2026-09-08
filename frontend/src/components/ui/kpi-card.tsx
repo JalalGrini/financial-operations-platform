@@ -130,7 +130,7 @@ export function KpiCard({
 }: KpiCardProps) {
   if (isLoading) {
     return (
-      <div className={cn("rounded-xl border border-border gradient-card p-5", className)}>
+      <div className={cn("min-w-0 overflow-hidden rounded-xl border border-border gradient-card p-5", className)}>
         <div className="space-y-3">
           <div className="h-3.5 w-20 animate-pulse rounded bg-muted" />
           <div className="h-8 w-28 animate-pulse rounded bg-muted" />
@@ -143,7 +143,7 @@ export function KpiCard({
   const cardBody = (
     <div
       className={cn(
-        "rounded-xl border border-border gradient-card p-5",
+        "min-w-0 overflow-hidden rounded-xl border border-border gradient-card p-5",
         "transition-all duration-200",
         href && "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg",
         className,
@@ -168,7 +168,7 @@ export function KpiCard({
 
       {/* Value row */}
       <div className="mt-2 flex items-end justify-between gap-2">
-        <p className="stat-number tabular text-foreground">
+        <p className="stat-number tabular min-w-0 max-w-full overflow-hidden break-all text-foreground [overflow-wrap:anywhere]">
           {typeof value === "number" ? <CountUp to={value} duration={1.1} /> : value}
         </p>
         {sparkline && sparkline.length > 1 && (
@@ -215,10 +215,8 @@ export interface KpiGridProps {
 export function KpiGrid({ children, columns = 4, className }: KpiGridProps) {
   const colClass =
     columns === 2
-      ? "grid-cols-1 sm:grid-cols-2"
-      : columns === 3
-        ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-        : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4";
+      ? "grid-cols-2"
+      : "grid-cols-2 sm:grid-cols-4";
 
   return (
     <div className={cn("grid gap-4", colClass, className)}>

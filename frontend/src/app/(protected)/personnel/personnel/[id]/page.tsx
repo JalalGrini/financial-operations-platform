@@ -1,5 +1,6 @@
 ﻿"use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { validateSingleUpload } from "@/lib/upload-limits";
 import React, { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
@@ -683,7 +684,26 @@ export default function PersonnelProfilePage() {
                   />
                 </label>
                 <Button
-                  onClick={() => uploadDocumentMutation.mutate()}
+                  onClick={() => {
+                    const problem = validateSingleUpload(documentFile, {
+                      extensions: new Set([
+                        ".pdf",
+                        ".doc",
+                        ".docx",
+                        ".xls",
+                        ".xlsx",
+                        ".csv",
+                        ".jpg",
+                        ".jpeg",
+                        ".png",
+                      ]),
+                    });
+                    if (problem) {
+                      toast.error(sourceText(problem));
+                      return;
+                    }
+                    uploadDocumentMutation.mutate();
+                  }}
                   disabled={!documentFile || uploadDocumentMutation.isPending}
                 >
                   {uploadDocumentMutation.isPending ? (

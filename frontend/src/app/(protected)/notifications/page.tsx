@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, CheckCheck, Clock3, Inbox } from "lucide-react";
 import { collaborationApi, Notification } from "@/features/collaboration/api";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -68,7 +68,7 @@ export default function NotificationsPage() {
       </BlurFade>
 
       {/* ── Stat strip ── */}
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className={STAT_CARDS_GRID}>
         <StatCard
           icon={Bell}
           label={sourceText("Unread")}

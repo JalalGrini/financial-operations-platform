@@ -391,6 +391,7 @@ interface DataTableProps<T> {
   hoverable?: boolean;
   stickyHeader?: boolean;
   density?: "comfortable" | "compact" | "dense";
+  viewMode?: "card" | "table";
 }
 export function DataTable<T>({
   data,
@@ -406,6 +407,7 @@ export function DataTable<T>({
   hoverable = true,
   stickyHeader = true,
   density = "comfortable",
+  viewMode = "table",
 }: DataTableProps<T>) {
   if (isLoading) {
     return <TableSkeleton rows={5} columns={columns.length} />;
@@ -444,6 +446,69 @@ export function DataTable<T>({
       : density === "compact"
         ? "px-3 py-2 text-sm"
         : "px-3 py-3 text-sm";
+
+  if (viewMode === "card") {
+    const bodyColumns = columns.filter((col) => String(col.key) !== "__actions");
+    const actionColumn = columns.find((col) => String(col.key) === "__actions");
+    const titleColumn = bodyColumns[0];
+    const restColumns = bodyColumns.slice(1);
+    return (
+      <div className={cn("grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3", className)}>
+        {data.map((row) => {
+          const titleValue = titleColumn
+            ? (row as Record<string, unknown>)[titleColumn.key as string]
+            : undefined;
+          return (
+            <div
+              key={keyExtractor(row)}
+              onClick={() => onRowClick?.(row)}
+              className={cn(
+                "group flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-sm transition hover:border-primary/30 hover:shadow-md",
+                onRowClick && "cursor-pointer",
+                rowClassName,
+              )}
+            >
+              {titleColumn ? (
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 font-semibold leading-tight text-foreground">
+                    {titleColumn.render
+                      ? titleColumn.render(titleValue, row)
+                      : String(titleValue ?? "—")}
+                  </div>
+                </div>
+              ) : null}
+              {restColumns.map((col, colIndex) => {
+                const value = (row as Record<string, unknown>)[col.key as string];
+                return (
+                  <div key={colIndex} className="min-w-0 text-xs text-muted-foreground">
+                    {col.header ? (
+                      <span className="me-1 font-medium text-foreground/70">{col.header}:</span>
+                    ) : null}
+                    <span className="text-foreground">
+                      {col.render ? col.render(value, row) : String(value ?? "—")}
+                    </span>
+                  </div>
+                );
+              })}
+              {actionColumn ? (
+                <div
+                  className="mt-auto flex items-center justify-end pt-1"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {actionColumn.render
+                    ? actionColumn.render(
+                        (row as Record<string, unknown>)[actionColumn.key as string],
+                        row,
+                      )
+                    : null}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div

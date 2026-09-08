@@ -15,7 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AdminOnly } from "@/components/auth/WriteOnly";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
+import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
 import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { SkeletonTable } from "@/components/ui/page-skeletons";
@@ -184,6 +185,7 @@ export default function AdminTicketsPage() {
   const queryClient  = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<"open" | "closed" | "">("");
   const [search, setSearch]             = useState("");
+  const [viewMode, setViewMode] = useViewMode("tickets", "table");
   const [replyTicket, setReplyTicket]   = useState<Ticket | null>(null);
   const [ticketConfirm, setTicketConfirm] = useState<{ open: boolean; id: number | null; action: 'close' | 'delete' | null }>({ open: false, id: null, action: null });
 
@@ -232,7 +234,7 @@ export default function AdminTicketsPage() {
         />
 
         {/* Stat strip */}
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={LifeBuoy}    label={sourceText("Total tickets")} value={rawTickets.length} tone="primary" />
           <StatCard icon={AlertTriangle} label={sourceText("Open tickets")} value={openCount}   tone="amber" />
           <StatCard icon={CheckCircle2} label={sourceText("Closed tickets")} value={closedCount} tone="emerald" />
@@ -264,6 +266,7 @@ export default function AdminTicketsPage() {
                   ? <Loader2 className="h-4 w-4 animate-spin" />
                   : <RefreshCw className="h-4 w-4" />}
               </Button>
+              <ViewToggle mode={viewMode} onChange={setViewMode} />
             </div>
 
             {/* Status tab strip — inside card header */}
@@ -302,6 +305,38 @@ export default function AdminTicketsPage() {
               <div className="py-16 text-center">
                 <LifeBuoy className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground"><SourceText source="No tickets found." /></p>
+              </div>
+            ) : viewMode === "card" ? (
+              <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
+                {tickets.map((t) => (
+                  <div key={t.id} className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold leading-tight text-foreground">{t.name}</p>
+                      <Badge className={cn("text-xs shrink-0", STATUS_COLORS[t.status])}>
+                        {t.status === "open" ? <SourceText source="Open" /> : <SourceText source="Closed" />}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{REASON_LABELS[t.reason] ?? t.reason}</p>
+                    <p className="text-xs text-muted-foreground">{t.email}</p>
+                    <div className="mt-auto flex flex-wrap items-center justify-end gap-1 pt-1">
+                      {t.status === "open" && (
+                        <Button size="sm" variant="outline" onClick={() => setReplyTicket(t)}>
+                          <Mail className="me-1.5 h-3.5 w-3.5" />
+                          <SourceText source="Reply" />
+                        </Button>
+                      )}
+                      {(t.status as string) !== 'done' && t.status !== "closed" && (
+                        <Button size="sm" variant="ghost" onClick={() => setTicketConfirm({ open: true, id: t.id, action: 'close' })}>
+                          <Clock className="h-3.5 w-3.5" />
+                          <SourceText source="Mark as done" />
+                        </Button>
+                      )}
+                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setTicketConfirm({ open: true, id: t.id, action: 'delete' })}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="overflow-hidden">

@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -569,8 +569,8 @@ export default function EditPayrollPage() {
         }
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={CheckCircle} label={sourceText("Status")} value={payrollStatusLabels[payroll.status] || payroll.status} tone="primary" />
           <StatCard icon={DollarSign} label={sourceText("Gross Salary")} value={formatCurrency(payroll.gross_salary_snapshot)} tone="indigo" />
           <StatCard icon={Calculator} label={sourceText("Net Salary")} value={formatCurrency(payroll.calculated_net_salary)} tone="emerald" />

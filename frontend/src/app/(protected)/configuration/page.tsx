@@ -14,7 +14,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BellRing, CreditCard, FileCog, FolderTree } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -1141,8 +1141,8 @@ export default function ConfigurationPage() {
         description={sourceText("Administrator-managed business configuration: payment methods, categories, record types, transaction types, report types and notification types.")}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={CreditCard} label={sourceText("Payment Methods")} value={paymentMethodsQuery.data?.count ?? 0} tone="primary" />
           <StatCard icon={FolderTree} label={sourceText("Categories")} value={categoriesQuery.data?.count ?? 0} tone="indigo" />
           <StatCard icon={FileCog} label={sourceText("Record Types")} value={recordTypesQuery.data?.count ?? 0} tone="emerald" />

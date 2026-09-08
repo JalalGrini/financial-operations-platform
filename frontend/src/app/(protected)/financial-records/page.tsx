@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import {
   Table,
   TableBody,
@@ -330,10 +330,10 @@ export default function FinancialRecordsPage() {
         </div>}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+      <section className="space-y-4">
         <CollapsibleStats
           extra={
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className={STAT_CARDS_GRID}>
               <StatCard icon={ReceiptText} label={sourceText("Posted")} value={postedCount} tone="emerald" />
               <StatCard icon={FilePlus2} label={sourceText("Drafts")} value={draftCount} tone="amber" />
               <StatCard icon={Archive} label={sourceText("Cancelled")} value={cancelledCount} tone="rose" />

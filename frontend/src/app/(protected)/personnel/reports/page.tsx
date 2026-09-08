@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Breadcrumb, PageHeader } from "@/components/ui/page-components";
 import {
   Select,
@@ -428,8 +428,8 @@ export default function PersonnelReportsPage() {
         }
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={Eye} label={sourceText("Visible rows")} value={totalRows} tone="primary" />
           <StatCard icon={Building2} label={sourceText("Companies")} value={companyIds.length === 0 ? sourceText("All") : companyIds.length} tone="indigo" />
           <StatCard icon={FileText} label={sourceText("Personnel")} value={personnelIds.length === 0 ? sourceText("All") : personnelIds.length} tone="emerald" />

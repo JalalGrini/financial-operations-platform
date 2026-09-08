@@ -56,7 +56,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Breadcrumb } from "@/components/ui/page-components";
 import {
   StatusBadge,
@@ -459,8 +459,8 @@ export default function EmploymentsListPage() {
         </WriteOnly>}
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={Briefcase} label={sourceText("Visible employments")} value={employmentsData?.count ?? 0} tone="primary" />
           <StatCard icon={Building2} label={sourceText("Active")} value={activeCount} tone="emerald" />
           <StatCard icon={Building2} label={sourceText("Companies in view")} value={companyCount} tone="indigo" />

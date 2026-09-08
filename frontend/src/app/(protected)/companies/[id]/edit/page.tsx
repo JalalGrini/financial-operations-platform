@@ -39,7 +39,7 @@ import {
 } from "@/features/companies/types";
 import { toast } from "@/components/ui/toast";
 import { Separator } from "@/components/ui/separator";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Breadcrumb, PageHeader } from "@/components/ui/page-components";
 import { GuidePanel } from "@/components/ui/guide-panel";
 const currencies = ["MAD", "USD", "EUR", "GBP"];
@@ -211,8 +211,8 @@ function CompanyEditForm({ company }: { company: Company }) {
         }
       />
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={Building2} label={sourceText("Reference")} value={company.reference || sourceText("Unavailable")} tone="primary" />
           <StatCard icon={Save} label={sourceText("Status")} value={sourceText(formData.status || "active")} tone="indigo" />
           <StatCard icon={Globe} label={sourceText("Currency")} value={formData.default_currency || sourceText("Unavailable")} tone="emerald" />

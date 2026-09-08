@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Breadcrumb } from "@/components/ui/page-components";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FilterPopover } from "@/components/ui/filter-popover";
@@ -263,8 +263,8 @@ export default function DocumentTemplatesPage() {
           </div>
         </AdminOnly>}
       />
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="space-y-4">
+        <div className={STAT_CARDS_GRID}>
           <StatCard icon={Eye} label={sourceText("Visible versions")} value={templates.length} tone="primary" />
           <StatCard icon={Edit} label={sourceText("Drafts")} value={draftCount} tone="amber" />
           <StatCard icon={Send} label={sourceText("Published")} value={publishedCount} tone="emerald" />

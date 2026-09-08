@@ -7,6 +7,9 @@ import { settingsApi } from "@/features/personnel/api";
 
 export type ViewMode = "card" | "table";
 
+/** Entity list card grid — matches Companies card view. */
+export const LIST_CARDS_GRID = "grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3";
+
 const VIEW_MODE_KEYS: Record<string, string> = {
   personnel: "personnelViewMode",
   companies: "companiesViewMode",
@@ -25,7 +28,7 @@ export function ViewToggle({ mode, onChange, className }: ViewToggleProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1",
+        "ms-auto flex shrink-0 items-center gap-1 rounded-lg border border-border bg-muted/40 p-1",
         className,
       )}
       role="group"
