@@ -20,10 +20,16 @@ def safe_export_row(values):
 
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
-MAX_TICKET_FILES = 5
-MAX_TICKET_TOTAL_BYTES = 25 * 1024 * 1024
+MAX_TICKET_FILES = 2
+MAX_TICKET_FILE_BYTES = 2 * 1024 * 1024
+MAX_TICKET_TOTAL_BYTES = 4 * 1024 * 1024
 MAX_REQUEST_BODY_BYTES = 26 * 1024 * 1024
-TICKET_ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp", ".doc", ".docx"}
+TICKET_ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png"}
+TICKET_ALLOWED_MIMES = {"application/pdf", "image/jpeg", "image/png"}
+TICKET_FILE_ERROR = (
+    "Fichier invalide. Max 2 fichiers, 2 Mo chacun, formats acceptés: PDF, JPG, PNG."
+)
+LEAVE_DOCUMENT_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp", ".doc", ".docx"}
 PHOTO_ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
 
 ALLOWED_SIGNATURES = {
@@ -43,11 +49,18 @@ ALLOWED_SIGNATURES = {
 def _safe_name(raw_name):
     raw = str(raw_name or "")
     normalized = unicodedata.normalize("NFKC", raw)
-    name = os.path.basename(normalized)
-    if not name or name != normalized or len(name) > 180:
+    name = os.path.basename(normalized.replace("\\", "/"))
+    if not name or name in {".", ".."}:
         raise ValidationError("The file name is missing, too long, or contains a path.")
-    if any(ord(ch) < 32 or ch in {"/", "\\", ":", "*", "?", '"', "<", ">", "|"} for ch in name):
-        raise ValidationError("The file name contains unsafe characters.")
+    cleaned = []
+    for ch in name:
+        if ord(ch) < 32 or ch in {"/", "\\", ":", "*", "?", '"', "<", ">", "|"}:
+            cleaned.append("_")
+        else:
+            cleaned.append(ch)
+    name = "".join(cleaned).strip(" .")
+    if not name or len(name) > 180:
+        raise ValidationError("The file name is missing, too long, or contains a path.")
     return name
 
 
@@ -149,16 +162,87 @@ def collect_request_uploads(request, *keys):
     return collected
 
 
+def _detect_upload_mime(upload):
+    """MIME from file bytes. Prefer python-magic; fall back to signatures."""
+    upload.seek(0)
+    head = upload.read(2048)
+    upload.seek(0)
+    try:
+        import magic
+
+        mime = magic.from_buffer(head, mime=True)
+        if mime:
+            return str(mime).split(";")[0].strip().lower()
+    except Exception:
+        pass
+    if head.startswith(b"%PDF-"):
+        return "application/pdf"
+    if head.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if head.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    return "application/octet-stream"
+
+
+def scrub_ticket_image(upload, mime):
+    """Re-save JPEG/PNG through Pillow so EXIF and other metadata are dropped."""
+    if mime not in {"image/jpeg", "image/png"}:
+        return upload
+    from io import BytesIO
+
+    from django.core.files.base import ContentFile
+    from PIL import Image
+
+    upload.seek(0)
+    try:
+        image = Image.open(upload)
+        fmt = image.format or ("JPEG" if mime == "image/jpeg" else "PNG")
+        if fmt == "JPEG" and image.mode in {"RGBA", "P", "LA"}:
+            image = image.convert("RGB")
+        output = BytesIO()
+        image.save(output, format=fmt, optimize=True)
+        output.seek(0)
+        cleaned = ContentFile(output.read(), name=getattr(upload, "name", "image"))
+        cleaned._detected_mime = mime
+        return cleaned
+    except Exception as exc:
+        raise ValidationError(TICKET_FILE_ERROR) from exc
+    finally:
+        upload.seek(0)
+
+
 def validate_ticket_uploads(uploads):
     files = [upload for upload in uploads if upload]
-    if len(files) > MAX_TICKET_FILES:
-        raise ValidationError("Too many files. Maximum is 5.")
-    total = 0
-    for upload in files:
-        validate_private_upload(
-            upload, max_bytes=MAX_UPLOAD_BYTES, allowed=TICKET_ALLOWED_EXTENSIONS
-        )
-        total += int(getattr(upload, "size", 0) or 0)
-    if total > MAX_TICKET_TOTAL_BYTES:
-        raise ValidationError("Attachments together must be 25 MB or smaller.")
-    return files
+    cleaned = []
+    try:
+        if len(files) > MAX_TICKET_FILES:
+            raise ValidationError(TICKET_FILE_ERROR)
+        total = 0
+        for upload in files:
+            name = _safe_name(getattr(upload, "name", ""))
+            ext = os.path.splitext(name)[1].lower()
+            if ext not in TICKET_ALLOWED_EXTENSIONS:
+                raise ValidationError(TICKET_FILE_ERROR)
+            size = int(getattr(upload, "size", 0) or 0)
+            if size <= 0 or size > MAX_TICKET_FILE_BYTES:
+                raise ValidationError(TICKET_FILE_ERROR)
+            mime = _detect_upload_mime(upload)
+            if mime not in TICKET_ALLOWED_MIMES:
+                raise ValidationError("Type de fichier non autorisé.")
+            if ext in {".jpg", ".jpeg"} and mime != "image/jpeg":
+                raise ValidationError(TICKET_FILE_ERROR)
+            if ext == ".png" and mime != "image/png":
+                raise ValidationError(TICKET_FILE_ERROR)
+            if ext == ".pdf" and mime != "application/pdf":
+                raise ValidationError(TICKET_FILE_ERROR)
+            validate_private_upload(
+                upload, max_bytes=MAX_TICKET_FILE_BYTES, allowed=TICKET_ALLOWED_EXTENSIONS
+            )
+            upload._detected_mime = mime
+            cleaned.append(scrub_ticket_image(upload, mime))
+            total += size
+        if total > MAX_TICKET_TOTAL_BYTES:
+            raise ValidationError(TICKET_FILE_ERROR)
+    except ValidationError as exc:
+        raise ValidationError(TICKET_FILE_ERROR) from exc
+    return cleaned

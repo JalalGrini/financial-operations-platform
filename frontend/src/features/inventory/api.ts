@@ -18,13 +18,9 @@ export const inventoryApi = {
   getItem: (id: string) =>
     apiClient.get<InventoryItem>(`/inventory/items/${id}/`),
   createItem: (data: FormData) =>
-    apiClient.post<InventoryItem>("/inventory/items/", data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
+    apiClient.post<InventoryItem>("/inventory/items/", data),
   updateItem: (id: string, data: FormData) =>
-    apiClient.patch<InventoryItem>(`/inventory/items/${id}/`, data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
+    apiClient.patch<InventoryItem>(`/inventory/items/${id}/`, data),
   archiveItem: (id: string, reason: string) =>
     apiClient.post(`/inventory/items/${id}/archive/`, { reason }),
   restoreItem: (id: string) =>

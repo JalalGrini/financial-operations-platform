@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from apps.common.security import validate_private_upload
@@ -133,9 +134,14 @@ class InventoryItemSerializer(serializers.ModelSerializer):
         return request.build_absolute_uri(path) if request else path
 
     def validate_image(self, value):
-        return validate_private_upload(
-            value, max_bytes=5 * 1024 * 1024, allowed={".png", ".jpg", ".jpeg"}
-        )
+        if not value:
+            return value
+        try:
+            return validate_private_upload(
+                value, max_bytes=5 * 1024 * 1024, allowed={".png", ".jpg", ".jpeg"}
+            )
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(list(exc.messages)) from exc
 
     def validate(self, attrs):
         company = attrs.get("company", getattr(self.instance, "company", None))

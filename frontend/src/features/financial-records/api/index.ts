@@ -77,7 +77,6 @@ export const financialRecordsApi = {
     return apiClient.post<FinancialRecordAttachment>(
       `${recordsBase}/${recordId}/attachments/`,
       body,
-      { headers: { "Content-Type": "multipart/form-data" } },
     );
   },
   registerAttachment: (
@@ -116,7 +115,6 @@ export const financialTemplatesApi = {
     return apiClient.post<FinancialDocumentTemplate>(
       `${templatesBase}/import-xlsx/`,
       body,
-      { headers: { "Content-Type": "multipart/form-data" } },
     );
   },
   update: (id: string, data: Partial<TemplateWriteInput>) =>

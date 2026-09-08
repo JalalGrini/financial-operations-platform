@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import generics
 from django.db import transaction
 from django.http import FileResponse
@@ -8,7 +10,9 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
+from apps.common.http import client_ip
 from apps.common.permissions import RoleBasedAccessPermission
+from apps.common.security import TICKET_FILE_ERROR
 from .models import ClientTicket, ClientTicketAttachment, HelpTicket
 from .serializers import HelpTicketCreateSerializer, HelpTicketSerializer, HelpTicketReplySerializer
 from .serializers import (
@@ -18,12 +22,26 @@ from .serializers import (
 )
 
 
+logger = logging.getLogger(__name__)
+HONEYPOT_OK = {"detail": "Votre message a été envoyé.", "id": "fake"}
+
+
+def _honeypot_filled(request) -> bool:
+    value = request.data.get("website", "")
+    if isinstance(value, (list, tuple)):
+        value = value[0] if value else ""
+    return bool(str(value).strip())
+
+
 class HelpTicketCreateView(APIView):
     """POST /api/help/tickets/ — public, no auth required."""
     permission_classes = [permissions.AllowAny]
     throttle_classes = [AnonRateThrottle]
 
     def post(self, request):
+        if _honeypot_filled(request):
+            logger.warning("honeypot help ticket ip=%s", client_ip(request))
+            return Response(HONEYPOT_OK, status=status.HTTP_200_OK)
         serializer = HelpTicketCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -186,6 +204,23 @@ class ClientTicketCreateView(generics.CreateAPIView):
     throttle_classes = [AnonRateThrottle]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
+    def create(self, request, *args, **kwargs):
+        if _honeypot_filled(request):
+            logger.warning("honeypot client ticket ip=%s", client_ip(request))
+            return Response(HONEYPOT_OK, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            errors = serializer.errors
+            if "detail" in errors or "files" in errors or "file" in errors:
+                return Response(
+                    {"detail": TICKET_FILE_ERROR},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class ClientTicketListView(generics.ListAPIView):
     serializer_class = ClientTicketSerializer
@@ -225,6 +260,7 @@ class ClientTicketAttachmentDownloadView(APIView):
             ClientTicketAttachment.objects.select_related("ticket"),
             pk=attachment_id,
             ticket_id=pk,
+            deleted=False,
         )
         if not attachment.file:
             return Response({"detail": "No file is attached."}, status=status.HTTP_404_NOT_FOUND)

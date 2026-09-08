@@ -18,9 +18,8 @@
  *   custom listbox cannot match without significant extra work.
  * - Errors are wired with aria-describedby + aria-invalid and announced via
  *   a polite live region, not conveyed by colour alone.
- * - A honeypot field (visually hidden but reachable, never `display:none`)
- *   plus a 60-second client throttle. Both are conveniences; the real
- *   protection has to live server-side.
+ * - A honeypot field (`display:none`) so HTML-parsing bots fill `website`
+ *   while real users never see it. Server-side rejection is authoritative.
  */
 
 import { AlertCircle, Check, Loader2, Send, X } from "lucide-react";
@@ -123,6 +122,7 @@ const EMPTY: Record<FieldName, string> = {
 async function submitClientTicket(
   values: FormValues,
   files: File[],
+  website = "",
 ): Promise<number | null> {
   const composedMessage = [
     values.subject ? `Sujet: ${values.subject}` : "",
@@ -137,6 +137,7 @@ async function submitClientTicket(
   body.append("phone", values.phone);
   body.append("company", values.company);
   body.append("message", composedMessage);
+  body.append("website", website);
   files.forEach((file, index) => {
     body.append("files", file);
     if (index === 0) body.append("file", file);
@@ -211,12 +212,6 @@ export function ClientTicketForm() {
       event.preventDefault();
       if (status === "submitting") return;
 
-      // Honeypot: a real visitor never fills a field they cannot see.
-      if (honeypotRef.current?.value) {
-        setStatus("success"); // Give bots no signal.
-        return;
-      }
-
       const last = Number(window.sessionStorage.getItem(THROTTLE_KEY) ?? 0);
       if (last && Date.now() - last < THROTTLE_MS) {
         const wait = Math.ceil((THROTTLE_MS - (Date.now() - last)) / 1000);
@@ -254,7 +249,11 @@ export function ClientTicketForm() {
       setFormError(null);
 
       try {
-        const id = await submitClientTicket(parsed.data, files);
+        const id = await submitClientTicket(
+          parsed.data,
+          files,
+          honeypotRef.current?.value ?? "",
+        );
         window.sessionStorage.setItem(THROTTLE_KEY, String(Date.now()));
         setTicketNumber(id);
         setStatus("success");
@@ -358,21 +357,15 @@ export function ClientTicketForm() {
       noValidate
       className={`relative overflow-hidden border border-[hsl(var(--primary)/0.12)] bg-[hsl(var(--glass)/0.86)] p-6 backdrop-blur-2xl dark:bg-[hsl(var(--brand-surface)/0.86)] sm:p-8 ${RADIUS.panel}`}
     >
-      {/* Honeypot. Positioned offscreen rather than display:none so that
-          headless browsers still see and fill it. */}
-      <div className="absolute -left-[9999px] top-0" aria-hidden="true">
-        <label htmlFor="ticket-website">
-          <SourceText source="Website" />
-        </label>
-        <input
-          ref={honeypotRef}
-          id="ticket-website"
-          name="website"
-          type="text"
-          tabIndex={-1}
-          autoComplete="off"
-        />
-      </div>
+      <input
+        ref={honeypotRef}
+        type="text"
+        name="website"
+        style={{ display: "none" }}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className={fieldWrap}>
@@ -602,7 +595,7 @@ export function ClientTicketForm() {
             </ul>
           ) : null}
           <p className="text-[0.75rem] text-muted-foreground">
-            <SourceText source="You can attach up to 5 files (10 MB each, 25 MB total)." />
+            <SourceText source="You can attach up to 2 files (2 MB each, 4 MB total)." />
           </p>
         </div>
       </div>

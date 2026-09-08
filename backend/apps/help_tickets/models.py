@@ -1,5 +1,18 @@
 from django.db import models
 from django.conf import settings
+import os
+import uuid
+
+
+def client_ticket_attachment_upload_to(instance, filename):
+    """R2 key uses a UUID; the original name is stored only in file_name."""
+    ext = os.path.splitext(filename or "")[1].lower().lstrip(".")
+    if ext == "jpeg":
+        ext = "jpg"
+    if ext not in {"pdf", "jpg", "png"}:
+        ext = "bin"
+    ticket_id = instance.ticket_id or "pending"
+    return f"tickets/{ticket_id}/{uuid.uuid4()}.{ext}"
 
 
 class HelpTicket(models.Model):
@@ -115,10 +128,12 @@ class ClientTicketAttachment(models.Model):
         on_delete=models.CASCADE,
         related_name="attachments",
     )
-    file = models.FileField(upload_to="private/client-tickets/%Y/%m/", max_length=500)
+    file = models.FileField(upload_to=client_ticket_attachment_upload_to, max_length=500)
     file_name = models.CharField(max_length=255)
     content_type = models.CharField(max_length=100, blank=True)
     size_bytes = models.PositiveBigIntegerField(default=0)
+    r2_key = models.CharField(max_length=500, blank=True)
+    deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -127,3 +142,12 @@ class ClientTicketAttachment(models.Model):
 
     def __str__(self):
         return self.file_name
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        key = ""
+        if self.file:
+            key = self.file.name
+        if key and self.r2_key != key:
+            type(self).objects.filter(pk=self.pk).update(r2_key=key)
+            self.r2_key = key

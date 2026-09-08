@@ -1023,7 +1023,6 @@ export const documentApi = {
     const response = await apiClient.post<PersonnelDocumentReference>(
       "/personnel/documents/",
       body,
-      { headers: { "Content-Type": "multipart/form-data" } },
     );
     return response;
   },

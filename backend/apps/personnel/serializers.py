@@ -48,6 +48,19 @@ class EmptyStringToNullMixin:
         return super().to_internal_value(data)
 
 
+def personnel_photo_url(person):
+    if not getattr(person, "photo", None):
+        return None
+    return f"/api/v1/personnel/persons/{person.pk}/photo/"
+
+
+def _checked_private_upload(upload, *, max_bytes, allowed):
+    try:
+        return validate_private_upload(upload, max_bytes=max_bytes, allowed=allowed)
+    except DjangoValidationError as exc:
+        raise serializers.ValidationError(list(exc.messages)) from exc
+
+
 class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
     """Serializer for PersonnelPerson list view."""
 
@@ -55,6 +68,7 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
     completeness_percentage = serializers.SerializerMethodField()
     active_employments_count = serializers.SerializerMethodField()
     has_active_cnss = serializers.SerializerMethodField()
+    photo = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     empty_to_null_fields = ("cin", "date_of_birth")
 
@@ -99,9 +113,14 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
     def validate_photo(self, upload):
         if not upload:
             return upload
-        return validate_private_upload(
+        return _checked_private_upload(
             upload, max_bytes=5 * 1024 * 1024, allowed=PHOTO_ALLOWED_EXTENSIONS
         )
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["photo"] = personnel_photo_url(instance)
+        return data
 
     def get_completeness_percentage(self, obj):
         return obj.get_completeness_percentage()
@@ -162,6 +181,7 @@ class PersonnelPersonCreateSerializer(EmptyStringToNullMixin, serializers.ModelS
     """Serializer for creating PersonnelPerson."""
 
     empty_to_null_fields = ("cin", "date_of_birth")
+    photo = serializers.ImageField(required=False, allow_null=True, write_only=True)
 
     class Meta:
         model = PersonnelPerson
@@ -189,9 +209,14 @@ class PersonnelPersonCreateSerializer(EmptyStringToNullMixin, serializers.ModelS
     def validate_photo(self, upload):
         if not upload:
             return upload
-        return validate_private_upload(
+        return _checked_private_upload(
             upload, max_bytes=5 * 1024 * 1024, allowed=PHOTO_ALLOWED_EXTENSIONS
         )
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["photo"] = personnel_photo_url(instance)
+        return data
 
     def validate_cin(self, value):
         return self._normalize_unique(value)

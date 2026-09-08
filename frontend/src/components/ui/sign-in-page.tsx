@@ -359,11 +359,14 @@ export function LoginPage() {
   };
 
   /* help submit */
-  const handleHelp = async (e: React.FormEvent) => {
+  const handleHelp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!helpReason || !helpName || !helpEmail) return;
     setHelpSending(true);
     setHelpErr("");
+    const website =
+      (e.currentTarget.elements.namedItem("website") as HTMLInputElement | null)
+        ?.value ?? "";
     try {
       await fetch("/api/v1/help/tickets/", {
         method: "POST",
@@ -373,6 +376,7 @@ export function LoginPage() {
           name: helpName,
           email: helpEmail,
           message: helpMsg,
+          website,
         }),
       });
       setHelpSent(true);
@@ -782,6 +786,14 @@ export function LoginPage() {
             </div>
           ) : (
             <form onSubmit={handleHelp} className="space-y-4">
+              <input
+                type="text"
+                name="website"
+                style={{ display: "none" }}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+              />
               <div className="space-y-1.5">
                 <Label htmlFor="hr">
                   <SourceText source="Reason *" />

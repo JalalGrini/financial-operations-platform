@@ -73,9 +73,7 @@ export const accountsApi = {
   uploadAvatar: async (file: File) => {
     const body = new FormData();
     body.append("avatar", file);
-    return apiClient.put("/accounts/me/avatar/", body, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    return apiClient.put("/accounts/me/avatar/", body);
   },
   removeAvatar: async () => apiClient.delete("/accounts/me/avatar/"),
 };

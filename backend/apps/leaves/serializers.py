@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.common.security import TICKET_ALLOWED_EXTENSIONS, validate_private_upload
+from apps.common.security import LEAVE_DOCUMENT_EXTENSIONS, validate_private_upload
 
 from .models import Leave
 
@@ -41,7 +41,7 @@ class LeaveSerializer(serializers.ModelSerializer):
         if not upload:
             return upload
         return validate_private_upload(
-            upload, max_bytes=10 * 1024 * 1024, allowed=TICKET_ALLOWED_EXTENSIONS
+            upload, max_bytes=10 * 1024 * 1024, allowed=LEAVE_DOCUMENT_EXTENSIONS
         )
 
     def validate(self, data):

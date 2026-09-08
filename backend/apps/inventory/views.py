@@ -5,6 +5,7 @@ from django.db import models, transaction
 from django.http import FileResponse, HttpResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 
 from apps.audit_log.services import record_event
@@ -80,6 +81,7 @@ class InventoryCategoryViewSet(LifecycleViewSet):
 
 class InventoryItemViewSet(TaggedForMeFilterMixin, LifecycleViewSet):
     serializer_class = InventoryItemSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     search_fields = [
         "name",
         "reference",

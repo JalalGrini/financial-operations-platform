@@ -291,9 +291,12 @@ class AvatarUploadSerializer(serializers.Serializer):
     avatar = serializers.ImageField()
 
     def validate_avatar(self, value):
-        value = validate_private_upload(
-            value, max_bytes=5 * 1024 * 1024, allowed={".png", ".jpg", ".jpeg"}
-        )
+        try:
+            value = validate_private_upload(
+                value, max_bytes=5 * 1024 * 1024, allowed={".png", ".jpg", ".jpeg"}
+            )
+        except ValidationError as exc:
+            raise serializers.ValidationError(list(exc.messages)) from exc
         from PIL import Image
 
         value.seek(0)

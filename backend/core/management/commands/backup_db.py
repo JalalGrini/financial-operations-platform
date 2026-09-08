@@ -50,3 +50,32 @@ class Command(BaseCommand):
         except OSError:
             pass
         self.stdout.write(f"Backup uploaded: db/{filename}")
+        try:
+            self._report_r2_usage(s3)
+        except Exception as exc:
+            self.stderr.write(f"R2 storage check failed: {exc}")
+
+    def _report_r2_usage(self, s3):
+        bucket = getattr(settings, "AWS_STORAGE_BUCKET_NAME", "") or ""
+        if not bucket:
+            return
+        total_size = 0
+        token = None
+        while True:
+            kwargs = {"Bucket": bucket}
+            if token:
+                kwargs["ContinuationToken"] = token
+            response = s3.list_objects_v2(**kwargs)
+            total_size += sum(obj.get("Size", 0) for obj in response.get("Contents") or [])
+            if not response.get("IsTruncated"):
+                break
+            token = response.get("NextContinuationToken")
+            if not token:
+                break
+        total_gb = total_size / (1024**3)
+        if total_gb > 7.0:
+            self.stderr.write(
+                f"WARNING: R2 storage at {total_gb:.2f}GB — approaching free tier limit!"
+            )
+            raise SystemExit(1)
+        self.stdout.write(f"R2 storage: {total_gb:.2f}GB / 10GB")

@@ -62,9 +62,6 @@ export const reportsApi = {
     return apiClient.post<ReportVersion>(
       "/reports/reports/upload-ready/",
       body,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      },
     );
   },
   /**

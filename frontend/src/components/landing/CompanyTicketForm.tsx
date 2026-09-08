@@ -82,6 +82,7 @@ async function submitCompanyTicket(
   values: FormValues,
   company: CompanyKey,
   files: File[],
+  website = "",
 ): Promise<number | null> {
   const composedMessage = [
     values.subject ? `Sujet: ${values.subject}` : "",
@@ -97,6 +98,7 @@ async function submitCompanyTicket(
   body.append("phone", values.phone);
   body.append("company", company);
   body.append("message", composedMessage);
+  body.append("website", website);
   files.forEach((file, index) => {
     body.append("files", file);
     if (index === 0) body.append("file", file);
@@ -171,11 +173,6 @@ export function CompanyTicketForm({
       event.preventDefault();
       if (status === "submitting") return;
 
-      if (honeypotRef.current?.value) {
-        setStatus("success");
-        return;
-      }
-
       const last = Number(
         window.sessionStorage.getItem(throttleKeyRef.current) ?? 0,
       );
@@ -243,6 +240,7 @@ export function CompanyTicketForm({
           { ...parsed.data, contact: values.contact },
           company,
           files,
+          honeypotRef.current?.value ?? "",
         );
         window.sessionStorage.setItem(throttleKeyRef.current, String(Date.now()));
         setTicketNumber(id);
@@ -332,18 +330,15 @@ export function CompanyTicketForm({
       noValidate
       className={`relative overflow-hidden border border-[hsl(var(--primary)/0.12)] bg-[hsl(var(--glass)/0.86)] p-6 backdrop-blur-2xl dark:bg-[hsl(var(--brand-surface)/0.86)] sm:p-8 ${RADIUS.panel}`}
     >
-      {/* Honeypot */}
-      <div className="absolute -left-[9999px] top-0" aria-hidden="true">
-        <label htmlFor={`ctf-${company}-website`}>{sourceText("Website")}</label>
-        <input
-          ref={honeypotRef}
-          id={`ctf-${company}-website`}
-          name="website"
-          type="text"
-          tabIndex={-1}
-          autoComplete="off"
-        />
-      </div>
+      <input
+        ref={honeypotRef}
+        type="text"
+        name="website"
+        style={{ display: "none" }}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+      />
 
       {/* Company (read-only) */}
       <div className="mb-5 flex items-center gap-3 rounded-xl border border-[hsl(var(--primary)/0.12)] bg-[hsl(var(--primary)/0.04)] px-4 py-3">
@@ -558,7 +553,7 @@ export function CompanyTicketForm({
             </ul>
           ) : null}
           <p className="text-[0.75rem] text-muted-foreground">
-            <SourceText source="You can attach up to 5 files (10 MB each, 25 MB total)." />
+            <SourceText source="You can attach up to 2 files (2 MB each, 4 MB total)." />
           </p>
         </div>
       </div>

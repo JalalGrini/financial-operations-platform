@@ -45,6 +45,7 @@ if _sentry_dsn:
         send_default_pii=False,
         ignore_errors=[404, 401, 403],
         before_send=_sentry_before_send,
+        include_local_variables=False,
     )
 
 # SECURITY WARNING: don't run with debug turned on in production!

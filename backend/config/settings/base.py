@@ -195,7 +195,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Hard cap before files reach R2. Per-file 10 MB, ticket totals 25 MB.
+# Hard cap before files reach R2. Authenticated uploads stay at 10 MB.
+# Public ticket attachments are capped separately at 2 MB each / 4 MB total.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 DATA_UPLOAD_MAX_NUMBER_FILES = 8
@@ -225,6 +226,7 @@ if USE_S3_STORAGE:
     AWS_S3_FILE_OVERWRITE = False
     AWS_QUERYSTRING_AUTH = True
     AWS_S3_SIGNATURE_VERSION = "s3v4"
+    AWS_S3_ADDRESSING_STYLE = "path"
     AWS_LOCATION = env("AWS_LOCATION", default="private")
     STORAGES = {
         "default": {"BACKEND": "config.storage_backends.PrivateMediaStorage"},

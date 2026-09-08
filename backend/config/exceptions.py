@@ -7,6 +7,13 @@ from rest_framework import status as drf_status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
+try:
+    from botocore.exceptions import BotoCoreError, ClientError
+
+    _STORAGE_ERRORS = (ClientError, BotoCoreError)
+except ImportError:
+    _STORAGE_ERRORS = ()
+
 logger = logging.getLogger(__name__)
 
 UNIQUE_CONSTRAINT_FIELDS = {
@@ -70,6 +77,24 @@ def custom_exception_handler(exc, context):
             context.get("view") if context else "unknown view",
         )
         return None
+
+    if _STORAGE_ERRORS and isinstance(exc, _STORAGE_ERRORS):
+        logger.exception(
+            "Object storage failure in %s",
+            context.get("view") if context else "unknown view",
+        )
+        return Response(
+            {
+                "success": False,
+                "message": "The file could not be stored. Try another image or contact support.",
+                "errors": {
+                    "detail": [
+                        "The file could not be stored. Try another image or contact support."
+                    ]
+                },
+            },
+            status=drf_status.HTTP_502_BAD_GATEWAY,
+        )
 
     response = exception_handler(exc, context)
     if response is not None:

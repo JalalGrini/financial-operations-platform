@@ -1,12 +1,14 @@
 /** Shared upload caps. Backend copies live in apps.common.security. */
 
-export const MAX_UPLOAD_FILES = 5;
+export const MAX_UPLOAD_FILES = 2;
 export const MAX_FILE_BYTES = 10 * 1024 * 1024;
-export const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
+export const TICKET_MAX_FILE_BYTES = 2 * 1024 * 1024;
+export const TICKET_MAX_TOTAL_BYTES = 4 * 1024 * 1024;
 export const TICKET_ACCEPT =
-  ".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,application/pdf,image/jpeg,image/png,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  ".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png";
 
-const TICKET_EXTENSIONS = new Set([
+const TICKET_EXTENSIONS = new Set([".pdf", ".jpg", ".jpeg", ".png"]);
+const AUTH_UPLOAD_EXTENSIONS = new Set([
   ".pdf",
   ".jpg",
   ".jpeg",
@@ -14,6 +16,9 @@ const TICKET_EXTENSIONS = new Set([
   ".webp",
   ".doc",
   ".docx",
+  ".xls",
+  ".xlsx",
+  ".csv",
 ]);
 
 export function fileExtension(name: string): string {
@@ -23,20 +28,20 @@ export function fileExtension(name: string): string {
 
 export function validateTicketFiles(files: File[]): string | null {
   if (files.length > MAX_UPLOAD_FILES) {
-    return "Too many files. Maximum is 5.";
+    return "Too many files. Maximum is 2.";
   }
   let total = 0;
   for (const file of files) {
-    if (file.size <= 0 || file.size > MAX_FILE_BYTES) {
-      return "Each file must be 10 MB or smaller.";
+    if (file.size <= 0 || file.size > TICKET_MAX_FILE_BYTES) {
+      return "Each file must be 2 MB or smaller.";
     }
     if (!TICKET_EXTENSIONS.has(fileExtension(file.name))) {
-      return "This file type is not allowed. Use PDF, JPEG, PNG, WEBP, DOC or DOCX.";
+      return "This file type is not allowed. Use PDF, JPEG or PNG.";
     }
     total += file.size;
   }
-  if (total > MAX_TOTAL_BYTES) {
-    return "Attachments together must be 25 MB or smaller.";
+  if (total > TICKET_MAX_TOTAL_BYTES) {
+    return "Attachments together must be 4 MB or smaller.";
   }
   return null;
 }
@@ -50,9 +55,9 @@ export function validateSingleUpload(
   if (file.size <= 0 || file.size > maxBytes) {
     return "Each file must be 10 MB or smaller.";
   }
-  const allowed = extras?.extensions ?? TICKET_EXTENSIONS;
+  const allowed = extras?.extensions ?? AUTH_UPLOAD_EXTENSIONS;
   if (!allowed.has(fileExtension(file.name))) {
-    return "This file type is not allowed. Use PDF, JPEG, PNG, WEBP, DOC or DOCX.";
+    return "This file type is not allowed.";
   }
   return null;
 }

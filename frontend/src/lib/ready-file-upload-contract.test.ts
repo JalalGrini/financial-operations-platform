@@ -22,7 +22,7 @@ describe("permanent ready-file upload contract", () => {
     const page = read("src/app/(protected)/personnel/personnel/[id]/page.tsx");
     const api = read("src/features/personnel/api/index.ts");
     expect(page).toContain("Upload a ready file");
-    expect(api).toContain("multipart/form-data");
+    expect(api).toContain("new FormData()");
     expect(api).toContain("document.download_url");
   });
   it("supports editing inventory items with image uploads", () => {
