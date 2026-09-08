@@ -27,7 +27,7 @@ export default function ClientsPage() {
         icon={Users}
         eyebrow="Counterparty registry"
         title={sourceText("Clients")}
-        description="Register persons or companies as clients with their contact and billing details — then link them to financial records."
+        description={sourceText("Register persons or companies as clients with their contact and billing details — then link them to financial records.")}
       />
       <ClientsSection />
     </div>

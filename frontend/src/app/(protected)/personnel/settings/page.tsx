@@ -124,7 +124,7 @@ export default function PersonnelSettingsPage() {
         icon={Save}
         eyebrow="Module configuration"
         title={sourceText("Personnel Settings")}
-        description="Configure personnel module preferences and defaults for your workspace."
+        description={sourceText("Configure personnel module preferences and defaults for your workspace.")}
         action={
           <Button
             variant="outline"

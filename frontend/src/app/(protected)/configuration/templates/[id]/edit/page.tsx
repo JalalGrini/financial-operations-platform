@@ -24,7 +24,7 @@ export default function EditDocumentTemplatePage() {
         icon={FileText}
         eyebrow="Document schema builder"
         title={sourceText("Edit template draft")}
-        description="Adjust fields on an unpublished draft. Field keys are part of the document contract, so keep them stable once records exist."
+        description={sourceText("Adjust fields on an unpublished draft. Field keys are part of the document contract, so keep them stable once records exist.")}
       />
       <TemplateEditLoader templateId={templateId} />
     </div>

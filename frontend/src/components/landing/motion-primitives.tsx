@@ -36,6 +36,7 @@ import { useExperience } from "@/lib/experience";
 import { translateSource } from "@/lib/i18n/source-catalog";
 import { EASE_CSS } from "./design-system";
 
+import { sourceText } from "@/lib/i18n/source-catalog";
 const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
 
 function prefersReducedMotion(): boolean {
@@ -355,7 +356,7 @@ export function WordMaskReveal({
             className="pointer-events-none absolute bottom-[0.14em] left-0 h-px w-full origin-left bg-[hsl(var(--brand-blue-500))] opacity-0"
           />
         ) : null}
-        {index < words.length - 1 ? <span>&nbsp;</span> : null}
+        {index < words.length - 1 ? <span> </span> : null}
       </span>
     )),
   );

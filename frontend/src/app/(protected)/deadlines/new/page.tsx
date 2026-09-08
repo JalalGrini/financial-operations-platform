@@ -19,7 +19,7 @@ export default function NewDeadlinePage() {
         icon={CalendarClock}
         eyebrow="Persistent operations planner"
         title={sourceText("Create deadline")}
-        description="Add a checkpoint stored through the real Django API. One-time or recurring - monthly, quarterly, yearly or a custom period."
+        description={sourceText("Add a checkpoint stored through the real Django API. One-time or recurring - monthly, quarterly, yearly or a custom period.")}
       />
       <DeadlineCreateForm />
     </div>

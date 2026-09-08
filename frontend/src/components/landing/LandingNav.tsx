@@ -87,7 +87,7 @@ export function LandingNav({
       >
         <Image
           src="/brand/3rb-header-logo.png"
-          alt="Groupe 3RB"
+          alt={sourceText("Groupe 3RB")}
           width={160}
           height={36}
           priority
@@ -95,7 +95,7 @@ export function LandingNav({
         />
         <span className="hidden flex-col leading-tight sm:flex">
           <span className="text-[0.9375rem] font-black tracking-[-0.02em]">
-            Groupe 3RB
+            {sourceText("Groupe 3RB")}
           </span>
         </span>
       </Link>
@@ -127,7 +127,7 @@ export function LandingNav({
             aria-controls={menuId}
             onClick={() => setGroupOpen((open) => !open)}
           >
-            Groupe 3RB
+            {sourceText("Groupe 3RB")}
             <ChevronDown
               className={`h-3.5 w-3.5 transition-transform duration-200 ${
                 groupOpen ? "rotate-180" : ""
@@ -242,7 +242,7 @@ export function LandingNav({
                 </a>
               ))}
               <p className="px-3 pt-2 text-[0.6875rem] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                Groupe 3RB
+                {sourceText("Groupe 3RB")}
               </p>
               {PUBLIC_COMPANIES.map((company) => (
                 <Link

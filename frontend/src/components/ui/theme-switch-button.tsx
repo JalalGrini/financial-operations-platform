@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { useExperience } from '@/lib/experience'
+import { sourceText } from '@/lib/i18n/source-catalog'
 
 interface ThemeSwitchProps {
   className?: string
@@ -37,7 +38,7 @@ export function ThemeSwitch({ className = '' }: ThemeSwitchProps) {
       className={`relative flex h-10 w-10 items-center justify-center 
                   rounded-full hover:opacity-80 transition-opacity 
                   overflow-hidden ${className}`}
-      aria-label="Toggle theme"
+      aria-label={sourceText("Toggle theme")}
     >
       <Sun
         className={`absolute h-6 w-6 transition-all duration-300 

@@ -619,6 +619,16 @@
     .landing-cta-button:hover::before {
         transform: translateX(120%);
     }
+    /* Homepage hero sits on a dark photograph. Until the bar lifts onto
+     * glass, inherit light type so links stay readable on the still. */
+    .landing-topbar-over-media[data-lifted="false"] {
+        color: rgb(255 255 255);
+        --foreground: 0 0% 100%;
+        --muted-foreground: 0 0% 88%;
+    }
+    .landing-topbar-over-media[data-lifted="false"] .landing-logo-wrap {
+        filter: drop-shadow(0 2px 10px rgb(0 0 0 / 0.45));
+    }
     .landing-grid {
         background-image: linear-gradient(
                 hsl(var(--border) / 0.45) 1px,

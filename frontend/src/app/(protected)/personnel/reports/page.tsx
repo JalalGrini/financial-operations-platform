@@ -415,7 +415,7 @@ export default function PersonnelReportsPage() {
         icon={FileText}
         eyebrow="Export & compliance"
         title={sourceText("Personnel Reports")}
-        description="Review monthly CNSS and payroll exports before sharing or downloading them."
+        description={sourceText("Review monthly CNSS and payroll exports before sharing or downloading them.")}
         action={
           <Button
             variant="onHeroOutline"

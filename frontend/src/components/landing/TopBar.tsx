@@ -21,7 +21,14 @@
 import { useEffect, useRef, useState } from "react";
 import { CONTAINER } from "./design-system";
 
-export function TopBar({ children }: { children: React.ReactNode }) {
+export function TopBar({
+  children,
+  overMedia = false,
+}: {
+  children: React.ReactNode;
+  /** Light type over a photographic hero. Homepage only. */
+  overMedia?: boolean;
+}) {
   const [lifted, setLifted] = useState(false);
   const frame = useRef<number | null>(null);
 
@@ -48,7 +55,8 @@ export function TopBar({ children }: { children: React.ReactNode }) {
     <header
       data-lifted={lifted}
       className={[
-        "fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300",
+        "fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,box-shadow,color] duration-300",
+        overMedia ? "landing-topbar-over-media" : "",
         lifted
           ? "border-b border-[hsl(var(--primary)/0.10)] bg-background/80 shadow-[0_1px_24px_-8px_hsl(var(--primary)/0.25)] backdrop-blur-xl"
           : "border-b border-transparent bg-transparent",

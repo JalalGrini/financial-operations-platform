@@ -141,7 +141,7 @@ export default function DeadlinesPage() {
         icon={CalendarClock}
         eyebrow="Persistent operations planner"
         title={sourceText("Deadlines that survive every session.")}
-        description="Create, search, complete and reopen checkpoints stored through the real Django API. Every entry persists in PostgreSQL — refreshing the page changes nothing."
+        description={sourceText("Create, search, complete and reopen checkpoints stored through the real Django API. Every entry persists in PostgreSQL — refreshing the page changes nothing.")}
         action={<div className="flex flex-wrap items-center gap-2">
           {/* Export is a read, so it sits outside WriteOnly - Directors export too. */}
           <ExportButton

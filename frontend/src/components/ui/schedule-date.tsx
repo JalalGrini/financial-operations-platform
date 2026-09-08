@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, ChevronDown, Calendar, X } from "lucide-reac
 import { format, setYear, setMonth, parse, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { sourceText } from "@/lib/i18n/source-catalog";
 
 interface ScheduleDateProps {
   value?: string;
@@ -107,11 +108,11 @@ function MonthGrid({
               onGoToMonth(setMonth(viewDate, Number(event.target.value)))
             }
             className="h-7 w-[110px] rounded-md border border-input bg-background px-1 text-xs"
-            aria-label="Month"
+            aria-label={sourceText("Month")}
           >
             {MONTH_NAMES.map((name, i) => (
               <option key={name} value={String(i)}>
-                {name}
+                {sourceText(name)}
               </option>
             ))}
           </select>
@@ -121,7 +122,7 @@ function MonthGrid({
               onGoToMonth(setYear(viewDate, Number(event.target.value)))
             }
             className="h-7 w-[80px] rounded-md border border-input bg-background px-1 text-xs"
-            aria-label="Year"
+            aria-label={sourceText("Year")}
           >
             {YEARS.map((y) => (
               <option key={y} value={String(y)}>
@@ -145,7 +146,7 @@ function MonthGrid({
       <div className="grid grid-cols-7 gap-y-0.5 text-center">
         {DAYS.map((d) => (
           <span key={d} className="mb-1.5 text-[10px] font-medium text-muted-foreground">
-            {d}
+            {sourceText(d)}
           </span>
         ))}
         {Array.from({ length: firstDay }).map((_, i) => (

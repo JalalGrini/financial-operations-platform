@@ -54,7 +54,7 @@ export default function NotificationsPage() {
         icon={Bell}
         eyebrow="Activity centre"
         title={sourceText("Notifications")}
-        description="Persistent, permission-aware activity — unread alerts and tagged workflow updates stored across every session."
+        description={sourceText("Persistent, permission-aware activity — unread alerts and tagged workflow updates stored across every session.")}
         action={<WriteOnly>
           <Button
             variant="onHero"

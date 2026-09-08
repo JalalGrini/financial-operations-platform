@@ -1138,7 +1138,7 @@ export default function ConfigurationPage() {
         icon={FileCog}
         eyebrow="Administrator workspace"
         title={sourceText("Configuration")}
-        description="Administrator-managed business configuration: payment methods, categories, record types, transaction types, report types and notification types."
+        description={sourceText("Administrator-managed business configuration: payment methods, categories, record types, transaction types, report types and notification types.")}
       />
 
       <section className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">

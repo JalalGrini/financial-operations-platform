@@ -564,7 +564,7 @@ export default function PersonnelListPage() {
         icon={Briefcase}
         eyebrow="HR management"
         title={sourceText("Personnel")}
-        description="Manage personnel records, employments, and CNSS declarations across the platform."
+        description={sourceText("Manage personnel records, employments, and CNSS declarations across the platform.")}
         action={<WriteOnly>
           <Button
             variant="onHero"

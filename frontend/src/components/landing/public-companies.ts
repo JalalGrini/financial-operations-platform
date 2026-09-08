@@ -23,11 +23,11 @@ export const PUBLIC_COMPANIES: readonly PublicCompany[] = [
     slug: "3rb-extreme",
     apiKey: "3rb_extreme",
     name: "3.R.B Extrême",
-    activity: "Nettoyage, désinfection, personnel technique et évènementiels",
+    activity: "Cleaning, disinfection, technical staffing and events",
     tagline:
-      "Sté 3.R.B extrême est spécialisé dans le domaine de Nettoyages, de Désinfection, de Gestion Personnelle Technique et d’Évènementiels",
+      "3.R.B Extreme specialises in cleaning, disinfection, technical staffing and events",
     description:
-      "3RB Extreme propose des services de nettoyage professionnel pour les entreprises et les particuliers. Nos équipes qualifiées et expérimentées assurent le nettoyage de bureaux, de commerces, d’immeubles, de chantiers et bien d’autres espaces. Nous utilisons des produits respectueux de l’environnement et sommes à l’écoute de nos clients pour répondre à leurs besoins spécifiques. En ce qui concerne la désinfection, notre entreprise dispose de toutes les compétences et des équipements nécessaires pour éliminer les bactéries, les virus et autres agents pathogènes de votre environnement. Notre service de gestion personnelle technique propose des solutions pour l’entretien et la maintenance de vos équipements. Enfin, nous proposons également des services d’évènementiels pour l’organisation et la gestion d’évènements privés ou professionnels.",
+      "3RB Extreme offers professional cleaning for businesses and individuals. Qualified teams clean offices, retail spaces, buildings, construction sites and more. We use environmentally responsible products and listen to specific client needs. For disinfection, we have the skills and equipment to remove bacteria, viruses and other pathogens. Technical personnel management covers equipment maintenance. We also organise private and professional events.",
     services: [
       "Professional cleaning",
       "Disinfection",
@@ -74,10 +74,10 @@ export const PUBLIC_COMPANIES: readonly PublicCompany[] = [
     slug: "3rb-maroc",
     apiKey: "3rb_maroc",
     name: "3.R.B Maroc",
-    activity: "Gardiennage et protection des entreprises, résidences et événements",
-    tagline: "Sté 3.R.B Maroc spécialisé dans le domaine de Gardiennage",
+    activity: "Guarding and protection for companies, residences and events",
+    tagline: "3.R.B Maroc specialises in guarding",
     description:
-      "3.R.B Maroc spécialisée dans le domaine de gardiennage propose des services de sécurité pour les entreprises et les particuliers. Nous sommes en mesure de répondre à tous vos besoins de sécurité, que ce soit pour la protection de votre entreprise, de votre résidence, ou lors d’événements spéciaux. Nos agents de sécurité sont formés et qualifiés pour assurer la protection de vos biens et de vos personnes. Nous proposons des services de surveillance et de patrouille, de contrôle d’accès, et de sécurité événementielle.",
+      "3.R.B Maroc specialises in guarding and provides security for companies and individuals: businesses, residences and special events. Trained agents handle surveillance, patrols, access control and event security.",
     services: [
       "Enterprise protection",
       "Residence protection",
@@ -117,10 +117,10 @@ export const PUBLIC_COMPANIES: readonly PublicCompany[] = [
     slug: "el-rhrib-cash",
     apiKey: "el_rhrib_cash",
     name: "EL RHRIB CASH",
-    activity: "Transfert d’argent, facilitation de facturation et messagerie",
-    tagline: "transfert d'argent, facilitation de facturation, la messagerie",
+    activity: "Money transfer, billing facilitation and courier",
+    tagline: "Money transfer, billing facilitation and courier",
     description:
-      "EL RHRIB CASH est une entreprise spécialisée dans le transfert d’argent, les services de facilitation de facturation et la messagerie. Nous sommes passionnés par notre métier et nous nous efforçons constamment de fournir les meilleurs services possibles à nos clients. Notre entreprise propose des solutions innovantes pour les transferts d’argent à travers le monde, en partenariat avec des institutions financières et des opérateurs de téléphonie mobile. Nous offrons également des services de facilitation de facturation pour les entreprises et les particuliers, ainsi que des services de messagerie.",
+      "EL RHRIB CASH specialises in money transfer, billing facilitation and courier services. We partner with financial institutions and mobile operators for transfers, and offer billing facilitation for companies and individuals as well as courier handling.",
     services: [
       "Money transfer",
       "Billing facilitation",

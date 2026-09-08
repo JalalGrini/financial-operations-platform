@@ -90,10 +90,10 @@ export function DeadlineCreateForm() {
     mutationFn: deadlinesApi.create,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["deadlines"] });
-      toast.success("Deadline saved");
+      toast.success(sourceText("Deadline saved"));
       router.push("/deadlines");
     },
-    onError: () => toast.error("Unable to save deadline"),
+    onError: () => toast.error(sourceText("Unable to save deadline")),
   });
 
   const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
@@ -238,7 +238,7 @@ export function DeadlineCreateForm() {
             {createMutation.isPending && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-            Save deadline
+            {sourceText("Save deadline")}
           </Button>
         </div>
       </form>
@@ -310,10 +310,10 @@ export function DeadlineEditForm({ deadline }: { deadline: Deadline }) {
       deadlinesApi.update(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["deadlines"] });
-      toast.success("Deadline updated");
+      toast.success(sourceText("Deadline updated"));
       router.push("/deadlines");
     },
-    onError: () => toast.error("Unable to update deadline"),
+    onError: () => toast.error(sourceText("Unable to update deadline")),
   });
 
   const handleEdit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -465,7 +465,7 @@ export function DeadlineEditForm({ deadline }: { deadline: Deadline }) {
             {updateMutation.isPending && (
               <Loader2 className="h-4 w-4 animate-spin" />
             )}
-            Save changes
+            {sourceText("Save changes")}
           </button>
         </div>
       </form>

@@ -112,6 +112,10 @@ function ProfileEditor({
 
   const upload = async (file?: File) => {
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(sourceText("Each file must be 10 MB or smaller."));
+      return;
+    }
     try {
       await accountsApi.uploadAvatar(file);
       setAvatarVersion((version) => version + 1);
@@ -171,7 +175,7 @@ function ProfileEditor({
         icon={User2}
         eyebrow="Identity & security"
         title={sourceText("My Profile")}
-        description="Manage self-service identity fields, profile picture, preferences, and password."
+        description={sourceText("Manage self-service identity fields, profile picture, preferences, and password.")}
       />
 
       <Card className="overflow-hidden">

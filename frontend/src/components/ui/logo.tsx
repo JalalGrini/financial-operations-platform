@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { sourceText } from "@/lib/i18n/source-catalog";
 
 export function Logo({
   size = 32,
@@ -11,7 +12,7 @@ export function Logo({
     <div className="flex min-w-0 items-center gap-2.5">
       <Image
         src="/brand/3rb-header-logo.png"
-        alt="Groupe 3RB"
+        alt={sourceText("Groupe 3RB")}
         width={160}
         height={36}
         priority
@@ -24,7 +25,7 @@ export function Logo({
       />
       {showText ? (
         <span className="truncate text-sm font-bold tracking-tight text-foreground">
-          Groupe 3RB
+          {sourceText("Groupe 3RB")}
         </span>
       ) : null}
     </div>

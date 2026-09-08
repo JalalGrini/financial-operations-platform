@@ -10,6 +10,7 @@ import { useReleaseIdentity } from "@/hooks/useReleaseIdentity";
 import { MobileBottomNav } from "@/components/product/MobileBottomNav";
 import { TaggedWidget } from "@/components/ui/tagged-widget";
 import { NavProgress } from "@/components/ui/nav-progress";
+import { sourceText } from "@/lib/i18n/source-catalog";
 export function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -70,16 +71,15 @@ export function ProtectedLayout({ children }: { children: React.ReactNode }) {
               <text x="100" y="74" textAnchor="middle" fontSize="10" fontWeight="bold" fill="white">403</text>
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">{sourceText("Access Denied")}</h1>
           <p className="text-muted-foreground mb-6">
-            You don&apos;t have permission to access this section.
-            If you think this is a mistake, contact your administrator.
+            {sourceText("You don't have permission to access this section. If you think this is a mistake, contact your administrator.")}
           </p>
           <button
             onClick={() => router.push("/dashboard")}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
           >
-            Back to Dashboard
+            {sourceText("Back to Dashboard")}
           </button>
         </div>
       </div>

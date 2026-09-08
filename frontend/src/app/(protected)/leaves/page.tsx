@@ -116,7 +116,7 @@ export default function LeavesListPage() {
           icon={Calendar}
           eyebrow="HR management"
           title={sourceText("Leave Management")}
-          description="Track, approve and manage personnel leave requests across all statuses."
+          description={sourceText("Track, approve and manage personnel leave requests across all statuses.")}
           action={
             <div className="flex flex-wrap items-center gap-2">
               <ExportButton

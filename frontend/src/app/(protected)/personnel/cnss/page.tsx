@@ -583,13 +583,13 @@ export default function CNSSListPage() {
         icon={CheckCircle}
         eyebrow="Social compliance"
         title={sourceText("CNSS Declarations")}
-        description="Manage CNSS declarations, monthly submissions, and compliance across all companies."
+        description={sourceText("Manage CNSS declarations, monthly submissions, and compliance across all companies.")}
         action={<>
           <MonthlyExportDialog
             onExport={handleExportMonth}
             filenameStem="CNSS_declaration"
             label={sourceText("Export declaration")}
-            description="Pick the month to file. The file uses the printed CNSS declaration layout."
+            description={sourceText("Pick the month to file. The file uses the printed CNSS declaration layout.")}
             variant="onHeroOutline"
           />
           <WriteOnly>

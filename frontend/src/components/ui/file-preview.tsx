@@ -5,8 +5,8 @@ import { createPortal } from "react-dom";
 import { X, Download, FileText, FileSpreadsheet, FileImage, File } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
 import { sourceText } from "@/lib/i18n/source-catalog";
+
 const PREVIEWABLE_IMAGES = ["image/jpeg","image/png","image/gif","image/webp","image/bmp","image/svg+xml"];
 const PREVIEWABLE_PDF = ["application/pdf"];
 const PREVIEWABLE_TEXT = ["text/plain","text/csv"];
@@ -68,7 +68,7 @@ export function FilePreview({ url, fileName, mimeType = "", className, showDownl
           <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
             <FileSpreadsheet className="h-12 w-12 text-green-500" />
             <p className="text-sm text-muted-foreground max-w-xs">
-              Excel preview not available — download the file to view it.
+              {sourceText("Excel preview not available — download the file to view it.")}
             </p>
             <a href={url} download={fileName}>
               <Button size="sm" className="gap-1.5">
@@ -85,7 +85,7 @@ export function FilePreview({ url, fileName, mimeType = "", className, showDownl
               {sourceText("Word documents cannot be rendered in the browser. Download to view.")}
             </p>
             <a href={url} download={fileName}>
-              <Button size="sm" className="gap-1.5"><Download className="h-4 w-4" />Download {fileName}</Button>
+              <Button size="sm" className="gap-1.5"><Download className="h-4 w-4" />{sourceText("Download")} {fileName}</Button>
             </a>
           </div>
         )}
@@ -94,7 +94,7 @@ export function FilePreview({ url, fileName, mimeType = "", className, showDownl
             <File className="h-12 w-12 text-muted-foreground" />
             {/* JSX text is not a JS string literal, so the previous `Can\'t`
                 rendered the backslash verbatim. */}
-            <p className="text-sm text-muted-foreground">Can&apos;t render this file type in the browser.</p>
+            <p className="text-sm text-muted-foreground">{sourceText("Can't render this file type in the browser.")}</p>
             <a href={url} download={fileName}>
               <Button size="sm" variant="outline" className="gap-1.5"><Download className="h-4 w-4" />{sourceText("Download")}</Button>
             </a>

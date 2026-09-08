@@ -1530,7 +1530,7 @@ export default function TreasuryPage() {
         icon={Landmark}
         eyebrow="Financial operations hub"
         title={sourceText("Treasury")}
-        description="Company accounts and balances, money movements, inter-account transfers and bank reconciliations — all in one place."
+        description={sourceText("Company accounts and balances, money movements, inter-account transfers and bank reconciliations — all in one place.")}
       />
 
       <section className="grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">

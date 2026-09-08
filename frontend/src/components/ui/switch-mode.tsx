@@ -3,6 +3,7 @@
 import { useExperience } from "@/lib/experience";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
+import { sourceText } from "@/lib/i18n/source-catalog";
 
 export function SwitchMode() {
   const { theme, setTheme } = useExperience();
@@ -12,7 +13,7 @@ export function SwitchMode() {
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className="relative flex h-8 w-16 items-center rounded-full border border-border bg-muted px-1 transition-colors duration-300 hover:bg-muted/80 focus:outline-none"
-      aria-label="Toggle theme"
+      aria-label={sourceText("Toggle theme")}
     >
       {/* Track icons */}
       <Sun className="absolute left-1.5 h-3.5 w-3.5 text-amber-500" />

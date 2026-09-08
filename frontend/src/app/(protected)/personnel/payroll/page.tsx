@@ -532,13 +532,13 @@ export default function PayrollListPage() {
         icon={Calculator}
         eyebrow="Monthly payroll"
         title={sourceText("Payroll")}
-        description="Manage monthly payroll records, calculations, and approvals across all companies."
+        description={sourceText("Manage monthly payroll records, calculations, and approvals across all companies.")}
         action={<>
           <MonthlyExportDialog
             onExport={handleExportMonth}
             filenameStem="Personnel_monthly_list"
             label={sourceText("Export month")}
-            description="Pick the month to extract. The file uses the printed monthly personnel list layout, with a total per company."
+            description={sourceText("Pick the month to extract. The file uses the printed monthly personnel list layout, with a total per company.")}
             defaultYear={year}
             defaultMonth={month}
             variant="onHeroOutline"

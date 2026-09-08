@@ -276,6 +276,9 @@ export default function ReportsRegistryPage() {
     const label =
       generateForm.period_label ||
       `${generateForm.period_start} → ${generateForm.period_end}`;
+    if (readyFile && readyFile.size > 10 * 1024 * 1024) {
+      return setGenerateError(sourceText("Each file must be 10 MB or smaller."));
+    }
     generateMutation.mutate({
       file: readyFile,
       payload: {
@@ -304,7 +307,7 @@ export default function ReportsRegistryPage() {
         icon={FileCheck}
         eyebrow="Document registry"
         title={sourceText("Reports Registry")}
-        description="Generate reports, route them through review, approve and export official versions. Each version is immutable once approved."
+        description={sourceText("Generate reports, route them through review, approve and export official versions. Each version is immutable once approved.")}
         action={<WriteOnly>
           <Button
             variant="onHero"

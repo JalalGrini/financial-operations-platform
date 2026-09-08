@@ -28,7 +28,7 @@ export default function NewFinancialRecordPage() {
         icon={ReceiptText}
         eyebrow="Accounting ledger"
         title={sourceText("New financial record")}
-        description="Create a typed draft, then add balanced debit and credit lines in its workspace."
+        description={sourceText("Create a typed draft, then add balanced debit and credit lines in its workspace.")}
       />
       <RecordCreateForm />
     </div>

@@ -305,7 +305,7 @@ export default function FinancialRecordsPage() {
         icon={ReceiptText}
         eyebrow="Accounting ledger"
         title={sourceText("Financial Records")}
-        description="Create a typed draft, add balanced lines in its workspace, then post it to the ledger."
+        description={sourceText("Create a typed draft, add balanced lines in its workspace, then post it to the ledger.")}
         action={<div className="flex flex-wrap items-center gap-2">
           {/* Same filters as the list query; page/page_size dropped because an
               export is the whole filtered set, not one page of it. */}
@@ -496,7 +496,7 @@ export default function FinancialRecordsPage() {
             <TableBody>
               {(recordsQuery.data?.results || []).map((record) => (
                 <TableRow className="row-hover group" key={record.id}>
-                  <TableCell data-label="Réf.">
+                  <TableCell data-label={sourceText("Ref.")}>
                     <Link
                       href={`/financial-records/${record.id}`}
                       className="font-mono text-xs font-semibold text-primary hover:underline"

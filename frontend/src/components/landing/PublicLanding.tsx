@@ -23,11 +23,13 @@ import {
 } from "lucide-react";
 import { LandingExperienceControls } from "@/components/product/LandingExperienceControls";
 import { ClientTicketForm } from "@/components/landing/ClientTicketForm";
+import { sourceText } from "@/lib/i18n/source-catalog";
+import { GROUP_INTRO_SOURCE } from "@/components/landing/public-company-cards";
 
 const NAV = [
-  { href: "#accueil", label: "Accueil" },
+  { href: "#accueil", label: "Home" },
   { href: "#services", label: "Services" },
-  { href: "#apropos", label: "À propos" },
+  { href: "#apropos", label: "About" },
   { href: "#contact", label: "Contact" },
   { href: "#tickets", label: "Tickets" },
 ];
@@ -35,52 +37,51 @@ const NAV = [
 const SERVICES = [
   {
     icon: ShieldCheck,
-    name: "Gardiennage",
+    name: "Security and guarding",
     description:
-      "Plan de sécurité arrosant tous les angles sensibles, pour les entreprises, résidences et événements.",
+      "A security plan covering every sensitive angle, for companies, residences and events.",
   },
   {
     icon: SprayCan,
-    name: "Nettoyage",
+    name: "Cleaning",
     description:
-      "Nettoyages parfaits par des produits certifiés : bureaux, commerces, immeubles et chantiers.",
+      "Flawless cleaning with certified products: offices, retail, buildings and construction sites.",
   },
   {
     icon: Sparkles,
-    name: "Désinfection",
+    name: "Disinfection",
     description:
-      "Traitement perfectionné des locaux par des produits certifiés, adaptés à chaque site.",
+      "Advanced premises treatment with certified products, adapted to each site.",
   },
   {
     icon: Flower2,
-    name: "Jardinage",
-    description:
-      "Entretien et aménagement des jardins par des techniciens spécialisés.",
+    name: "Gardening",
+    description: "Garden maintenance and landscaping by specialised technicians.",
   },
   {
     icon: Users,
-    name: "Gestion de personnel technique",
+    name: "Technical personnel management",
     description:
-      "Sous-traitance professionnelle pour minimiser les problèmes de personnel technique.",
+      "Professional subcontracting to reduce technical staffing problems.",
   },
   {
     icon: PartyPopper,
-    name: "Évènementiels",
+    name: "Events",
     description:
-      "Organisation d’événements : restauration, festivités, pauses café et réceptions.",
+      "Event organisation: catering, festivities, coffee breaks and receptions.",
   },
   {
     icon: Truck,
-    name: "Messagerie et transfert d’argent",
+    name: "Courier and money transfer",
     description:
-      "Messagerie de toute nature d’article via TAWSSIL, transfert d’argent et facilitation de facturation.",
+      "Courier for any article type via TAWSSIL, money transfer and billing facilitation.",
   },
 ];
 
 const STATS = [
-  { value: "2014", label: "Année de création" },
-  { value: "368", label: "Projets terminés" },
-  { value: "99%", label: "Commentaires positifs" },
+  { value: "2014", label: "Year of creation" },
+  { value: "368", label: "Completed projects" },
+  { value: "99%", label: "Positive feedback" },
   { value: "24/7", label: "Support" },
 ];
 
@@ -116,13 +117,13 @@ export function PublicLanding() {
           <a href="#accueil" className="flex items-center gap-2.5">
             <Image
               src="/brand/3rb-logo-icon.png"
-              alt="3RB EXTREME"
+              alt={sourceText("3RB EXTREME")}
               width={36}
               height={36}
               className="h-9 w-9 object-contain"
               priority
             />
-            <span className="text-sm font-black tracking-wide">3RB EXTREME</span>
+            <span className="text-sm font-black tracking-wide">{sourceText("3RB EXTREME")}</span>
           </a>
           <nav className="hidden items-center gap-1 lg:flex">
             {NAV.map((item) => (
@@ -131,7 +132,7 @@ export function PublicLanding() {
                 href={item.href}
                 className="rounded-full px-3 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
               >
-                {item.label}
+                {sourceText(item.label)}
               </a>
             ))}
           </nav>
@@ -140,7 +141,7 @@ export function PublicLanding() {
               href="/login"
               className="inline-flex h-10 items-center rounded-xl bg-white px-4 text-sm font-bold text-[hsl(var(--brand-primary))]"
             >
-              Se connecter
+              {sourceText("Sign in")}
             </Link>
             <LandingExperienceControls />
           </div>
@@ -180,7 +181,7 @@ export function PublicLanding() {
             transition={{ duration: 0.5 }}
             className="text-xs font-bold uppercase tracking-[0.22em] text-white/70"
           >
-            Groupe 3RB · Maroc · Depuis 2014
+            {sourceText("Groupe 3.R.B · Morocco · Since 2014")}
           </motion.p>
           <motion.h1
             initial="hidden"
@@ -189,7 +190,7 @@ export function PublicLanding() {
             transition={{ duration: 0.55, delay: 0.08 }}
             className="mt-5 max-w-4xl text-4xl font-black leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
           >
-            Satisfaire nos clients à travers la qualité de nos prestations
+            {sourceText("Satisfy our clients through the quality of our services")}
           </motion.h1>
           <motion.p
             initial="hidden"
@@ -198,9 +199,7 @@ export function PublicLanding() {
             transition={{ duration: 0.55, delay: 0.16 }}
             className="mt-6 max-w-2xl text-lg leading-relaxed text-white/80"
           >
-            Groupe 3.R.B Extrême s’est assignée l’objectif de satisfaire ses
-            clients à travers la qualité de ses prestations, et de les assurer
-            par le dévouement à son métier.
+            {sourceText(GROUP_INTRO_SOURCE)}
           </motion.p>
           <motion.div
             initial="hidden"
@@ -213,14 +212,14 @@ export function PublicLanding() {
               href="#tickets"
               className="inline-flex h-12 items-center gap-2 rounded-xl bg-[hsl(var(--brand-accent))] px-6 text-sm font-bold text-white shadow-lg transition hover:-translate-y-0.5"
             >
-              Soumettre un ticket
+              {sourceText("Submit a ticket")}
               <Ticket className="h-4 w-4" />
             </a>
             <a
               href="#apropos"
               className="inline-flex h-12 items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/20"
             >
-              En savoir plus
+              {sourceText("Learn more")}
               <ArrowRight className="h-4 w-4" />
             </a>
           </motion.div>
@@ -229,10 +228,11 @@ export function PublicLanding() {
 
       <section id="services" className="bg-background py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="text-3xl font-black tracking-tight">Nos Services</h2>
+          <h2 className="text-3xl font-black tracking-tight">{sourceText("Our services")}</h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Sept lignes de service opérées par 3.R.B extrême, 3.R.B Maroc et EL
-            RHRIB CASH.
+            {sourceText(
+              "Seven service lines operated by 3.R.B Extreme, 3.R.B Maroc and EL RHRIB CASH.",
+            )}
           </p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {SERVICES.map((service, index) => (
@@ -247,9 +247,9 @@ export function PublicLanding() {
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[hsl(var(--brand-primary)/0.1)] text-[hsl(var(--brand-primary))]">
                   <service.icon className="h-5 w-5" />
                 </span>
-                <h3 className="mt-4 text-lg font-bold">{service.name}</h3>
+                <h3 className="mt-4 text-lg font-bold">{sourceText(service.name)}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {service.description}
+                  {sourceText(service.description)}
                 </p>
               </motion.article>
             ))}
@@ -260,10 +260,10 @@ export function PublicLanding() {
       <section id="tickets" className="bg-[hsl(var(--muted))] py-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <h2 className="text-3xl font-black tracking-tight">
-            Soumettre un ticket de support
+            {sourceText("Submit a support ticket")}
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Signalez un problème ou faites une demande
+            {sourceText("Report a problem or make a request")}
           </p>
           {!showTicket ? (
             <button
@@ -271,7 +271,7 @@ export function PublicLanding() {
               onClick={() => setShowTicket(true)}
               className="mt-8 inline-flex h-14 items-center gap-2 rounded-xl bg-[hsl(var(--brand-primary))] px-8 text-base font-bold text-white shadow-lg transition hover:-translate-y-0.5"
             >
-              Ouvrir le formulaire
+              {sourceText("Open the form")}
               <FileText className="h-4 w-4" />
             </button>
           ) : (
@@ -280,18 +280,18 @@ export function PublicLanding() {
             </div>
           )}
           <p className="mt-4 text-sm text-muted-foreground">
-            Ou accédez directement à{" "}
+            {sourceText("Or go directly to")}{" "}
             <Link href="/tickets/new" className="font-semibold text-primary underline">
               /tickets/new
             </Link>
-            . Aucune connexion n’est requise.
+            {sourceText(". No sign-in is required.")}
           </p>
         </div>
       </section>
 
       <section id="contact" className="bg-background py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="text-3xl font-black tracking-tight">Besoin d&apos;aide ?</h2>
+          <h2 className="text-3xl font-black tracking-tight">{sourceText("Need help?")}</h2>
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             <a
               href="mailto:contact@groupe3rb.ma"
@@ -299,7 +299,7 @@ export function PublicLanding() {
             >
               <Mail className="h-6 w-6 text-[hsl(var(--brand-accent))]" />
               <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Email
+                {sourceText("Email")}
               </p>
               <p className="mt-1 font-bold">contact@groupe3rb.ma</p>
             </a>
@@ -309,7 +309,7 @@ export function PublicLanding() {
             >
               <Phone className="h-6 w-6 text-[hsl(var(--brand-accent))]" />
               <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Téléphone
+                {sourceText("Phone")}
               </p>
               <p className="mt-1 font-bold">+212 538 995 746</p>
             </a>
@@ -321,7 +321,7 @@ export function PublicLanding() {
             >
               <MapPin className="h-6 w-6 text-[hsl(var(--brand-accent))]" />
               <p className="mt-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Adresse
+                {sourceText("Address")}
               </p>
               <p className="mt-1 font-bold">
                 N° 155, rez-de-chaussée (sous-sol) Quartier Koumtrafa, 12000
@@ -336,23 +336,20 @@ export function PublicLanding() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid items-center gap-10 lg:grid-cols-[1.5fr_1fr]">
             <div>
-              <h2 className="text-3xl font-black tracking-tight">À propos</h2>
+              <h2 className="text-3xl font-black tracking-tight">{sourceText("About")}</h2>
               <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                Groupe 3.R.B Extrême est un groupe de trois sociétés de
-                différents services créé en 2014. 3.R.B extrême est spécialisée
-                dans le nettoyage, la désinfection, la gestion du personnel
-                technique et l’évènementiel. 3.R.B Maroc est spécialisée dans le
-                gardiennage. EL RHRIB CASH assure le transfert d’argent, la
-                facilitation de facturation et la messagerie.
+                {sourceText(
+                  "Groupe 3.R.B Extreme is a group of three service companies founded in 2014. 3.R.B Extreme specialises in cleaning, disinfection, technical staffing and events. 3.R.B Maroc specialises in guarding. EL RHRIB CASH handles money transfer, billing facilitation and courier.",
+                )}
               </p>
             </div>
             <div className="relative h-64 overflow-hidden rounded-3xl bg-[hsl(var(--brand-primary))]">
               <div className="gradient-mesh absolute inset-0 opacity-80" />
               <div className="relative flex h-full items-center justify-center p-8 text-center text-white">
                 <p className="text-xl font-black">
-                  Qualité des prestations.
+                  {sourceText("Quality of service.")}
                   <br />
-                  Dévouement au métier.
+                  {sourceText("Devotion to the craft.")}
                 </p>
               </div>
             </div>
@@ -364,7 +361,7 @@ export function PublicLanding() {
                   {stat.value}
                 </dd>
                 <dt className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {stat.label}
+                  {sourceText(stat.label)}
                 </dt>
               </div>
             ))}
@@ -378,69 +375,70 @@ export function PublicLanding() {
             <div className="flex items-center gap-2">
               <Image
                 src="/brand/3rb-logo-icon.png"
-                alt="3RB EXTREME"
+                alt={sourceText("3RB EXTREME")}
                 width={32}
                 height={32}
               />
-              <span className="font-black">3RB EXTREME</span>
+              <span className="font-black">{sourceText("3RB EXTREME")}</span>
             </div>
             <p className="mt-4 text-sm text-white/70">
-              Satisfaire nos clients à travers la qualité de nos prestations, et
-              les assurer par le dévouement à notre métier.
+              {sourceText(
+                "Satisfy our clients through the quality of our services, and assure them through devotion to our craft.",
+              )}
             </p>
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-white/50">
-              Services
+              {sourceText("Services")}
             </p>
             <ul className="mt-3 space-y-2 text-sm text-white/80">
               {SERVICES.slice(0, 5).map((s) => (
-                <li key={s.name}>{s.name}</li>
+                <li key={s.name}>{sourceText(s.name)}</li>
               ))}
             </ul>
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-white/50">
-              Support
+              {sourceText("Support")}
             </p>
             <ul className="mt-3 space-y-2 text-sm text-white/80">
               <li>
-                <a href="#tickets">Tickets</a>
+                <a href="#tickets">{sourceText("Tickets")}</a>
               </li>
               <li>
-                <a href="mailto:contact@groupe3rb.ma">Email</a>
+                <a href="mailto:contact@groupe3rb.ma">{sourceText("Email")}</a>
               </li>
               <li>
-                <Link href="/login">Espace EFOP</Link>
+                <Link href="/login">{sourceText("Client space")}</Link>
               </li>
             </ul>
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-white/50">
-              Légal
+              {sourceText("Legal")}
             </p>
             <ul className="mt-3 space-y-2 text-sm text-white/80">
               <li>
-                <Link href="/privacy">Confidentialité</Link>
+                <Link href="/privacy">{sourceText("Privacy")}</Link>
               </li>
               <li>
-                <Link href="/terms">Conditions</Link>
+                <Link href="/terms">{sourceText("Terms")}</Link>
               </li>
               <li>
-                <Link href="/security">Sécurité</Link>
+                <Link href="/security">{sourceText("Security")}</Link>
               </li>
             </ul>
             <div className="mt-5 flex gap-3">
               <a
                 href="https://web.facebook.com/3rbextreme"
-                aria-label="Facebook"
+                aria-label={sourceText("Facebook")}
                 className="rounded-full bg-white/10 p-2"
               >
                 <Facebook className="h-4 w-4" />
               </a>
               <a
                 href="https://www.linkedin.com/in/groupe-3rb-680169273/"
-                aria-label="LinkedIn"
+                aria-label={sourceText("LinkedIn")}
                 className="rounded-full bg-white/10 p-2"
               >
                 <Linkedin className="h-4 w-4" />
@@ -449,8 +447,8 @@ export function PublicLanding() {
           </div>
         </div>
         <div className="mx-auto mt-12 max-w-6xl px-4 text-sm text-white/60 sm:px-6">
-          <p>© 2026 3RB EXTREME. Tous droits réservés.</p>
-          <p className="mt-1 text-xs">Powered by EFOP Platform</p>
+          <p>{sourceText("© 2026 3RB EXTREME. All rights reserved.")}</p>
+          <p className="mt-1 text-xs">{sourceText("Powered by EFOP Platform")}</p>
         </div>
       </footer>
     </div>

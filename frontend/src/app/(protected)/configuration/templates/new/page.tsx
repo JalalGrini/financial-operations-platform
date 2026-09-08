@@ -20,7 +20,7 @@ export default function NewDocumentTemplatePage() {
         icon={FileText}
         eyebrow="Document schema builder"
         title={sourceText("New template draft")}
-        description="Build the field set for a financial document type. Everything saves as a reviewable draft - publishing is a separate, deliberate step."
+        description={sourceText("Build the field set for a financial document type. Everything saves as a reviewable draft - publishing is a separate, deliberate step.")}
       />
       <TemplateCreateForm />
     </div>

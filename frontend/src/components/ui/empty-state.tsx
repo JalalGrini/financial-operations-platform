@@ -3,6 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
+import { sourceText } from "@/lib/i18n/source-catalog";
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -66,9 +67,9 @@ export function EmptyState({
 
 export function ErrorState({
   icon: Icon,
-  title = "Something went wrong",
+  title = sourceText("Something went wrong"),
   description,
-  actionLabel = "Try again",
+  actionLabel = sourceText("Try again"),
   onAction,
   className,
 }: Pick<EmptyStateProps, "icon" | "title" | "description" | "actionLabel" | "onAction" | "className">) {
@@ -99,9 +100,9 @@ export function SearchEmptyState({
   return (
     <EmptyState
       icon={Icon}
-      title={query ? `No results for "${query}"` : "No results found"}
-      description="Try adjusting your search or filters to find what you are looking for."
-      actionLabel={onClear ? "Clear filters" : undefined}
+      title={query ? `No results for "${query}"` : sourceText("No results found")}
+      description={sourceText("Try adjusting your search or filters to find what you are looking for.")}
+      actionLabel={onClear ? sourceText("Clear filters") : undefined}
       onAction={onClear}
       tone="search"
       className={className}

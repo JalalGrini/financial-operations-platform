@@ -21,6 +21,7 @@ import {
   ChevronRight,
   MoreHorizontal,
   RotateCcw,
+  PauseCircle,
 } from "lucide-react";
 import {
   useCompanies,
@@ -51,15 +52,12 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard as UiStatCard } from "@/components/ui/stat-card";
-import { StaggerList, StaggerItem } from "@/components/ui/stagger-list";
+import { StatCard } from "@/components/ui/stat-card";
 import { format } from "date-fns";
 import { SkeletonTable, SkeletonHero, SkeletonStatsStrip } from "@/components/ui/page-skeletons";
 import { WriteOnly } from "@/components/auth/WriteOnly";
 import { ExportButton } from "@/components/ui/export-button";
 import { listExportApi } from "@/features/exports/api";
-import { ScrollReveal } from "@/components/ui/scroll-reveal";
-import { Stagger, FadeIn } from "@/components/ui/stagger";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
@@ -124,7 +122,11 @@ export default function CompaniesPage() {
     page_size: 10,
     ordering: "-created_at",
   });
-  const { data: stats } = useCompanyStatistics();
+  const { data: stats, isLoading: statsLoading } = useCompanyStatistics();
+  const totalCompanies = stats?.total_companies ?? 0;
+  const activeCompanies = stats?.active_companies ?? 0;
+  const archivedCompanies = stats?.archived_companies ?? 0;
+  const inactiveCompanies = Math.max(0, totalCompanies - activeCompanies);
   const archiveMutation = useArchiveCompany();
   const restoreMutation = useRestoreCompany();
   const deleteMutation = useDeleteCompany();
@@ -184,7 +186,7 @@ export default function CompaniesPage() {
         icon={Building2}
         eyebrow="Entity registry"
         title={sourceText("Companies")}
-        description="Manage, search, archive and restore your company entities from the central registry."
+        description={sourceText("Manage, search, archive and restore your company entities from the central registry.")}
         action={<div className="flex flex-wrap items-center gap-2">
           <ExportButton
             variant="onHeroOutline"
@@ -212,89 +214,36 @@ export default function CompaniesPage() {
         </div>}
       />
 
-      {/* Stats Cards */}
-      {stats && (
-        <ScrollReveal delay={80}>
-        <Stagger className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StaggerItem>
-            <Card className="efop-card-hover">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-lg text-primary">
-                    <Building2 className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      <SourceText source="Total Companies" leading trailing />
-                    </p>
-                    <p className="text-2xl font-bold tabular-nums">
-                      {stats.total_companies}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </StaggerItem>
-          <StaggerItem>
-            <Card className="efop-card-hover">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-600 dark:text-green-400">
-                    <Building2 className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      <SourceText source="Active" />
-                    </p>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400 tabular-nums">
-                      {stats.active_companies}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </StaggerItem>
-          <StaggerItem>
-            <Card className="efop-card-hover">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400">
-                    <Archive className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      <SourceText source="Archived" />
-                    </p>
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400 tabular-nums">
-                      {stats.archived_companies}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </StaggerItem>
-          <StaggerItem>
-            <Card className="efop-card-hover">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
-                    <Building2 className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      <SourceText source="Total Personnel" leading trailing />
-                    </p>
-                    <p className="text-2xl font-bold tabular-nums">
-                      {stats.total_personnel}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </StaggerItem>
-        </Stagger>
-        </ScrollReveal>
-      )}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          icon={Building2}
+          label={sourceText("Total Companies")}
+          value={totalCompanies}
+          tone="primary"
+          loading={statsLoading}
+        />
+        <StatCard
+          icon={Building2}
+          label={sourceText("Active")}
+          value={activeCompanies}
+          tone="emerald"
+          loading={statsLoading}
+        />
+        <StatCard
+          icon={PauseCircle}
+          label={sourceText("Inactive")}
+          value={inactiveCompanies}
+          tone="amber"
+          loading={statsLoading}
+        />
+        <StatCard
+          icon={Archive}
+          label={sourceText("Archived")}
+          value={archivedCompanies}
+          tone="rose"
+          loading={statsLoading}
+        />
+      </div>
 
       {/* Table Card */}
       <Card>
@@ -394,8 +343,8 @@ export default function CompaniesPage() {
                   {company.trade_name && <p className="text-xs text-muted-foreground">{company.trade_name}</p>}
                   {company.address && <p className="text-xs text-muted-foreground truncate">{company.address}</p>}
                   <div className="flex gap-4 text-xs text-muted-foreground mt-1">
-                    {company.vat_number && <span><span className="font-medium">ICE:</span> {company.vat_number}</span>}
-                    {company.registration_number && <span><span className="font-medium">RC:</span> {company.registration_number}</span>}
+                    {company.vat_number && <span><span className="font-medium">{sourceText("ICE")}:</span> {company.vat_number}</span>}
+                    {company.registration_number && <span><span className="font-medium">{sourceText("RC")}:</span> {company.registration_number}</span>}
                   </div>
                 </div>
               ))}

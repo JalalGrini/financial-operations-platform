@@ -179,7 +179,7 @@ export default function InventoryPage() {
         icon={Package}
         eyebrow="Asset management"
         title={sourceText("Inventory")}
-        description="Fixed assets and consumable supplies across all companies — track status, location and movement history."
+        description={sourceText("Fixed assets and consumable supplies across all companies — track status, location and movement history.")}
         action={<WriteOnly>
           <div className="flex gap-2">
             <Button

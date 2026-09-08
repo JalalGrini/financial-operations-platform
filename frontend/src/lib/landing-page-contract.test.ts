@@ -8,8 +8,8 @@ import ar from "./i18n/source.ar.json";
 const page = readFileSync(resolve(process.cwd(), "src/app/page.tsx"), "utf8");
 const css = readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8");
 const required = [
-  "Control every operation.",
-  "Move with confidence.",
+  "We are Groupe 3RB.",
+  "Quality of service, devotion to the craft.",
   "Security and guarding",
   "Cleaning and disinfection",
   "Financial records",

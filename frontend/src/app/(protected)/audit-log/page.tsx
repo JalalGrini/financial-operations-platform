@@ -204,7 +204,7 @@ export default function AuditLogPage() {
         icon={ShieldCheck}
         eyebrow="Governance & compliance"
         title={sourceText("Audit Log")}
-        description="Concise, append-only governance history — trace sensitive actions, isolate suspicious activity and export targeted subsets for review."
+        description={sourceText("Concise, append-only governance history — trace sensitive actions, isolate suspicious activity and export targeted subsets for review.")}
         action={<WriteOnly>
           <Button
             variant="onHero"

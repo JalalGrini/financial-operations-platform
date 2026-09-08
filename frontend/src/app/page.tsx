@@ -19,6 +19,7 @@ import { BlurFade } from "@/components/ui/blur-fade";
 import { Marquee } from "@/components/ui/marquee";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { ClientTicketForm } from "@/components/landing/ClientTicketForm";
+import { HeroCinematicBackground } from "@/components/landing/HeroCinematicBackground";
 import { LiveBackground } from "@/components/landing/LiveBackground";
 import { PillarScrollSync } from "@/components/landing/PillarScrollSync";
 import { TopBar } from "@/components/landing/TopBar";
@@ -127,21 +128,21 @@ export default function HomePage() {
   return (
     <div className="landing-shell relative min-h-screen [overflow-x:clip] bg-background text-foreground">
       {/* ------------------------------------------------------ top bar */}
-      <TopBar>
+      <TopBar overMedia>
         <Link
           href="/#hero"
           className="landing-logo-wrap flex shrink-0 items-center gap-3 rounded-lg"
         >
           <Image
             src="/brand/3rb-header-logo.png"
-            alt="Groupe 3RB"
+            alt={sourceText("Groupe 3RB")}
             width={160}
             height={36}
             priority
             className="h-9 w-auto object-contain"
           />
           <span className="hidden text-[0.9375rem] font-black tracking-[-0.02em] sm:inline">
-            Groupe 3RB
+            <SourceText source="Groupe 3RB" />
           </span>
         </Link>
 
@@ -156,8 +157,7 @@ export default function HomePage() {
             <summary
               className={`${navLinkClass} inline-flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden`}
             >
-              Groupe 3RB
-              <span aria-hidden="true">▾</span>
+              <SourceText source="Groupe 3RB" />
             </summary>
             <div className="absolute left-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border bg-white shadow-lg dark:bg-card">
               {PUBLIC_COMPANIES.map((company) => (
@@ -193,56 +193,64 @@ export default function HomePage() {
       </TopBar>
 
       {/* --------------------------------------------------------- hero */}
-      <section id="hero" className="relative overflow-hidden pb-32 pt-32 scroll-mt-16">
-        <div className="pointer-events-none absolute inset-0 z-0">
-          <LiveBackground intensity={1} />
+      <section id="hero" className="relative overflow-hidden scroll-mt-16">
+        <div className="relative isolate min-h-[min(92vh,54rem)] overflow-hidden pb-28 pt-32">
+          <div className="pointer-events-none absolute inset-0 z-0">
+            <HeroCinematicBackground />
+          </div>
+
+          <div className={`relative z-10 ${CONTAINER}`}>
+            <BlurFade delay={0.1}>
+              <p className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-white/80">
+                <SourceText source="Groupe 3.R.B · Morocco · Since 2014" />
+              </p>
+            </BlurFade>
+
+            <h1 className={`mt-5 max-w-[22ch] ${TYPE.hero} text-white [text-shadow:0_2px_28px_rgb(0_0_0_/_0.35)]`}>
+              <WordMaskReveal text="We are Groupe 3RB." leadingEdge />
+              <ScrollReveal
+                as="span"
+                className="mt-1 block"
+                y={20}
+                duration={620}
+                delay={300}
+              >
+                <span className="block text-[clamp(1.35rem,2.6vw,2.15rem)] font-semibold italic leading-snug tracking-[-0.03em] text-white/90">
+                  <SourceText source="Quality of service, devotion to the craft." />
+                </span>
+              </ScrollReveal>
+            </h1>
+
+            <BlurFade delay={0.3}>
+              <p className={`mt-7 max-w-2xl ${TYPE.lead} text-white/80`}>
+                <SourceText source={GROUP_INTRO_SOURCE} />
+              </p>
+            </BlurFade>
+
+            <BlurFade delay={0.38}>
+              <div className="mt-9 flex flex-wrap items-center gap-3">
+                <MagneticLink href="#contact" variant="primary" size="lg">
+                  <SourceText source="Request a service" />
+                  <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                </MagneticLink>
+                <MagneticLink
+                  href="#services"
+                  variant="ghost"
+                  size="lg"
+                  className="!border-white/35 !bg-white/10 !text-white hover:!border-white/60 hover:!bg-white/15"
+                >
+                  <SourceText source="See what we operate" />
+                  <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                </MagneticLink>
+              </div>
+            </BlurFade>
+          </div>
         </div>
-        <div className="landing-grid pointer-events-none absolute inset-0 z-[1] opacity-25" />
 
-        <div className={`relative z-10 ${CONTAINER}`}>
-          <BlurFade delay={0.1}>
-            <p className="mt-8 text-xs font-bold uppercase tracking-[0.22em] text-[hsl(var(--brand-blue-700))] dark:text-[hsl(var(--brand-blue-500))]">
-              <SourceText source="Groupe 3.R.B · Morocco · Since 2014" />
-            </p>
-          </BlurFade>
-
-          <h1 className={`mt-5 max-w-[22ch] ${TYPE.hero} text-foreground`}>
-            <WordMaskReveal text="Control every operation." leadingEdge />
-            <ScrollReveal
-              as="span"
-              className="mt-1 block"
-              y={20}
-              duration={620}
-              delay={300}
-            >
-              <span className="landing-gradient-text block">
-                <SourceText source="Move with confidence." />
-              </span>
-            </ScrollReveal>
-          </h1>
-
-          <BlurFade delay={0.3}>
-            <p className={`mt-7 max-w-2xl ${TYPE.lead} text-muted-foreground`}>
-              <SourceText source={GROUP_INTRO_SOURCE} />
-            </p>
-          </BlurFade>
-
-          <BlurFade delay={0.38}>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <MagneticLink href="#contact" variant="primary" size="lg">
-                <SourceText source="Request a service" />
-                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-              </MagneticLink>
-              <MagneticLink href="#services" variant="secondary" size="lg">
-                <SourceText source="See what we operate" />
-                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-              </MagneticLink>
-            </div>
-          </BlurFade>
-
+        <div className={`relative z-10 bg-background pb-32 ${CONTAINER}`}>
           {/* Service rail: six real photographs, captions always visible. */}
           <BlurFade delay={0.54}>
-            <ul id="conception" className="mt-12 grid gap-4 scroll-mt-16 sm:grid-cols-2 lg:grid-cols-3">
+            <ul id="conception" className="grid gap-4 scroll-mt-16 sm:grid-cols-2 lg:grid-cols-3">
               {serviceRail.map((service) => (
                 <li key={service.label}>
                   <SpotlightCard

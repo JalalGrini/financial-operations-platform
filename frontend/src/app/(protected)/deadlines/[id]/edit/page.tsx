@@ -23,7 +23,7 @@ export default function EditDeadlinePage() {
         icon={CalendarClock}
         eyebrow="Persistent operations planner"
         title={sourceText("Edit deadline")}
-        description="Update the title, due date, priority, assignee or recurrence. Changes persist through the Django API."
+        description={sourceText("Update the title, due date, priority, assignee or recurrence. Changes persist through the Django API.")}
       />
       <DeadlineEditLoader deadlineId={deadlineId} />
     </div>

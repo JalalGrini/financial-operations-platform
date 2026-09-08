@@ -1006,7 +1006,7 @@ export default function PartiesPage() {
         icon={Users2}
         eyebrow="Counterparty hub"
         title={sourceText("Parties")}
-        description="Suppliers, external parties and associated persons — reusable counterparties for financial documents and treasury workflows."
+        description={sourceText("Suppliers, external parties and associated persons — reusable counterparties for financial documents and treasury workflows.")}
       />
 
       <section className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">

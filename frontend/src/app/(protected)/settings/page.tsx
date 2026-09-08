@@ -40,7 +40,7 @@ export default function SettingsPage() {
         icon={Palette}
         eyebrow="Account preferences"
         title={sourceText("Settings")}
-        description="Preferences are saved to your account and restored on other devices."
+        description={sourceText("Preferences are saved to your account and restored on other devices.")}
         action={<WriteOnly>
           <Button
             variant="onHero"

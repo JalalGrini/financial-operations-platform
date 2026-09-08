@@ -74,23 +74,23 @@ export default function TransfersPage() {
   const archiveMutation = useMutation({
     mutationFn: (id: string) => transfersApi.archive(id),
     onSuccess: () => {
-      toast.success("Transfer archived");
+      toast.success(sourceText("Transfer archived"));
       setArchiveTarget(null);
       qc.invalidateQueries({ queryKey: ["transfers"] });
     },
-    onError: () => toast.error("Failed to archive transfer"),
+    onError: () => toast.error(sourceText("Failed to archive transfer")),
   });
 
   const confirmMutation = useMutation({
     mutationFn: (id: string) => transfersApi.confirm(id),
-    onSuccess: () => { toast.success("Transfer confirmed — amount reflected in budget"); qc.invalidateQueries({ queryKey: ["transfers"] }); },
-    onError: () => toast.error("Failed to confirm transfer"),
+    onSuccess: () => { toast.success(sourceText("Transfer confirmed — amount reflected in budget")); qc.invalidateQueries({ queryKey: ["transfers"] }); },
+    onError: () => toast.error(sourceText("Failed to confirm transfer")),
   });
 
   const revertMutation = useMutation({
     mutationFn: (id: string) => transfersApi.revertToDraft(id),
-    onSuccess: () => { toast.success("Transfer reverted to draft"); qc.invalidateQueries({ queryKey: ["transfers"] }); },
-    onError: () => toast.error("Failed to revert transfer"),
+    onSuccess: () => { toast.success(sourceText("Transfer reverted to draft")); qc.invalidateQueries({ queryKey: ["transfers"] }); },
+    onError: () => toast.error(sourceText("Failed to revert transfer")),
   });
 
   // Transfers is readable by every role; only Administrator and Assistant
@@ -258,7 +258,7 @@ export default function TransfersPage() {
       <ConfirmDialog
         isOpen={!!archiveTarget}
         title={sourceText("Archive transfer?")}
-        description="This will hide the transfer from the default list. You can restore it later."
+        description={sourceText("This will hide the transfer from the default list. You can restore it later.")}
         onConfirm={() => archiveTarget && archiveMutation.mutate(archiveTarget)}
         onClose={() => setArchiveTarget(null)}
         isLoading={archiveMutation.isPending}

@@ -110,7 +110,7 @@ export function Sidebar({
         <Link
           href="/dashboard"
           className="group flex min-w-0 items-center gap-2.5"
-          aria-label="Groupe 3RB"
+          aria-label={sourceText("Groupe 3RB")}
         >
           <Logo size={32} showText={!collapsed || mobile} />
         </Link>

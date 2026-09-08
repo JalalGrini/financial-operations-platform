@@ -136,7 +136,7 @@ function ReplyDialog({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+212 6 XX XX XX XX"
+                placeholder={sourceText("+212 6 XX XX XX XX")}
               />
             </div>
           )}
@@ -228,7 +228,7 @@ export default function AdminTicketsPage() {
           icon={LifeBuoy}
           eyebrow="Administration"
           title={sourceText("Help Tickets")}
-          description="Support requests from users who cannot log in or need assistance."
+          description={sourceText("Support requests from users who cannot log in or need assistance.")}
         />
 
         {/* Stat strip */}

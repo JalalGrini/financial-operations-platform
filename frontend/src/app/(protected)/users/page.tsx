@@ -99,7 +99,7 @@ export default function UsersPage() {
         icon={ShieldCheck}
         eyebrow="Account governance"
         title={sourceText("Users & Roles")}
-        description="Administrator-only account governance. Temporary passwords must be shared privately and changed immediately."
+        description={sourceText("Administrator-only account governance. Temporary passwords must be shared privately and changed immediately.")}
       />
       <Card>
         <CardHeader>

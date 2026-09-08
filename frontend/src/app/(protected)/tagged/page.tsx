@@ -51,7 +51,7 @@ export default function TaggedPage() {
         icon={AtSign}
         eyebrow="Collaboration queue"
         title={sourceText("Tagged for me")}
-        description="Records explicitly routed to you for review, follow-up and cross-team coordination."
+        description={sourceText("Records explicitly routed to you for review, follow-up and cross-team coordination.")}
       />
 
       <section className="grid gap-4 sm:grid-cols-3">

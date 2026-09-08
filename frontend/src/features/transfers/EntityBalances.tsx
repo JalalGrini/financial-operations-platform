@@ -199,11 +199,11 @@ export function EntityBalances() {
   const removeMutation = useMutation({
     mutationFn: (id: string) => transfersApi.openingBalances.delete(id),
     onSuccess: () => {
-      toast.success("Starting balance removed");
+      toast.success(sourceText("Starting balance removed"));
       setRemoveTarget(null);
       qc.invalidateQueries({ queryKey: ["transfers"] });
     },
-    onError: () => toast.error("Failed to remove starting balance"),
+    onError: () => toast.error(sourceText("Failed to remove starting balance")),
   });
 
   function openCreate(prefill?: { type: TransferEntityType; id: string }) {
@@ -231,11 +231,11 @@ export function EntityBalances() {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!form.entityId) {
-      toast.error("Choose the company or person this balance belongs to");
+      toast.error(sourceText("Choose the company or person this balance belongs to"));
       return;
     }
     if (form.amount.trim() === "") {
-      toast.error("Enter a starting amount");
+      toast.error(sourceText("Enter a starting amount"));
       return;
     }
     saveMutation.mutate({

@@ -12,6 +12,7 @@ import {
 import { CompanyTicketForm } from "@/components/landing/CompanyTicketForm";
 import { CONTAINER, HEADER_BLOCK, SECTION, TYPE } from "@/components/landing/design-system";
 import type { PublicCompany } from "@/components/landing/public-companies";
+import { sourceText } from "@/lib/i18n/source-catalog";
 
 export function CompanyPublicPage({ company }: { company: PublicCompany }) {
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -38,31 +39,31 @@ export function CompanyPublicPage({ company }: { company: PublicCompany }) {
             className="mb-8 inline-flex w-fit items-center gap-2 text-sm font-semibold text-white/80 transition hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Retour
+            {sourceText("Back")}
           </Link>
           <h1 className="max-w-[18ch] text-[clamp(2.25rem,5vw,4rem)] font-black tracking-tight text-white">
             {company.name}
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-white/85">
-            {company.tagline}
+            {sourceText(company.tagline)}
           </p>
           <a
             href="#contact"
             className="mt-8 inline-flex h-12 w-fit items-center rounded-full bg-[hsl(var(--brand-orange-500))] px-6 text-sm font-bold text-[hsl(var(--landing-ink))] transition hover:brightness-110"
           >
-            Nous contacter
+            {sourceText("Contact us")}
           </a>
         </div>
       </section>
 
       <section className={`${SECTION.base} bg-background`}>
         <div className={CONTAINER}>
-          <span className={HEADER_BLOCK.kicker}>À propos</span>
+          <span className={HEADER_BLOCK.kicker}>{sourceText("About")}</span>
           <h2 className={`${HEADER_BLOCK.kickerGap} ${TYPE.h2} text-foreground`}>
             {company.name}
           </h2>
           <p className={`${HEADER_BLOCK.titleGap} max-w-3xl text-[1.0625rem] leading-relaxed text-muted-foreground`}>
-            {company.description}
+            {sourceText(company.description)}
           </p>
           <div className="mt-8 flex flex-wrap gap-2">
             {company.services.map((service) => (
@@ -70,7 +71,7 @@ export function CompanyPublicPage({ company }: { company: PublicCompany }) {
                 key={service}
                 className="inline-flex items-center rounded-full border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--primary)/0.06)] px-3 py-1 text-[0.75rem] font-semibold text-[hsl(var(--primary))]"
               >
-                {service}
+                {sourceText(service)}
               </span>
             ))}
           </div>
@@ -79,9 +80,9 @@ export function CompanyPublicPage({ company }: { company: PublicCompany }) {
 
       <section className={`${SECTION.base} bg-[hsl(var(--brand-surface))]`}>
         <div className={CONTAINER}>
-          <span className={HEADER_BLOCK.kicker}>Galerie</span>
+          <span className={HEADER_BLOCK.kicker}>{sourceText("Gallery")}</span>
           <h2 className={`${HEADER_BLOCK.kickerGap} ${TYPE.h2} text-foreground`}>
-            Nos interventions
+            {sourceText("Our work")}
           </h2>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {company.gallery.map((image) => (
@@ -93,7 +94,7 @@ export function CompanyPublicPage({ company }: { company: PublicCompany }) {
               >
                 <Image
                   src={image.src}
-                  alt={image.alt}
+                alt={sourceText(image.alt)}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover transition duration-300 group-hover:scale-105"
@@ -107,14 +108,14 @@ export function CompanyPublicPage({ company }: { company: PublicCompany }) {
       <section id="contact" className={`${SECTION.base} scroll-mt-16 bg-background`}>
         <div className={`${CONTAINER} max-w-3xl`}>
           <h2 className={`${TYPE.h2} text-foreground`}>
-            Contacter {company.name}
+            {sourceText("Contact")} {company.name}
           </h2>
           <div className="mt-8">
             <CompanyTicketForm
               company={company.apiKey}
               companyLabel={company.name}
               combinedContact
-              submitLabel="Envoyer"
+              submitLabel="Send ticket"
             />
           </div>
         </div>
@@ -130,7 +131,7 @@ export function CompanyPublicPage({ company }: { company: PublicCompany }) {
             <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-black">
               <Image
                 src={active.src}
-                alt={active.alt}
+                alt={sourceText(active.alt)}
                 fill
                 sizes="100vw"
                 className="object-contain"

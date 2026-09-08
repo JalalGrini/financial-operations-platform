@@ -375,7 +375,7 @@ export default function SalaryListPage() {
         icon={Archive}
         eyebrow="Compensation history"
         title={sourceText("Salaries")}
-        description="Manage salary records, history, and adjustments across all employments."
+        description={sourceText("Manage salary records, history, and adjustments across all employments.")}
         action={<WriteOnly>
           <Button
             variant="onHero"

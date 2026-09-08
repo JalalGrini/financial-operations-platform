@@ -244,7 +244,7 @@ export default function DocumentTemplatesPage() {
         icon={Send}
         eyebrow="Document schema registry"
         title={sourceText("Financial Document Templates")}
-        description="Build fields manually or import a deterministic Excel field sheet, then review and publish."
+        description={sourceText("Build fields manually or import a deterministic Excel field sheet, then review and publish.")}
         action={<AdminOnly>
           <div className="flex gap-2">
             <Button

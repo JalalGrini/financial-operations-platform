@@ -21,7 +21,7 @@ export default function InventoryNewPage() {
         icon={Package}
         eyebrow="Asset management"
         title={sourceText("New inventory item")}
-        description="Add a fixed asset or consumable supply to the inventory register."
+        description={sourceText("Add a fixed asset or consumable supply to the inventory register.")}
       />
       <InventoryItemForm />
     </div>

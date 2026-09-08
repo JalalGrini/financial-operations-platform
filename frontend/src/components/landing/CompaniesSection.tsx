@@ -23,13 +23,15 @@ import { CompanyTicketForm } from "./CompanyTicketForm";
 import { ScrollReveal } from "./motion-primitives";
 import { CONTAINER, HEADER_BLOCK, SECTION, TYPE } from "./design-system";
 import { PUBLIC_COMPANIES, type PublicCompany } from "./public-companies";
+import { sourceText } from "@/lib/i18n/source-catalog";
+import { GROUP_INTRO_SOURCE } from "./public-company-cards";
 
 /* --------------------------------------------------------------- helpers */
 
 function ServicePill({ label }: { label: string }) {
   return (
     <span className="inline-flex items-center rounded-full border border-[hsl(var(--primary)/0.16)] bg-[hsl(var(--primary)/0.06)] px-3 py-1 text-[0.75rem] font-semibold text-[hsl(var(--primary))]">
-      {label}
+      {sourceText(label)}
     </span>
   );
 }
@@ -72,10 +74,10 @@ function CompanyCard({
             </p>
             <h3 className={`mt-2 ${TYPE.h2} text-foreground`}>{company.name}</h3>
             <p className="mt-1 text-[0.875rem] font-semibold text-muted-foreground">
-              {company.tagline}
+              {sourceText(company.tagline)}
             </p>
             <p className="mt-4 text-[1rem] leading-relaxed text-muted-foreground">
-              {company.description}
+              {sourceText(company.description)}
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
@@ -86,7 +88,7 @@ function CompanyCard({
           </div>
 
           <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[hsl(var(--primary))] px-5 py-2.5 text-[0.875rem] font-bold text-primary-foreground">
-            Découvrir
+            {sourceText("Discover")}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </span>
         </div>
@@ -111,12 +113,10 @@ export function CompaniesSection() {
           <ScrollReveal className="mx-auto max-w-3xl text-center">
             <span className={HEADER_BLOCK.kicker}>Groupe 3.R.B</span>
             <h2 className={`${HEADER_BLOCK.kickerGap} ${TYPE.h2} text-foreground`}>
-              Nos Entreprises
+              {sourceText("Our companies")}
             </h2>
             <p className={`${HEADER_BLOCK.titleGap} ${HEADER_BLOCK.lead} mx-auto`}>
-              Groupe 3.R.B Extrême est un groupe de trois sociétés de différents
-              services créé en 2014, s&apos;assignant l&apos;objectif de satisfaire ses clients
-              à travers la qualité de ses prestations.
+              {sourceText(GROUP_INTRO_SOURCE)}
             </p>
           </ScrollReveal>
 
@@ -143,13 +143,13 @@ export function CompaniesSection() {
               {/* Left: heading + image */}
               <ScrollReveal>
                 <span className="text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-[hsl(var(--brand-orange-500))]">
-                  Contactez-nous
+                  {sourceText("Contact us")}
                 </span>
                 <h2 className={`mt-3 ${TYPE.h2} text-foreground`}>
                   {company.name}
                 </h2>
                 <p className="mt-3 text-[1rem] leading-relaxed text-muted-foreground">
-                  {company.description}
+                  {sourceText(company.description)}
                 </p>
 
                 {company.heroImage && (

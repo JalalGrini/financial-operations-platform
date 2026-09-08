@@ -123,7 +123,7 @@ export function TransferForm({ initial, mode }: TransferFormProps) {
       // checks this against the real response type.
       router.push(`/transfers/${result.id}`);
     },
-    onError: () => toast.error("Failed to save transfer"),
+    onError: () => toast.error(sourceText("Failed to save transfer")),
   });
 
   function handleSubmit(e: React.FormEvent) {

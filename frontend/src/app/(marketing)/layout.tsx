@@ -24,14 +24,14 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
         >
           <Image
             src="/brand/3rb-header-logo.png"
-            alt="Groupe 3RB"
+            alt={sourceText("Groupe 3RB")}
             width={160}
             height={36}
             priority
             className="h-9 w-auto object-contain"
           />
           <span className="hidden text-[0.9375rem] font-black tracking-[-0.02em] sm:inline">
-            Groupe 3RB
+            <SourceText source="Groupe 3RB" />
           </span>
         </Link>
 
@@ -46,7 +46,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
             <summary
               className={`${navLinkClass} inline-flex cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden`}
             >
-              Groupe 3RB
+              <SourceText source="Groupe 3RB" />
               <span aria-hidden="true">▾</span>
             </summary>
             <div className="absolute left-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border bg-white shadow-lg dark:bg-card">

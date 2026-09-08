@@ -446,7 +446,7 @@ export default function EmploymentsListPage() {
         icon={Briefcase}
         eyebrow="Contracts & assignments"
         title={sourceText("Employments")}
-        description="Manage employment records, contracts, and job assignments across all companies."
+        description={sourceText("Manage employment records, contracts, and job assignments across all companies.")}
         action={<WriteOnly>
           <Button
             variant="onHero"
