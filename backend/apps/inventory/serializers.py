@@ -129,9 +129,9 @@ class InventoryItemSerializer(serializers.ModelSerializer):
     def get_image_url(self, obj):
         if not obj.image:
             return None
-        path = f"/api/v1/inventory/items/{obj.pk}/image/"
-        request = self.context.get("request")
-        return request.build_absolute_uri(path) if request else path
+        # Same-origin API path so the Vercel proxy can send session cookies.
+        # An absolute Railway URL would 401 in the browser.
+        return f"/api/v1/inventory/items/{obj.pk}/image/"
 
     def validate_image(self, value):
         if not value:
