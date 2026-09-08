@@ -55,11 +55,14 @@ THIRD_PARTY_APPS = [
     "corsheaders",
     "django_filters",
     "drf_spectacular",
+    # python manage.py migrate must be run after adding token_blacklist
+    # (creates token_blacklist_outstandingtoken / blacklistedtoken tables).
     "rest_framework_simplejwt.token_blacklist",
     "storages",
 ]
 
 LOCAL_APPS = [
+    "core",
     "apps.common",
     "apps.accounts",
     "apps.companies",
@@ -85,6 +88,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "middleware.rate_limit.RateLimitMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

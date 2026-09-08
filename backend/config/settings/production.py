@@ -3,12 +3,49 @@
 Production settings for Financial Operations Platform.
 """
 import os
+from datetime import timedelta
 
-from django.core.exceptions import ImproperlyConfigured
+import sentry_sdk
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.http import Http404
+from rest_framework.exceptions import NotAuthenticated
+from rest_framework.exceptions import NotFound as DRFNotFound
+from rest_framework.exceptions import PermissionDenied as DRFPermissionDenied
 
 from .base import *  # noqa: F403,F401
 from .base import env
 from .host_utils import production_allowed_hosts
+
+_sentry_dsn = env("SENTRY_DSN_BACKEND", default="")
+
+
+def _sentry_before_send(event, hint):
+    """Drop routine auth/not-found noise. ignore_errors integers are not classes."""
+    exc_info = hint.get("exc_info")
+    if not exc_info:
+        return event
+    exc = exc_info[1]
+    if isinstance(
+        exc,
+        (Http404, PermissionDenied, NotAuthenticated, DRFPermissionDenied, DRFNotFound),
+    ):
+        return None
+    status = getattr(exc, "status_code", None)
+    if status in (401, 403, 404):
+        return None
+    return event
+
+
+if _sentry_dsn:
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        environment="production",
+        traces_sample_rate=0.05,
+        profiles_sample_rate=0.05,
+        send_default_pii=False,
+        ignore_errors=[404, 401, 403],
+        before_send=_sentry_before_send,
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -29,8 +66,10 @@ DEBUG = False
 # retries, then marks the replica failed — typically ~1 minute after gunicorn
 # has already bound the port. Strip accidental https:// prefixes too: Django
 # matches hostnames, not origins.
+# 3rb-extreme.up.railway.app until a custom domain is added. Healthcheck
+# host healthcheck.railway.app is always merged by production_allowed_hosts.
 ALLOWED_HOSTS = production_allowed_hosts(
-    env.list("DJANGO_ALLOWED_HOSTS", default=[]),  # noqa: F405
+    env.list("DJANGO_ALLOWED_HOSTS", default=["3rb-extreme.up.railway.app"]),  # noqa: F405
     os.environ,
 )
 
@@ -44,18 +83,41 @@ if not ALLOWED_HOSTS:
 # env.list() here too, so this does not silently depend on the schema key
 # happening to match the environment variable name.
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])  # noqa: F405
+# Update when a custom domain is added.
+_cors_locked = ["https://3rb-extreme.vercel.app"]
+CORS_ALLOWED_ORIGINS = list(
+    dict.fromkeys(_cors_locked + env.list("CORS_ALLOWED_ORIGINS", default=[]))  # noqa: F405
+)
+CORS_ALLOW_CREDENTIALS = True
+
+# Update when a custom domain is added.
+_csrf_locked = ["https://3rb-extreme.vercel.app"]
+CSRF_TRUSTED_ORIGINS = list(
+    dict.fromkeys(_csrf_locked + env.list("CSRF_TRUSTED_ORIGINS", default=[]))  # noqa: F405
+)
 
 # Security settings
-# TLS terminates at Next.js / Vercel. Django must not 301 internal HTTP
-# proxy traffic to https://127.0.0.1.
-SECURE_SSL_REDIRECT = False
+# Railway public traffic is HTTPS via X-Forwarded-Proto. Health probes hit the
+# container over HTTP, so they are exempt from the SSL redirect.
+SECURE_SSL_REDIRECT = True
+SECURE_REDIRECT_EXEMPT = [
+    r"^health/?$",
+    r"^api/health/?$",
+    r"^api/v1/health/?$",
+    r"^api/v1/health/database/?$",
+]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 JWT_AUTH_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = True
+# CSRF cookie MUST remain readable by the Next.js client: GET /api/v1/auth/csrf/
+# sets it and the browser echoes it in X-CSRFToken. HttpOnly would break login.
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = "Lax"
 TRUST_X_FORWARDED_FOR = True
-SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31536000)  # noqa: F405
+SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -68,8 +130,44 @@ CONTENT_SECURITY_POLICY = env(
     "CONTENT_SECURITY_POLICY",
     default="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
 )
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = "Lax"
+
+# JWT hardening (production). SIGNING_KEY is DJANGO_SECRET_KEY via SECRET_KEY;
+# this project does not read an env var named SECRET_KEY.
+SIMPLE_JWT = {
+    **SIMPLE_JWT,  # noqa: F405
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,  # noqa: F405
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+# Redis cache (Upstash or Railway Redis via REDIS_URL). Rate-limit middleware
+# uses django.core.cache and therefore this backend.
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": env("REDIS_URL", default=""),
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "KEY_PREFIX": "3rb",
+        "TIMEOUT": 300,
+    }
+}
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
+SPECTACULAR_SETTINGS = {
+    **SPECTACULAR_SETTINGS,  # noqa: F405
+    "SERVERS": [
+        {
+            "url": "https://3rb-extreme.up.railway.app",
+            "description": "Production API",
+        },
+    ],
+}
 
 
 # Email backend for production (configure as needed)
@@ -83,10 +181,14 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@example.com")  #
 
 # Static files: nginx in a VM deploy; WhiteNoise on Railway (no nginx).
 # STATIC_ROOT is already set in base.py
+# RateLimit sits immediately after SecurityMiddleware; WhiteNoise follows it.
 if "whitenoise.middleware.WhiteNoiseMiddleware" not in MIDDLEWARE:  # noqa: F405
-    _security_idx = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")  # noqa: F405
+    _anchor = "middleware.rate_limit.RateLimitMiddleware"
+    if _anchor not in MIDDLEWARE:  # noqa: F405
+        _anchor = "django.middleware.security.SecurityMiddleware"
+    _insert_idx = MIDDLEWARE.index(_anchor)  # noqa: F405
     MIDDLEWARE.insert(  # noqa: F405
-        _security_idx + 1, "whitenoise.middleware.WhiteNoiseMiddleware"
+        _insert_idx + 1, "whitenoise.middleware.WhiteNoiseMiddleware"
     )
 STORAGES["staticfiles"] = {  # noqa: F405
     "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",

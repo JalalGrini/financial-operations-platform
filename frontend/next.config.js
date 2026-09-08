@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 /**
+ * Vercel env vars to set (Project → Settings → Environment Variables):
+ *   NEXT_PUBLIC_SENTRY_DSN
+ *   SENTRY_AUTH_TOKEN
+ *   SENTRY_ORG
+ *   SENTRY_PROJECT
+ *
  * Audit fix: this file previously did two harmful things —
  *
  * 1. It stamped `Access-Control-Allow-Origin: *` together with
@@ -16,6 +22,7 @@
  *    every API call with correct cookie/CSRF/redirect handling and reads its
  *    backend address from BACKEND_INTERNAL_URL / NEXT_PUBLIC_API_BASE_URL.
  */
+const { withSentryConfig } = require("@sentry/nextjs/config");
 const fs = require("fs");
 const path = require("path");
 function loadRelease() {
@@ -54,29 +61,45 @@ const nextConfig = {
     return config;
   },
   async headers() {
+    // Update connect-src when custom domain is added.
     const connectSrc = isDevelopment
-      ? "connect-src 'self' ws: wss: http://localhost:3000 http://127.0.0.1:3000 ws://localhost:3000 ws://127.0.0.1:3000"
-      : "connect-src 'self'";
+      ? "connect-src 'self' ws: wss: http://localhost:3000 http://127.0.0.1:3000 ws://localhost:3000 ws://127.0.0.1:3000 https://3rb-extreme.up.railway.app https://o*.ingest.sentry.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io"
+      : "connect-src 'self' https://3rb-extreme.up.railway.app https://o*.ingest.sentry.io https://*.ingest.sentry.io https://*.ingest.de.sentry.io";
     const securityHeaders = [
-      {
-        key: "Content-Security-Policy",
-        value: `default-src 'self'; script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; ${connectSrc}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'${isDevelopment ? "" : "; upgrade-insecure-requests"}`,
-      },
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       {
         key: "Permissions-Policy",
-        value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        value: "camera=(), microphone=(), geolocation=()",
       },
-      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-      { key: "X-Content-Type-Options", value: "nosniff" },
-      { key: "X-Frame-Options", value: "DENY" },
+      { key: "X-DNS-Prefetch-Control", value: "on" },
+      {
+        key: "Content-Security-Policy",
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: blob: https:",
+          "font-src 'self'",
+          connectSrc.replace(/^connect-src /, "connect-src "),
+          "frame-ancestors 'none'",
+        ].join("; "),
+      },
       {
         key: "Strict-Transport-Security",
         value: "max-age=31536000; includeSubDomains; preload",
       },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
     ];
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
 };
 
-module.exports = nextConfig;
+module.exports = withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG || "group-3rb",
+  project: process.env.SENTRY_PROJECT || "3rb-frontend",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+});

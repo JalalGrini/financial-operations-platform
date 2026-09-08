@@ -22,6 +22,15 @@ drf-spectacular==0.28.0
 # JWT Authentication
 djangorestframework-simplejwt==5.4.0
 
+# Rate limiting (middleware uses django.core.cache; package pinned as required)
+django-ratelimit==4.1.0
+
+# Redis cache backend (production CACHES)
+django-redis==5.4.0
+
+# Error monitoring
+sentry-sdk[django]==2.8.0
+
 # Environment Configuration
 django-environ==0.11.2
 

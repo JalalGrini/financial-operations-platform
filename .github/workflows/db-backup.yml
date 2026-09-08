@@ -1,0 +1,55 @@
+# Required GitHub repository secrets for this workflow:
+# - RAILWAY_BACKEND_URL
+# - AWS_ACCESS_KEY_ID
+# - AWS_SECRET_ACCESS_KEY
+# - AWS_S3_ENDPOINT_URL
+# - DATABASE_URL
+# Also required to boot Django production settings:
+# - DJANGO_SECRET_KEY
+# - REDIS_URL
+# - R2_BUCKET_NAME
+# - R2_ACCOUNT_ID
+# - DJANGO_ALLOWED_HOSTS
+#
+# This job dumps Postgres via DATABASE_URL (Railway) and uploads to R2.
+# It does not HTTP-call RAILWAY_BACKEND_URL; a public backup endpoint would
+# be unsafe. RAILWAY_BACKEND_URL is passed through for operators/debugging.
+
+name: Daily database backup
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      DJANGO_ENVIRONMENT: production
+      RAILWAY_BACKEND_URL: ${{ secrets.RAILWAY_BACKEND_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      REDIS_URL: ${{ secrets.REDIS_URL }}
+      R2_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      R2_ENDPOINT_URL: ${{ secrets.AWS_S3_ENDPOINT_URL }}
+      R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      DJANGO_ALLOWED_HOSTS: ${{ secrets.DJANGO_ALLOWED_HOSTS }}
+      USE_S3_STORAGE: "True"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+      - name: Backup database to R2
+        run: python manage.py backup_db
