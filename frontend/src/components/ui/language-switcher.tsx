@@ -25,7 +25,7 @@ export function LanguageSwitcher() {
     >
       <SelectTrigger
         aria-label={current.label}
-        className="h-8 w-10 justify-center rounded-md border border-border bg-background px-0 text-xs font-semibold [&>svg]:hidden"
+        className="relative z-20 h-8 w-10 shrink-0 justify-center rounded-md border border-border bg-background px-0 text-xs font-semibold [&>svg]:hidden"
       >
         {current.short}
       </SelectTrigger>

@@ -39,7 +39,7 @@ export function GlobalControls() {
   const unreadCount = count.data?.count ?? 0;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="relative z-10 flex shrink-0 items-center gap-2">
       <LanguageSwitcher />
 
       {/* Animated light/dark toggle */}

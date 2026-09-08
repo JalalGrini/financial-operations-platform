@@ -12,16 +12,16 @@ export function SwitchMode() {
   return (
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="relative flex h-8 w-16 items-center rounded-full border border-border bg-muted px-1 transition-colors duration-300 hover:bg-muted/80 focus:outline-none"
+      className={`relative isolate flex h-8 w-16 shrink-0 items-center overflow-hidden rounded-full border border-border bg-muted px-1 transition-colors duration-300 hover:bg-muted/80 focus:outline-none ${
+        isDark ? "justify-end" : "justify-start"
+      }`}
       aria-label={sourceText("Toggle theme")}
     >
-      {/* Track icons */}
-      <Sun className="absolute left-1.5 h-3.5 w-3.5 text-amber-500" />
-      <Moon className="absolute right-1.5 h-3.5 w-3.5 text-slate-400" />
+      <Sun className="pointer-events-none absolute start-1.5 h-3.5 w-3.5 text-amber-500" />
+      <Moon className="pointer-events-none absolute end-1.5 h-3.5 w-3.5 text-slate-400" />
 
-      {/* Animated knob */}
       <motion.div
-        animate={{ x: isDark ? 32 : 0 }}
+        layout
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full bg-background shadow-sm"
       >

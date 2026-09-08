@@ -1315,6 +1315,7 @@
   "Leave empty to derive it from the gross salary.": "Laisser vide pour le calculer à partir du salaire brut.",
   "Leave record not found.": "Enregistrement de congé introuvable.",
   "Leave this empty to generate the report from platform data. A ready file follows the same preview and approval workflow.": "Laissez ce champ vide pour générer le rapport à partir des données de la plateforme. Un fichier prêt suit le même processus d’aperçu et d’approbation.",
+  "Leaves": "Congés",
   "Ledger balance diagnostics": "Diagnostic du solde comptable",
   "Legal": "Juridique",
   "Legal Information": "Informations juridiques",

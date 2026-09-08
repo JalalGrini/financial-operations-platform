@@ -35,25 +35,25 @@ export function ThemeSwitch({ className = '' }: ThemeSwitchProps) {
   return (
     <button
       onClick={toggleTheme}
-      className={`relative flex h-10 w-10 items-center justify-center 
+      className={`relative isolate flex h-10 w-10 shrink-0 items-center justify-center 
                   rounded-full hover:opacity-80 transition-opacity 
                   overflow-hidden ${className}`}
       aria-label={sourceText("Toggle theme")}
     >
       <Sun
-        className={`absolute h-6 w-6 transition-all duration-300 
-                    ease-[cubic-bezier(0.34,1.56,0.64,1)] text-amber-400
+        className={`pointer-events-none absolute inset-0 m-auto h-5 w-5 transition-all duration-300 
+                    text-amber-400
                     ${theme === 'light'
-                      ? 'scale-100 translate-y-0 opacity-100'
-                      : 'scale-50 translate-y-6 opacity-0'
+                      ? 'scale-100 opacity-100'
+                      : 'scale-0 opacity-0'
                     }`}
       />
       <Moon
-        className={`absolute h-6 w-6 transition-all duration-300 
-                    ease-[cubic-bezier(0.34,1.56,0.64,1)] text-slate-200
+        className={`pointer-events-none absolute inset-0 m-auto h-5 w-5 transition-all duration-300 
+                    text-slate-200
                     ${theme === 'dark'
-                      ? 'scale-100 translate-y-0 opacity-100'
-                      : 'scale-50 translate-y-6 opacity-0'
+                      ? 'scale-100 opacity-100'
+                      : 'scale-0 opacity-0'
                     }`}
       />
     </button>
