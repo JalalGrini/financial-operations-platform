@@ -366,6 +366,7 @@ export default function PersonnelListPage() {
                 <PersonnelAvatar
                   name={row.full_name}
                   email={row.email}
+                  photo={row.photo}
                   size="sm"
                 />
               </TooltipTrigger>
@@ -685,7 +686,7 @@ export default function PersonnelListPage() {
                             onChange={(e) => handleSelectionChange(row.id, e.target.checked)}
                             className="h-4 w-4 shrink-0 rounded border-border text-primary"
                           />
-                          <PersonnelAvatar name={row.full_name} email={row.email} size="sm" />
+                          <PersonnelAvatar name={row.full_name} email={row.email} photo={row.photo} size="sm" />
                           <div className="min-w-0">
                             <p className="font-semibold leading-tight text-foreground">{row.full_name}</p>
                             {row.email && <p className="truncate text-xs text-muted-foreground">{row.email}</p>}
@@ -747,7 +748,7 @@ export default function PersonnelListPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <PersonnelAvatar name={row.full_name} email={row.email} size="sm" />
+                              <PersonnelAvatar name={row.full_name} email={row.email} photo={row.photo} size="sm" />
                               <div>
                                 <p className="font-medium text-foreground">{row.full_name}</p>
                                 {row.email && <p className="text-xs text-muted-foreground">{row.email}</p>}

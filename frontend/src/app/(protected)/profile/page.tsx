@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { toast } from "@/components/ui/toast";
 import { Camera, Mail, ShieldCheck, User2 } from "lucide-react";
@@ -184,12 +183,13 @@ function ProfileEditor({
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="relative">
                 {showAvatar && avatar ? (
-                  <Image
+                  // Cookie-authenticated /api/v1/ avatar URLs must be a native
+                  // <img>. next/image fetches without the session cookie and
+                  // 401s, which this page treated as "no picture".
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
                     src={avatar}
                     alt={sourceText("Profile")}
-                    width={112}
-                    height={112}
-                    unoptimized
                     onError={() => setFailedAvatarSrc(avatar)}
                     className="h-28 w-28 rounded-3xl border-4 border-white object-cover shadow-xl"
                   />

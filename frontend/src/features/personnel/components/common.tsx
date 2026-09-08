@@ -240,37 +240,56 @@ export function DateDisplay({
 interface PersonnelAvatarProps {
   name: string;
   email?: string;
+  photo?: string | null;
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
 }
 export function PersonnelAvatar({
   name,
   email,
+  photo,
   className,
   size = "md",
 }: PersonnelAvatarProps) {
   const sizes = {
-    sm: "w-6 h-6 text-xs",
-    md: "w-8 h-8 text-sm",
-    lg: "w-10 h-10 text-base",
-    xl: "w-12 h-12 text-lg",
+    sm: "w-8 h-8 text-xs",
+    md: "w-10 h-10 text-sm",
+    lg: "w-12 h-12 text-base",
+    xl: "w-20 h-20 text-lg",
   };
-  const initials = name
+  const initials = (name || "")
     .split(" ")
-    .map((n) => n[0])
+    .map((part) => part[0])
+    .filter(Boolean)
     .join("")
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 2) || "?";
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  useEffect(() => {
+    setFailedSrc(null);
+  }, [photo]);
+  const showPhoto = Boolean(photo) && failedSrc !== photo;
   return (
     <div
       className={cn(
-        "inline-flex items-center justify-center rounded-full bg-primary/10 text-primary font-medium",
+        "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary font-medium",
         sizes[size],
         className,
       )}
       aria-label={email || name}
     >
-      {initials}
+      {showPhoto && photo ? (
+        // Cookie-authenticated photo URLs must be a native <img>.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={photo}
+          alt={email || name}
+          className="h-full w-full object-cover"
+          onError={() => setFailedSrc(photo)}
+        />
+      ) : (
+        initials
+      )}
     </div>
   );
 }

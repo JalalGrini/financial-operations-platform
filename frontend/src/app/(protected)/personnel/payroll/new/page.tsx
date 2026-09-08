@@ -356,7 +356,7 @@ export default function CreatePayrollPage() {
     <div className="space-y-6">
       <Breadcrumb
         items={[
-          { label: sourceText("Personnel"), href: "/personnel" },
+          { label: sourceText("Personnel"), href: "/personnel/personnel" },
           { label: sourceText("Payroll"), href: "/personnel/payroll" },
           { label: sourceText("Create Payroll"), isCurrent: true },
         ]}

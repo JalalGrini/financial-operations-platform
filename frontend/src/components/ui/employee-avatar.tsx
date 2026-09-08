@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, type FC } from "react";
+import React, { useRef, useState, type FC } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Camera, X } from "lucide-react";
@@ -77,6 +77,8 @@ export const EmployeeAvatar: FC<EmployeeAvatarProps> = ({
   const initials = getInitials(firstName, lastName, fullName);
   const name = fullName || `${firstName ?? ""}${lastName ?? ""}`;
   const [from, to] = getGradient(name || "EF");
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const showPhoto = Boolean(photo) && failedSrc !== photo;
 
   return (
     <div className={cn("relative inline-flex shrink-0", className)}>
@@ -88,11 +90,14 @@ export const EmployeeAvatar: FC<EmployeeAvatarProps> = ({
         whileHover={editable ? { scale: 1.05 } : undefined}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
       >
-        {photo ? (
+        {showPhoto && photo ? (
+          // Cookie-authenticated photo URLs must be a native <img>.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={photo}
             alt={name || "Employee"}
             className="h-full w-full object-cover"
+            onError={() => setFailedSrc(photo)}
           />
         ) : (
           <div

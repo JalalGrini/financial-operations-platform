@@ -16,7 +16,6 @@ Implements REST endpoints for Personnel domain:
 """
 from datetime import date
 from decimal import Decimal
-import mimetypes
 
 from django.db import transaction
 from django.db.models import Count, Exists, OuterRef, Q
@@ -32,6 +31,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.collaboration.querying import TaggedForMeFilterMixin
+from apps.common.files import private_image_response
 from apps.common.mixins import ArchivableObjectMixin, SoftDeleteViewSetMixin
 from apps.common.querying import apply_archive_visibility as _apply_archive_visibility
 from apps.personnel.models import (
@@ -234,21 +234,10 @@ class PersonnelPersonViewSet(
         person = self.get_object()
         if not person.photo:
             return Response({"detail": _("No photo is attached.")}, status=status.HTTP_404_NOT_FOUND)
-        if not person.photo.storage.exists(person.photo.name):
-            return Response(
-                {"detail": _("The stored photo is no longer available.")},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        response = FileResponse(
-            person.photo.open("rb"),
-            content_type=mimetypes.guess_type(person.photo.name)[0] or "image/jpeg",
+        return private_image_response(
+            person.photo,
+            missing=_("The stored photo is no longer available."),
         )
-        response["Content-Disposition"] = (
-            f'inline; filename="{person.photo.name.rsplit("/", 1)[-1]}"'
-        )
-        response["Cache-Control"] = "private, no-store"
-        response["X-Content-Type-Options"] = "nosniff"
-        return response
 
     @action(detail=True, methods=["get"])
     def completeness(self, request, pk=None):

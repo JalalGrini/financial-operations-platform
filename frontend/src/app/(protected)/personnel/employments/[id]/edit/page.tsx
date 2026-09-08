@@ -392,7 +392,7 @@ export default function EditEmploymentPage() {
             get label() {
               return sourceText("Personnel");
             },
-            href: "/personnel",
+            href: "/personnel/personnel",
           },
           {
             get label() {

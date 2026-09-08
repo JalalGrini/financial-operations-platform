@@ -1,10 +1,7 @@
 """Account preferences, safe self-service profile, and Administrator governance APIs."""
 
-import mimetypes
-
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
-from django.http import FileResponse
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -24,6 +21,7 @@ from apps.accounts.serializers import (
     validate_preferences,
 )
 from apps.audit_log.services import record_event
+from apps.common.files import private_image_response
 from apps.common.permissions import IsAuthenticatedOwnerOrReadOnly, RoleBasedAccessPermission
 
 PROTECTED_ACCOUNT_FIELDS = {
@@ -354,24 +352,12 @@ class AccountAvatarView(APIView):
         user = self._target(request, user_id)
         if not user.avatar:
             raise NotFound("This account has no profile picture.")
-        # A row can name a file that is no longer in storage - e.g. media
-        # restored from a different environment, or a file removed by hand.
-        # `FieldFile.open()` then raises FileNotFoundError, which surfaced as an
-        # uncaught HTTP 500 on what is really a "not found". Checking storage
-        # first turns a dangling reference into the 404 the clients already
-        # handle, so a stale pointer degrades to the initials placeholder
-        # instead of erroring.
-        if not user.avatar.storage.exists(user.avatar.name):
+        response = private_image_response(
+            user.avatar,
+            missing="The stored profile picture is no longer available.",
+        )
+        if response.status_code == 404:
             raise NotFound("The stored profile picture is no longer available.")
-        response = FileResponse(
-            user.avatar.open("rb"),
-            content_type=mimetypes.guess_type(user.avatar.name)[0] or "application/octet-stream",
-        )
-        response["Content-Disposition"] = (
-            f'inline; filename="{user.avatar.name.rsplit("/", 1)[-1]}"'
-        )
-        response["Cache-Control"] = "private, no-store"
-        response["X-Content-Type-Options"] = "nosniff"
         return response
 
     @transaction.atomic

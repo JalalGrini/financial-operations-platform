@@ -106,7 +106,7 @@ export default function CreateSalaryPage() {
             get label() {
               return sourceText("Personnel");
             },
-            href: "/personnel",
+            href: "/personnel/personnel",
           },
           {
             get label() {

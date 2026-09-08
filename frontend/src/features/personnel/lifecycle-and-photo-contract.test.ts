@@ -144,9 +144,8 @@ describe("personnel profile photo is wired, not dead code", () => {
 
   it("falls back to initials when there is no photo", () => {
     expect(avatar).toContain("getInitials");
-    // The fallback must be the initials branch of the photo ternary, not an
-    // <img> with an empty src.
-    expect(avatar).toContain("photo ?");
+    expect(avatar).toContain("showPhoto");
+    expect(avatar).toContain("onError");
   });
 });
 

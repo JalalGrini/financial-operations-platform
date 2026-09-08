@@ -535,7 +535,7 @@ export default function EditPayrollPage() {
     <div className="space-y-6">
       <Breadcrumb
         items={[
-          { label: sourceText("Personnel"), href: "/personnel" },
+          { label: sourceText("Personnel"), href: "/personnel/personnel" },
           { label: sourceText("Payroll"), href: "/personnel/payroll" },
           { label: payroll.reference, href: `/personnel/payroll/${id}` },
           { label: sourceText("Edit"), isCurrent: true },

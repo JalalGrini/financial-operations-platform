@@ -519,7 +519,7 @@ export default function PayrollListPage() {
             get label() {
               return sourceText("Personnel");
             },
-            href: "/personnel",
+            href: "/personnel/personnel",
           },
           {
             get label() {

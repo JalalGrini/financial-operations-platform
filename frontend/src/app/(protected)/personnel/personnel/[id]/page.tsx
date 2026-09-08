@@ -206,7 +206,7 @@ export default function PersonnelProfilePage() {
             get label() {
               return sourceText("Personnel");
             },
-            href: "/personnel",
+            href: "/personnel/personnel",
           },
           {
             get label() {
@@ -242,6 +242,7 @@ export default function PersonnelProfilePage() {
               <PersonnelAvatar
                 name={person?.full_name || ""}
                 email={person?.email}
+                photo={person?.photo}
                 size="xl"
               />
               <div className="flex-1 space-y-2">

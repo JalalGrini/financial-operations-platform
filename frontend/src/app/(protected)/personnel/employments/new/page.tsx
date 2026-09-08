@@ -281,7 +281,7 @@ export default function CreateEmploymentPage() {
             get label() {
               return sourceText("Personnel");
             },
-            href: "/personnel",
+            href: "/personnel/personnel",
           },
           {
             get label() {

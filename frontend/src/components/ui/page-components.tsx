@@ -30,7 +30,7 @@ export function Breadcrumb({
       <ol className="flex items-center gap-1.5">
         <li>
           <Link
-            href="/personnel"
+            href="/dashboard"
             className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
           >
             <Home className="h-4 w-4" aria-hidden="true" />

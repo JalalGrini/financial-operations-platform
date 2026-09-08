@@ -813,7 +813,7 @@ export const BREADCRUMB_ITEMS = {
         return sourceText("Personnel");
       },
       get href() {
-        return sourceText("/personnel");
+        return "/personnel/personnel";
       },
     },
   ],
@@ -823,7 +823,7 @@ export const BREADCRUMB_ITEMS = {
         return sourceText("Personnel");
       },
       get href() {
-        return sourceText("/personnel");
+        return "/personnel/personnel";
       },
     },
     {
@@ -841,7 +841,7 @@ export const BREADCRUMB_ITEMS = {
         return sourceText("Personnel");
       },
       get href() {
-        return sourceText("/personnel");
+        return "/personnel/personnel";
       },
     },
     {
@@ -865,7 +865,7 @@ export const BREADCRUMB_ITEMS = {
         return sourceText("Personnel");
       },
       get href() {
-        return sourceText("/personnel");
+        return "/personnel/personnel";
       },
     },
     {
@@ -884,7 +884,7 @@ export const BREADCRUMB_ITEMS = {
         return sourceText("Personnel");
       },
       get href() {
-        return sourceText("/personnel");
+        return "/personnel/personnel";
       },
     },
     {
@@ -903,7 +903,7 @@ export const BREADCRUMB_ITEMS = {
         return sourceText("Personnel");
       },
       get href() {
-        return sourceText("/personnel");
+        return "/personnel/personnel";
       },
     },
     {
@@ -919,7 +919,7 @@ export const BREADCRUMB_ITEMS = {
         return sourceText("Personnel");
       },
       get href() {
-        return sourceText("/personnel");
+        return "/personnel/personnel";
       },
     },
     {
@@ -935,7 +935,7 @@ export const BREADCRUMB_ITEMS = {
         return sourceText("Personnel");
       },
       get href() {
-        return sourceText("/personnel");
+        return "/personnel/personnel";
       },
     },
     {
@@ -951,7 +951,7 @@ export const BREADCRUMB_ITEMS = {
         return sourceText("Personnel");
       },
       get href() {
-        return sourceText("/personnel");
+        return "/personnel/personnel";
       },
     },
     {
@@ -967,7 +967,7 @@ export const BREADCRUMB_ITEMS = {
         return sourceText("Personnel");
       },
       get href() {
-        return sourceText("/personnel");
+        return "/personnel/personnel";
       },
     },
     {

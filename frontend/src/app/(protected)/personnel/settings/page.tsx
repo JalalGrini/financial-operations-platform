@@ -109,7 +109,7 @@ export default function PersonnelSettingsPage() {
             get label() {
               return sourceText("Personnel");
             },
-            href: "/personnel",
+            href: "/personnel/personnel",
           },
           {
             get label() {

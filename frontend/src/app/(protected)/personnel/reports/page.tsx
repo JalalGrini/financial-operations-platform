@@ -400,7 +400,7 @@ export default function PersonnelReportsPage() {
             get label() {
               return sourceText("Personnel");
             },
-            href: "/personnel",
+            href: "/personnel/personnel",
           },
           {
             get label() {

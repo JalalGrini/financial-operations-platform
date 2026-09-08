@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -10,6 +9,7 @@ import { useReleaseIdentity } from "@/hooks/useReleaseIdentity";
 import { MobileBottomNav } from "@/components/product/MobileBottomNav";
 import { TaggedWidget } from "@/components/ui/tagged-widget";
 import { NavProgress } from "@/components/ui/nav-progress";
+import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
 export function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -175,20 +175,8 @@ export function ProtectedLayout({ children }: { children: React.ReactNode }) {
           user={user}
         />
 
-        {/* Page content — AnimatePresence enables route transitions */}
         <div className="px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-7">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="efop-workspace"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          <div className="efop-workspace">{children}</div>
         </div>
       </main>
       <MobileBottomNav onMore={() => setMobileMenuOpen(true)} />
@@ -197,4 +185,3 @@ export function ProtectedLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-import { SourceText } from "@/components/i18n/SourceText";

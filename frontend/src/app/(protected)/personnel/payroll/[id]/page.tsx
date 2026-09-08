@@ -231,7 +231,7 @@ export default function PayrollProfilePage() {
             get label() {
               return sourceText("Personnel");
             },
-            href: "/personnel",
+            href: "/personnel/personnel",
           },
           {
             get label() {
