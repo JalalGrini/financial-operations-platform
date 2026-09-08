@@ -52,7 +52,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { format } from "date-fns";
 import { SkeletonTable, SkeletonHero, SkeletonStatsStrip } from "@/components/ui/page-skeletons";
 import { WriteOnly } from "@/components/auth/WriteOnly";
@@ -214,7 +214,7 @@ export default function CompaniesPage() {
         </div>}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={STAT_CARDS_GRID}>
         <StatCard
           icon={Building2}
           label={sourceText("Total Companies")}
@@ -326,7 +326,9 @@ export default function CompaniesPage() {
                 />
               </p>
             </div>
-          ) : viewMode === "card" ? (
+          ) : (
+            <>
+          {viewMode === "card" ? (
             <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
               {(companiesData?.results || []).map((company) => (
                 <div
@@ -346,11 +348,23 @@ export default function CompaniesPage() {
                     {company.vat_number && <span><span className="font-medium">{sourceText("ICE")}:</span> {company.vat_number}</span>}
                     {company.registration_number && <span><span className="font-medium">{sourceText("RC")}:</span> {company.registration_number}</span>}
                   </div>
+                  <div className="mt-auto flex items-center justify-end gap-1 pt-1" onClick={(event) => event.stopPropagation()}>
+                    {!company.is_archived && (
+                      <TagAction resourceType="companies.company" targetId={company.id} compact />
+                    )}
+                    <ExpandingActions
+                      actions={[
+                        { label: sourceText("View"), icon: <Eye size={14} />, onClick: () => router.push(`/companies/${company.id}`) },
+                        ...(!company.is_archived ? [{ label: sourceText("Edit"), icon: <Edit size={14} />, onClick: () => router.push(`/companies/${company.id}/edit`), permission: "write" as const }] : []),
+                        ...(!company.is_archived ? [{ label: sourceText("Archive"), icon: <Archive size={14} />, onClick: () => handleArchive(company.id), variant: "warning" as const, permission: "write" as const }] : [{ label: sourceText("Restore"), icon: <RotateCcw size={14} />, onClick: () => handleRestore(company.id), variant: "success" as const, permission: "write" as const }]),
+                        ...(company.is_archived && isAdministrator ? [{ label: sourceText("Delete Permanently"), icon: <Trash2 size={14} />, onClick: () => handleDelete(company.id), variant: "danger" as const, permission: "delete" as const }] : []),
+                      ]}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <>
               <div className="overflow-hidden rounded-xl border border-border/60">
                 <div className="overflow-x-auto"><Table>
                   <TableHeader>
@@ -432,6 +446,7 @@ export default function CompaniesPage() {
                   </TableBody>
                 </Table></div>
               </div>
+          )}
 
               {companiesData && companiesData.count > 10 && (
                 <div className="flex items-center justify-between mt-4">

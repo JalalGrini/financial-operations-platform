@@ -3,6 +3,9 @@ import type { LucideIcon } from "lucide-react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/** Even header-stat grid: 2 on small screens, 4 from md. Never a 3+1 wrap. */
+export const STAT_CARDS_GRID = "grid gap-4 grid-cols-2 sm:grid-cols-4";
+
 /** Tone → background + text colour classes for the icon container */
 const TONE_MAP: Record<string, string> = {
   blue: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
@@ -54,7 +57,7 @@ export function StatCard({
     return (
       <div
         className={cn(
-          "rounded-xl border border-border gradient-card p-5 shadow-sm",
+          "min-w-0 overflow-hidden rounded-xl border border-border gradient-card p-4 sm:p-5 shadow-sm",
           className,
         )}
         aria-busy="true"
@@ -84,19 +87,19 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-xl border border-border gradient-card p-5 shadow-sm transition-[box-shadow,border-color] duration-200 hover:shadow-md hover:border-primary/20",
+        "min-w-0 overflow-hidden rounded-xl border border-border gradient-card p-4 sm:p-5 shadow-sm transition-[box-shadow,border-color] duration-200 hover:shadow-md hover:border-primary/20",
         className,
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <div className="min-w-0 flex-1 overflow-hidden">
           {/* Label */}
-          <p className="text-xs font-semibold uppercase tracking-[.16em] text-muted-foreground">
+          <p className="truncate text-xs font-semibold uppercase tracking-[.16em] text-muted-foreground">
             {label}
           </p>
 
-          {/* Value */}
-          <p className="stat-number tabular mt-3 text-foreground">
+          {/* Value — clamp/wrap so large amounts stay inside the card */}
+          <p className="stat-number tabular mt-3 max-w-full min-w-0 overflow-hidden break-all text-foreground [overflow-wrap:anywhere]">
             {typeof value === "number" ? <CountUp to={value} duration={1.1} /> : value}
           </p>
 
