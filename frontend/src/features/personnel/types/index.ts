@@ -167,6 +167,8 @@ export interface PersonnelPerson {
   completeness_percentage: number;
   active_employments_count: number;
   has_active_cnss: boolean;
+  is_on_leave?: boolean;
+  display_status?: string;
   photo?: string | null;
   created_at: string;
   updated_at: string;
@@ -230,7 +232,7 @@ export interface Employment {
   reference: string;
   person: string;
   person_name: string;
-  company: string;
+  company: string | null;
   company_name: string;
   employee_reference: string;
   job_title?: string;
@@ -244,7 +246,10 @@ export interface Employment {
   departure_reason?: EmploymentDepartureReason | null;
   resignation_date?: string | null;
   payment_method?: string | null;
+  payout_method?: "cash" | "bank";
   rib?: string;
+  is_on_leave?: boolean;
+  display_status?: string;
   default_monthly_working_days: number;
   /**
    * Per-employee day pricing. `null` means the rate is derived from
@@ -281,7 +286,7 @@ export enum EmploymentStatus {
 
 export interface EmploymentCreate {
   person: string;
-  company: string;
+  company: string | null;
   employee_reference: string;
   job_title?: string;
   department?: string;
@@ -294,6 +299,7 @@ export interface EmploymentCreate {
   departure_reason?: EmploymentDepartureReason;
   resignation_date?: string;
   payment_method?: string;
+  payout_method?: "cash" | "bank";
   rib?: string;
   default_monthly_working_days: number;
   /** null clears the rate and restores the derived default. */
@@ -672,6 +678,7 @@ export interface CompanySelectOption {
   id: string;
   name: string;
   reference: string;
+  rib?: string;
 }
 
 export interface PersonnelSelectOption {

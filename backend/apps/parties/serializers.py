@@ -7,6 +7,7 @@ Serializers for Parties domain API endpoints.
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from apps.common.company_scope import GroupCompanyInputMixin, company_display_name
 from apps.companies.serializers import CompanySerializer
 from apps.configuration.serializers import PaymentMethodSerializer
 from apps.parties.models import (
@@ -19,10 +20,10 @@ from apps.parties.models import (
 )
 
 
-class ClientSerializer(serializers.ModelSerializer):
+class ClientSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
     """Serializer for Client list view."""
 
-    company_name = serializers.CharField(source="company.name", read_only=True, default=None)
+    company_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Client
@@ -56,6 +57,9 @@ class ClientSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "reference", "created_at", "updated_at"]
 
+    def get_company_name(self, obj):
+        return company_display_name(obj.company)
+
 
 class ClientDetailSerializer(ClientSerializer):
     """Detailed serializer for Client with related data."""
@@ -75,7 +79,7 @@ class ClientDetailSerializer(ClientSerializer):
         return None
 
 
-class ClientCreateSerializer(serializers.ModelSerializer):
+class ClientCreateSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
     """Serializer for creating Client."""
 
     class Meta:
@@ -161,10 +165,10 @@ class ClientCreateSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class SupplierSerializer(serializers.ModelSerializer):
+class SupplierSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
     """Serializer for Supplier list view."""
 
-    company_name = serializers.CharField(source="company.name", read_only=True, default=None)
+    company_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Supplier
@@ -191,6 +195,9 @@ class SupplierSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "reference", "created_at", "updated_at"]
 
+    def get_company_name(self, obj):
+        return company_display_name(obj.company)
+
 
 class SupplierDetailSerializer(SupplierSerializer):
     """Detailed serializer for Supplier with related data."""
@@ -210,7 +217,7 @@ class SupplierDetailSerializer(SupplierSerializer):
         return None
 
 
-class SupplierCreateSerializer(serializers.ModelSerializer):
+class SupplierCreateSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
     """Serializer for creating Supplier."""
 
     class Meta:
@@ -280,13 +287,13 @@ class AssociatedPersonTypeCreateSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
 
-class AssociatedPersonSerializer(serializers.ModelSerializer):
+class AssociatedPersonSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
     """Serializer for AssociatedPerson list view."""
 
     person_type_name = serializers.CharField(
         source="person_type.name", read_only=True, default=None
     )
-    company_name = serializers.CharField(source="company.name", read_only=True, default=None)
+    company_name = serializers.SerializerMethodField()
     full_name = serializers.CharField(source="get_full_name", read_only=True)
 
     class Meta:
@@ -321,6 +328,9 @@ class AssociatedPersonSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "reference", "created_at", "updated_at", "full_name"]
 
+    def get_company_name(self, obj):
+        return company_display_name(obj.company)
+
 
 class AssociatedPersonDetailSerializer(AssociatedPersonSerializer):
     """Detailed serializer for AssociatedPerson with related data."""
@@ -342,7 +352,7 @@ class AssociatedPersonDetailSerializer(AssociatedPersonSerializer):
         return None
 
 
-class AssociatedPersonCreateSerializer(serializers.ModelSerializer):
+class AssociatedPersonCreateSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
     """Serializer for creating AssociatedPerson."""
 
     class Meta:

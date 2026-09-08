@@ -15,7 +15,7 @@ export type PartyStatus = "active" | "inactive" | "suspended" | "archived";
 export interface Client {
   id: string;
   reference: string;
-  company: string;
+  company: string | null;
   company_name?: string;
   client_kind: "individual" | "organization";
   first_name: string;
@@ -44,7 +44,7 @@ export interface Client {
 export interface Supplier {
   id: string;
   reference: string;
-  company: string;
+  company: string | null;
   company_name?: string;
   name: string;
   trade_name: string;
@@ -85,7 +85,7 @@ export interface ExternalParty {
 export interface AssociatedPerson {
   id: string;
   reference: string;
-  company: string;
+  company: string | null;
   company_name?: string;
   person_type: string | null;
   person_type_name?: string;

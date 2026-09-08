@@ -38,6 +38,8 @@ import {
 import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { SourceText } from "@/components/i18n/SourceText";
 import { statusLabels } from "@/features/personnel/api";
+import { employmentPayoutLabel } from "@/features/personnel/components/EmploymentPayoutFields";
+import { companyDisplayName } from "@/lib/company-scope";
 import { EmploymentStatus, ContractType } from "@/features/personnel/types";
 import { formatDate } from "@/features/personnel/utils/formatters";
 import { useExperience } from "@/lib/experience";
@@ -202,7 +204,7 @@ export default function EmploymentProfilePage() {
       {/* Page Header */}
       <PageHeader
         title={employment?.person_name || "Employment Profile"}
-        description={`${employment?.reference} • ${employment?.job_title || "No title"} • ${employment?.company_name}`}
+        description={`${employment?.reference} • ${employment?.job_title || "No title"} • ${companyDisplayName(employment?.company_name, sourceText("Tout le groupe"))}`}
         action={
           <ExpandingActions actions={[{ permission: "write" as const, label: "Edit", icon: <Edit size={14} />, onClick: () => router.push(`/personnel/employments/${id}/edit`) }, ...(!isArchived ? [{ permission: "write" as const, label: "Archive", icon: <Archive size={14} />, onClick: handleArchive, variant: "warning" as const }] : [{ permission: "write" as const, label: "Restore", icon: <RotateCcw size={14} />, onClick: handleRestore, variant: "success" as const }]), { permission: "delete" as const, label: "Delete", icon: <Trash2 size={14} />, onClick: handleDelete, variant: "danger" as const }]} />
         }
@@ -251,7 +253,7 @@ export default function EmploymentProfilePage() {
                     <p className="text-xs text-muted-foreground">
                       <SourceText source="Company" />
                     </p>
-                    <p className="font-medium">{employment?.company_name}</p>
+                    <p className="font-medium">{companyDisplayName(employment?.company_name, sourceText("Tout le groupe"))}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">
@@ -440,7 +442,7 @@ export default function EmploymentProfilePage() {
                     <SourceText source="Payment Method" leading trailing />
                   </p>
                   <p className="font-medium">
-                    {employment?.payment_method || "-"}
+                    {employmentPayoutLabel(employment?.payout_method, employment?.rib)}
                   </p>
                 </div>
                 <div className="space-y-1">

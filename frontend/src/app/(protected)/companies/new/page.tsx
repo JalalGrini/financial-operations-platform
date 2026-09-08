@@ -36,6 +36,7 @@ import { useCreateCompany } from "@/features/companies/hooks";
 import { CompanyCreate } from "@/features/companies/types";
 import { toast } from "@/components/ui/toast";
 import { Separator } from "@/components/ui/separator";
+import { CompanyComplementaryFields } from "@/features/companies/components/CompanyComplementaryFields";
 const currencies = ["MAD", "USD", "EUR", "GBP"];
 const languages = ["fr", "en", "ar"];
 const timezones = [
@@ -55,6 +56,10 @@ export default function NewCompanyPage() {
     registration_number: "",
     tax_id: "",
     vat_number: "",
+    cnss_number: "",
+    patent_number: "",
+    rib: "",
+    activities: "",
     address: "",
     phone: "",
     email: "",
@@ -224,7 +229,7 @@ export default function NewCompanyPage() {
 
               <div className="space-y-2 min-w-0">
                 <Label htmlFor="vat_number">
-                  <SourceText source="VAT Number (ICE)" />
+                  <SourceText source="Identifiant Commun de l'Entreprise" />
                 </Label>
                 <Input className="w-full"
                   id="vat_number"
@@ -234,6 +239,8 @@ export default function NewCompanyPage() {
                   placeholder={sourceText("Identifiant Commun de l'Entreprise")}
                 />
               </div>
+
+              <CompanyComplementaryFields values={formData} onChange={handleChange} />
 
               <Separator className="my-4" />
 

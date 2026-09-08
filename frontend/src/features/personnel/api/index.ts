@@ -900,6 +900,25 @@ export const cnssApi = {
     );
     return response.results;
   },
+
+  export: async (
+    params: SearchParams = {},
+    format: "csv" | "xlsx" = "xlsx",
+  ): Promise<Blob> => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        searchParams.append(key, String(value));
+      }
+    });
+    searchParams.append("output_format", format);
+    const response = await apiClient.post(
+      `/personnel/cnss/export/?${searchParams.toString()}`,
+      {},
+      { responseType: "blob" },
+    );
+    return response as Blob;
+  },
 };
 
 // --- CNSS Monthly Declarations ---
@@ -1253,6 +1272,7 @@ export const statusLabels = {
     [PersonnelStatus.SUSPENDED]: "Suspended",
     [PersonnelStatus.TERMINATED]: "Terminated",
     [PersonnelStatus.ARCHIVED]: "Archived",
+    on_leave: "On Leave",
   },
   employment: {
     [EmploymentStatus.ACTIVE]: "Active",
@@ -1348,10 +1368,11 @@ export const statusColors = {
     [PersonnelStatus.SUSPENDED]: "bg-yellow-100 text-yellow-800",
     [PersonnelStatus.TERMINATED]: "bg-red-100 text-red-800",
     [PersonnelStatus.ARCHIVED]: "bg-slate-100 text-slate-800",
+    on_leave: "bg-amber-100 text-amber-800",
   },
   employment: {
     [EmploymentStatus.ACTIVE]: "bg-blue-100 text-blue-800",
-    [EmploymentStatus.ON_LEAVE]: "bg-blue-100 text-blue-800",
+    [EmploymentStatus.ON_LEAVE]: "bg-amber-100 text-amber-800",
     [EmploymentStatus.SUSPENDED]: "bg-yellow-100 text-yellow-800",
     [EmploymentStatus.RESIGNED]: "bg-gray-100 text-gray-800",
     [EmploymentStatus.TERMINATED]: "bg-red-100 text-red-800",

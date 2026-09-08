@@ -10,6 +10,7 @@ import { sourceText } from "@/lib/i18n/source-catalog";
  */
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { companyDisplayName, GROUP_COMPANY_VALUE } from "@/lib/company-scope";
 import { Building2, Landmark, Users2,
   RefreshCw
 } from "lucide-react";
@@ -111,7 +112,10 @@ const statusColumn = {
 };
 function useCompanyOptions() {
   const { data } = useCompanies();
-  return (data || []).map((c) => ({ value: c.id, label: c.name }));
+  return [
+    { value: GROUP_COMPANY_VALUE, label: sourceText("Tout le groupe") },
+    ...(data || []).map((c) => ({ value: c.id, label: c.name })),
+  ];
 }
 function usePaymentMethodOptions() {
   const { data } = usePaymentMethods();
@@ -179,7 +183,7 @@ function SuppliersSection() {
       },
       type: "select",
       options: companyOptions,
-      required: true,
+      required: false,
     },
     {
       name: "name",
@@ -296,15 +300,14 @@ function SuppliersSection() {
           key: "company_name",
           header: sourceText("Company"),
           className: "w-36",
+          render: (_v: unknown, row: Supplier) =>
+            companyDisplayName(row.company_name, sourceText("Tout le groupe")),
         },
-        { key: "email", header: sourceText("Email"), className: "w-44" },
-        { key: "phone", header: sourceText("Phone"), className: "w-32" },
-        statusColumn,
       ]}
       fields={fields}
       createDefaults={{ status: "active", default_currency: "MAD" }}
       getEditValues={(s) => ({
-        company: s.company,
+        company: s.company || GROUP_COMPANY_VALUE,
         name: s.name,
         trade_name: s.trade_name || "",
         email: s.email || "",
@@ -458,7 +461,7 @@ function AssociatedPersonsSection() {
       },
       type: "select",
       options: companyOptions,
-      placeholder: sourceText("All companies"),
+      placeholder: sourceText("Tout le groupe"),
     },
     {
       name: "person_type",
@@ -599,6 +602,8 @@ function AssociatedPersonsSection() {
           key: "company_name",
           header: sourceText("Company"),
           className: "w-36",
+          render: (_v: unknown, row: AssociatedPerson) =>
+            companyDisplayName(row.company_name, sourceText("Tout le groupe")),
         },
         {
           key: "person_type_name",
@@ -611,7 +616,7 @@ function AssociatedPersonsSection() {
       fields={fields}
       createDefaults={{ status: "active" }}
       getEditValues={(p) => ({
-        company: p.company,
+        company: p.company || GROUP_COMPANY_VALUE,
         person_type: p.person_type ?? "",
         first_name: p.first_name,
         last_name: p.last_name,

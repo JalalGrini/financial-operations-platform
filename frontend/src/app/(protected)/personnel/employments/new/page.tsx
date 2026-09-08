@@ -1,6 +1,6 @@
 ﻿"use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -15,6 +15,7 @@ import {
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { SourceText } from "@/components/i18n/SourceText";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -32,7 +33,6 @@ import {
   useCreateEmployment,
   useCompanies,
   usePersonnelSelect,
-  usePaymentMethods,
 } from "@/features/personnel/hooks";
 import {
   ContractType,
@@ -47,6 +47,9 @@ import {
   type EmploymentFormValues,
 } from "@/features/personnel/employment-contract";
 import { toast } from "@/components/ui/toast";
+import { GROUP_COMPANY_VALUE } from "@/lib/company-scope";
+import { EmploymentPayoutFields } from "@/features/personnel/components/EmploymentPayoutFields";
+import { ScheduleDate } from "@/components/ui/schedule-date";
 const contractTypeOptions = [
   {
     value: ContractType.PERMANENT,
@@ -214,12 +217,6 @@ export default function CreateEmploymentPage() {
   const createMutation = useCreateEmployment();
   const { data: companies } = useCompanies();
   const { data: personnelOptions } = usePersonnelSelect();
-  const {
-    data: paymentMethods,
-    isLoading: paymentMethodsLoading,
-    isError: paymentMethodsFailed,
-    refetch: retryPaymentMethods,
-  } = usePaymentMethods();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
@@ -234,6 +231,7 @@ export default function CreateEmploymentPage() {
     defaultValues: {
       employment_status: EmploymentStatus.ACTIVE,
       default_monthly_working_days: 26,
+      payout_method: "cash",
     },
   });
   const employmentStatus = useWatch({ control, name: "employment_status" });
@@ -241,7 +239,8 @@ export default function CreateEmploymentPage() {
   const personId = useWatch({ control, name: "person" });
   const companyId = useWatch({ control, name: "company" });
   const departureReason = useWatch({ control, name: "departure_reason" });
-  const paymentMethod = useWatch({ control, name: "payment_method" });
+  const payoutMethod = useWatch({ control, name: "payout_method" });
+  const ribValue = useWatch({ control, name: "rib" });
   const requiresEndDate =
     CONTRACT_TYPES_REQUIRING_END_DATE.includes(contractType);
   const showDepartureFields =
@@ -249,6 +248,13 @@ export default function CreateEmploymentPage() {
     employmentStatus === EmploymentStatus.TERMINATED ||
     employmentStatus === EmploymentStatus.RETIRED ||
     employmentStatus === EmploymentStatus.FORMER;
+  useEffect(() => {
+    if (payoutMethod !== "bank") return;
+    const selected = companies?.find((company) => company.id === companyId);
+    if (selected?.rib && !ribValue) {
+      setValue("rib", selected.rib, { shouldDirty: true, shouldValidate: true });
+    }
+  }, [companies, companyId, payoutMethod, ribValue, setValue]);
   const onSubmit = async (data: EmploymentFormValues) => {
     setIsSubmitting(true);
     try {
@@ -331,7 +337,7 @@ export default function CreateEmploymentPage() {
                 <SearchableSelect
                   value={personId ?? ""}
                   onChange={(value) => {
-                    setValue("person", value, { shouldValidate: true });
+                    setValue("person", value, { shouldDirty: true, shouldValidate: true });
                   }}
                   disabled={isSubmitting}
                   placeholder={sourceText("Select employee")}
@@ -356,7 +362,7 @@ export default function CreateEmploymentPage() {
                 <Select
                   value={companyId ?? ""}
                   onValueChange={(value) => {
-                    setValue("company", value, { shouldValidate: true });
+                    setValue("company", value, { shouldDirty: true, shouldValidate: true });
                   }}
                   disabled={isSubmitting}
                 >
@@ -364,6 +370,9 @@ export default function CreateEmploymentPage() {
                     <SelectValue placeholder={sourceText("Select company")} />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={GROUP_COMPANY_VALUE}>
+                      {sourceText("Tout le groupe")}
+                    </SelectItem>
                     {companies?.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name} ({c.reference})
@@ -466,6 +475,7 @@ export default function CreateEmploymentPage() {
                     value={contractType ?? ""}
                     onValueChange={(value) => {
                       setValue("contract_type", value as ContractType, {
+                        shouldDirty: true,
                         shouldValidate: true,
                       });
                     }}
@@ -499,6 +509,7 @@ export default function CreateEmploymentPage() {
                     value={employmentStatus ?? ""}
                     onValueChange={(value) => {
                       setValue("employment_status", value as EmploymentStatus, {
+                        shouldDirty: true,
                         shouldValidate: true,
                       });
                     }}
@@ -531,7 +542,7 @@ export default function CreateEmploymentPage() {
                   <ScheduleDate
                     id="hire_date"
                     value={watch("hire_date") ?? ""}
-                    onChange={(val) => setValue("hire_date", val)}
+                    onChange={(val) => setValue("hire_date", val, { shouldDirty: true, shouldValidate: true })}
                     disabled={(isSubmitting)}
                   />
                   {errors.hire_date && (
@@ -549,7 +560,7 @@ export default function CreateEmploymentPage() {
                   <ScheduleDate
                     id="employment_end_date"
                     value={watch("employment_end_date") ?? ""}
-                    onChange={(val) => setValue("employment_end_date", val)}
+                    onChange={(val) => setValue("employment_end_date", val, { shouldDirty: true, shouldValidate: true })}
                     disabled={(isSubmitting || !requiresEndDate)}
                   />
                   {requiresEndDate && (
@@ -666,7 +677,7 @@ export default function CreateEmploymentPage() {
                           setValue(
                             "departure_reason",
                             value as unknown as EmploymentDepartureReason,
-                            { shouldValidate: true },
+                            { shouldDirty: true, shouldValidate: true },
                           );
                         }}
                         disabled={isSubmitting}
@@ -702,7 +713,7 @@ export default function CreateEmploymentPage() {
                       <ScheduleDate
                         id="resignation_date"
                         value={watch("resignation_date") ?? ""}
-                        onChange={(val) => setValue("resignation_date", val)}
+                        onChange={(val) => setValue("resignation_date", val, { shouldDirty: true, shouldValidate: true })}
                         disabled={(isSubmitting)}
                       />
                       {errors.resignation_date && (
@@ -725,87 +736,24 @@ export default function CreateEmploymentPage() {
                 <SourceText source="Payment & Banking" leading trailing />
               </h3>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="payment_method">
-                    <SourceText source="Payment Method" />
-                  </Label>
-                  <Select
-                    value={paymentMethod || "__none__"}
-                    onValueChange={(value) => {
-                      setValue(
-                        "payment_method",
-                        value === "__none__" ? "" : value,
-                        { shouldValidate: true },
-                      );
-                    }}
-                    disabled={
-                      isSubmitting ||
-                      paymentMethodsLoading ||
-                      paymentMethodsFailed
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={
-                          paymentMethodsLoading
-                            ? "Loading payment methods…"
-                            : "Select payment method"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">
-                        <SourceText source="None" />
-                      </SelectItem>
-                      {(paymentMethods || []).map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          {m.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {paymentMethodsFailed ? (
-                    <button
-                      type="button"
-                      className="text-xs text-red-600 underline"
-                      onClick={() => retryPaymentMethods()}
-                    >
-                      <SourceText
-                        source="Failed to load payment methods. Retry"
-                        leading
-                        trailing
-                      />
-                    </button>
-                  ) : !paymentMethodsLoading &&
-                    (paymentMethods || []).length === 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      <SourceText
-                        source="No active payment methods configured. An administrator can add one in Configuration."
-                        leading
-                        trailing
-                      />
-                    </p>
-                  ) : null}
-                  {errors.payment_method && (
-                    <p className="text-sm text-red-600">
-                      {errors.payment_method.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="rib">
-                    <SourceText source="RIB / IBAN" />
-                  </Label>
-                  <Input
-                    id="rib"
-                    placeholder={sourceText("Bank account details (optional)")}
-                    {...register("rib")}
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
+              <EmploymentPayoutFields
+                payoutMethod={payoutMethod}
+                rib={ribValue || ""}
+                ribError={errors.rib?.message}
+                disabled={isSubmitting}
+                onPayoutChange={(value) =>
+                  setValue("payout_method", value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                onRibChange={(value) =>
+                  setValue("rib", value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+              />
             </div>
 
             <Separator />
@@ -856,5 +804,3 @@ export default function CreateEmploymentPage() {
     </div>
   );
 }
-import { SourceText } from "@/components/i18n/SourceText";
-import { ScheduleDate } from "@/components/ui/schedule-date";

@@ -35,3 +35,14 @@ class CanManageTreasury(RoleBasedAccessPermission):
     DELETE_ROLES = ("Administrator",)
 
     message = "Treasury is restricted to administrators."
+
+
+class CanFillDailyBudget(RoleBasedAccessPermission):
+    """Daily cash-on-hand cards: every role can view; Assistant+ can fill today.
+
+    Past-day edits are refused in the view unless the caller is an Administrator.
+    This class stays a RoleBasedAccessPermission subclass so Cycle 9's endpoint
+    protection guard covers the new routes by inheritance.
+    """
+
+    message = "Insufficient permissions for daily budgets."

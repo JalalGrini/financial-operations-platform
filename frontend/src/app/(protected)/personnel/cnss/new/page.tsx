@@ -324,7 +324,7 @@ export default function CreateCNSSDeclarationPage() {
                   id="person"
                   value={personId ?? ""}
                   onChange={(value) =>
-                    setValue("person", value, { shouldValidate: true })
+                    setValue("person", value, { shouldDirty: true, shouldValidate: true })
                   }
                   disabled={isSubmitting}
                   placeholder={sourceText("Select employee")}
@@ -351,7 +351,7 @@ export default function CreateCNSSDeclarationPage() {
                 <Select
                   value={companyId ?? ""}
                   onValueChange={(value) => {
-                    setValue("company", value, { shouldValidate: true });
+                    setValue("company", value, { shouldDirty: true, shouldValidate: true });
                   }}
                   disabled={isSubmitting}
                 >
@@ -393,7 +393,7 @@ export default function CreateCNSSDeclarationPage() {
                   <Select
                     value={employmentId ?? ""}
                     onValueChange={(value) => {
-                      setValue("employment", value, { shouldValidate: true });
+                      setValue("employment", value, { shouldDirty: true, shouldValidate: true });
                     }}
                     disabled={
                       isSubmitting || !employments || employments.length === 0
@@ -464,6 +464,7 @@ export default function CreateCNSSDeclarationPage() {
                   value={situationValue ?? ""}
                   onValueChange={(value) => {
                     setValue("situation", value as CNSSSituation, {
+                      shouldDirty: true,
                       shouldValidate: true,
                     });
                   }}
@@ -508,7 +509,7 @@ export default function CreateCNSSDeclarationPage() {
                 <ScheduleDate
                   id="first_declaration_date"
                   value={watch("first_declaration_date") ?? ""}
-                  onChange={(val) => setValue("first_declaration_date", val)}
+                  onChange={(val) => setValue("first_declaration_date", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting)}
                 />
                 {errors.first_declaration_date && (
@@ -529,7 +530,7 @@ export default function CreateCNSSDeclarationPage() {
                 <ScheduleDate
                   id="declaration_start_date"
                   value={watch("declaration_start_date") ?? ""}
-                  onChange={(val) => setValue("declaration_start_date", val)}
+                  onChange={(val) => setValue("declaration_start_date", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting)}
                 />
                 {errors.declaration_start_date && (
@@ -546,7 +547,7 @@ export default function CreateCNSSDeclarationPage() {
                 <ScheduleDate
                   id="declaration_stop_date"
                   value={watch("declaration_stop_date") ?? ""}
-                  onChange={(val) => setValue("declaration_stop_date", val)}
+                  onChange={(val) => setValue("declaration_stop_date", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting)}
                 />
               </div>
@@ -558,7 +559,7 @@ export default function CreateCNSSDeclarationPage() {
                 <ScheduleDate
                   id="resignation_date"
                   value={watch("resignation_date") ?? ""}
-                  onChange={(val) => setValue("resignation_date", val)}
+                  onChange={(val) => setValue("resignation_date", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting)}
                 />
               </div>
@@ -584,6 +585,7 @@ export default function CreateCNSSDeclarationPage() {
                       value={stopReason ?? ""}
                       onValueChange={(value) => {
                         setValue("stop_reason", value as CNSSStopReason, {
+                          shouldDirty: true,
                           shouldValidate: true,
                         });
                       }}
@@ -616,7 +618,7 @@ export default function CreateCNSSDeclarationPage() {
                     <ScheduleDate
                       id="resignation_date"
                       value={watch("resignation_date") ?? ""}
-                      onChange={(val) => setValue("resignation_date", val)}
+                      onChange={(val) => setValue("resignation_date", val, { shouldDirty: true, shouldValidate: true })}
                       disabled={(isSubmitting)}
                     />
                     {errors.resignation_date && (

@@ -7,6 +7,7 @@ from rest_framework.routers import DefaultRouter
 
 from apps.treasury.views import (
     AccountViewSet,
+    DailyBudgetViewSet,
     ReconciliationViewSet,
     TransactionViewSet,
     TransferViewSet,
@@ -14,6 +15,7 @@ from apps.treasury.views import (
 
 router = DefaultRouter()
 
+router.register(r"budgets", DailyBudgetViewSet, basename="treasury-budget")
 router.register(r"accounts", AccountViewSet, basename="treasury-account")
 router.register(r"transactions", TransactionViewSet, basename="treasury-transaction")
 router.register(r"transfers", TransferViewSet, basename="treasury-transfer")

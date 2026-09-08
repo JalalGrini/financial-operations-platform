@@ -42,6 +42,10 @@ export interface Company {
   registration_number: string;
   tax_id: string;
   vat_number?: string;
+  cnss_number?: string;
+  patent_number?: string;
+  rib?: string;
+  activities?: string;
   address: string;
   phone: string;
   email: string;
@@ -70,6 +74,10 @@ export interface CompanyCreate {
   registration_number: string;
   tax_id: string;
   vat_number?: string;
+  cnss_number?: string;
+  patent_number?: string;
+  rib?: string;
+  activities?: string;
   address: string;
   phone: string;
   email: string;
@@ -155,6 +163,7 @@ export interface CompanySelectOption {
   status?: CompanyStatus;
   budget_amount?: number;
   personnel_count?: number;
+  rib?: string;
 }
 
 export interface CompanySelectParams {

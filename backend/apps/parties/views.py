@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status, viewsets
 
+from apps.common.company_scope import filter_queryset_by_company
 from apps.common.export_mixin import ExportableListMixin
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -85,10 +86,9 @@ class ClientViewSet(
     def get_queryset(self):
         queryset = apply_archive_visibility(Client.all_objects.all(), Client, self.request)
 
-        # Filter by company
-        company_id = self.request.query_params.get("company")
-        if company_id:
-            queryset = queryset.filter(company_id=company_id)
+        queryset = filter_queryset_by_company(
+            queryset, field="company", raw=self.request.query_params.get("company")
+        )
 
         # Filter by status
         status_filter = self.request.query_params.get("status")
@@ -181,10 +181,9 @@ class SupplierViewSet(
     def get_queryset(self):
         queryset = apply_archive_visibility(Supplier.all_objects.all(), Supplier, self.request)
 
-        # Filter by company
-        company_id = self.request.query_params.get("company")
-        if company_id:
-            queryset = queryset.filter(company_id=company_id)
+        queryset = filter_queryset_by_company(
+            queryset, field="company", raw=self.request.query_params.get("company")
+        )
 
         # Filter by status
         status_filter = self.request.query_params.get("status")
@@ -259,10 +258,9 @@ class AssociatedPersonViewSet(SoftDeleteViewSetMixin, ArchivableObjectMixin, vie
             AssociatedPerson.all_objects.all(), AssociatedPerson, self.request
         )
 
-        # Filter by company
-        company_id = self.request.query_params.get("company")
-        if company_id:
-            queryset = queryset.filter(company_id=company_id)
+        queryset = filter_queryset_by_company(
+            queryset, field="company", raw=self.request.query_params.get("company")
+        )
 
         # Filter by status
         status_filter = self.request.query_params.get("status")

@@ -345,7 +345,7 @@ export default function CompaniesPage() {
                   {company.trade_name && <p className="text-xs text-muted-foreground">{company.trade_name}</p>}
                   {company.address && <p className="text-xs text-muted-foreground truncate">{company.address}</p>}
                   <div className="flex gap-4 text-xs text-muted-foreground mt-1">
-                    {company.vat_number && <span><span className="font-medium">{sourceText("ICE")}:</span> {company.vat_number}</span>}
+                    {company.vat_number && <span><span className="font-medium">{sourceText("Identifiant Commun de l'Entreprise")}:</span> {company.vat_number}</span>}
                     {company.registration_number && <span><span className="font-medium">{sourceText("RC")}:</span> {company.registration_number}</span>}
                   </div>
                   <div className="mt-auto flex items-center justify-end gap-1 pt-1" onClick={(event) => event.stopPropagation()}>
@@ -370,7 +370,7 @@ export default function CompaniesPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>{sourceText("Company")}</TableHead>
-                      <TableHead className="hidden md:table-cell">{sourceText("ICE")}</TableHead>
+                      <TableHead className="hidden md:table-cell">{sourceText("Identifiant Commun de l'Entreprise")}</TableHead>
                       <TableHead className="hidden lg:table-cell">{sourceText("RC")}</TableHead>
                       <TableHead className="hidden xl:table-cell">{sourceText("Address")}</TableHead>
                       <TableHead>{sourceText("Status")}</TableHead>
@@ -388,7 +388,7 @@ export default function CompaniesPage() {
                         </TableCell>
                         {/* Field names follow the Company API and this app's own
                             create form (companies/new): ICE is `vat_number`
-                            ("VAT Number (ICE)") and RC is `registration_number`
+                            ("Identifiant Commun de l'Entreprise") and RC is `registration_number`
                             ("RC number"). This view previously read legal_form/
                             ice/rc/city, none of which the serializer returns, so
                             all four cells rendered the em-dash fallback. There is

@@ -317,16 +317,19 @@ class EmploymentValidator:
         historical non-archived rows remain relevant even when ``is_active`` is
         false. A different company is intentionally allowed.
         """
-        if not person_id or not company_id or not hire_date:
+        if not person_id or not hire_date:
             return
 
         from apps.personnel.models import Employment
 
         overlapping = Employment.all_objects.filter(
             person_id=person_id,
-            company_id=company_id,
             is_archived=False,
         ).filter(Q(employment_end_date__isnull=True) | Q(employment_end_date__gte=hire_date))
+        if company_id:
+            overlapping = overlapping.filter(company_id=company_id)
+        else:
+            overlapping = overlapping.filter(company__isnull=True)
         if end_date:
             overlapping = overlapping.filter(Q(hire_date__isnull=True) | Q(hire_date__lte=end_date))
         if exclude_id:
@@ -341,8 +344,6 @@ class EmploymentValidator:
         """Validate service-layer input without breaking partial updates."""
         if require_relations and not data.get("person"):
             raise ValidationError({"person": _("Person is required.")})
-        if require_relations and not data.get("company"):
-            raise ValidationError({"company": _("Company is required.")})
 
         allowed_fields = {
             "person",
@@ -360,6 +361,7 @@ class EmploymentValidator:
             "resignation_date",
             "is_active",
             "payment_method",
+            "payout_method",
             "rib",
             "bank_name",
             "bank_account_holder",

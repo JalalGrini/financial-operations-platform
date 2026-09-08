@@ -13,7 +13,7 @@ from decimal import Decimal
 from rest_framework import serializers
 
 from apps.configuration.models import TransactionType
-from apps.treasury.models import Account, Reconciliation, Transaction
+from apps.treasury.models import Account, DailyBudget, Reconciliation, Transaction
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -290,3 +290,47 @@ class ReopenReconciliationSerializer(serializers.Serializer):
     """Reopening a completed period requires a reason; see services docstring."""
 
     reason = serializers.CharField(max_length=500, allow_blank=False)
+
+
+class DailyBudgetSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source="company.name", read_only=True)
+    filled_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DailyBudget
+        fields = [
+            "id",
+            "company",
+            "company_name",
+            "date",
+            "amount",
+            "note",
+            "filled_by",
+            "filled_by_name",
+            "filled_at",
+            "is_carried_over",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "filled_by",
+            "filled_at",
+            "is_carried_over",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_filled_by_name(self, obj):
+        user = obj.filled_by
+        if not user:
+            return ""
+        full = user.get_full_name() if hasattr(user, "get_full_name") else ""
+        return full or getattr(user, "email", "") or str(user)
+
+
+class DailyBudgetWriteSerializer(serializers.Serializer):
+    company = serializers.UUIDField()
+    amount = serializers.DecimalField(max_digits=15, decimal_places=2)
+    note = serializers.CharField(required=False, allow_blank=True, default="")
+    date = serializers.DateField(required=False)

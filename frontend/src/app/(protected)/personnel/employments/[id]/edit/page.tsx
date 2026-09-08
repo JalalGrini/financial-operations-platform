@@ -1,6 +1,7 @@
 ﻿"use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useFormDirty } from "@/hooks/useFormDirty";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -32,7 +33,6 @@ import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import {
   useUpdateEmployment,
   useEmploymentDetail,
-  usePaymentMethods,
 } from "@/features/personnel/hooks";
 import { useCompanies, usePersonnelSelect } from "@/features/personnel/hooks";
 import {
@@ -48,6 +48,8 @@ import {
   type EmploymentFormValues,
 } from "@/features/personnel/employment-contract";
 import { toast } from "@/components/ui/toast";
+import { GROUP_COMPANY_VALUE, companySelectValue } from "@/lib/company-scope";
+import { EmploymentPayoutFields } from "@/features/personnel/components/EmploymentPayoutFields";
 import { ScheduleDate } from "@/components/ui/schedule-date";
 import { GuidePanel } from "@/components/ui/guide-panel";
 const contractTypeOptions = [
@@ -252,12 +254,6 @@ export default function EditEmploymentPage() {
   const updateMutation = useUpdateEmployment();
   const { data: companies } = useCompanies();
   const { data: personnelOptions } = usePersonnelSelect();
-  const {
-    data: paymentMethods,
-    isLoading: paymentMethodsLoading,
-    isError: paymentMethodsFailed,
-    refetch: retryPaymentMethods,
-  } = usePaymentMethods();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: employmentData, isLoading, error } = useEmploymentDetail(id);
   const {
@@ -273,6 +269,7 @@ export default function EditEmploymentPage() {
     resolver: zodResolver(employmentFormSchema),
     defaultValues: {
       default_monthly_working_days: 26,
+      payout_method: "cash",
     },
   });
   const employmentStatus = useWatch({ control, name: "employment_status" });
@@ -280,7 +277,8 @@ export default function EditEmploymentPage() {
   const personId = useWatch({ control, name: "person" });
   const companyId = useWatch({ control, name: "company" });
   const departureReason = useWatch({ control, name: "departure_reason" });
-  const paymentMethod = useWatch({ control, name: "payment_method" });
+  const payoutMethod = useWatch({ control, name: "payout_method" });
+  const ribValue = useWatch({ control, name: "rib" });
   const requiresEndDate =
     CONTRACT_TYPES_REQUIRING_END_DATE.includes(contractType);
   useEffect(() => {
@@ -294,12 +292,19 @@ export default function EditEmploymentPage() {
     employmentStatus === EmploymentStatus.TERMINATED ||
     employmentStatus === EmploymentStatus.RETIRED ||
     employmentStatus === EmploymentStatus.FORMER;
+  useEffect(() => {
+    if (payoutMethod !== "bank") return;
+    const selected = companies?.find((company) => company.id === companyId);
+    if (selected?.rib && !ribValue) {
+      setValue("rib", selected.rib, { shouldDirty: true, shouldValidate: true });
+    }
+  }, [companies, companyId, payoutMethod, ribValue, setValue]);
   // Populate form when data loads
   useEffect(() => {
     if (employmentData && !isDirty) {
       reset({
         person: employmentData.person,
-        company: employmentData.company,
+        company: companySelectValue(employmentData.company),
         employee_reference: employmentData.employee_reference,
         job_title: employmentData.job_title || "",
         department: employmentData.department || "",
@@ -318,6 +323,7 @@ export default function EditEmploymentPage() {
           ? employmentData.resignation_date.split("T")[0]
           : "",
         payment_method: employmentData.payment_method || "",
+        payout_method: employmentData.payout_method || "cash",
         rib: employmentData.rib || "",
         default_monthly_working_days:
           employmentData.default_monthly_working_days || 26,
@@ -336,6 +342,45 @@ export default function EditEmploymentPage() {
       });
     }
   }, [employmentData, isDirty, reset]);
+  const originalValues = useMemo(() => {
+    if (!employmentData) return null;
+    return {
+      person: employmentData.person,
+      company: companySelectValue(employmentData.company),
+      employee_reference: employmentData.employee_reference,
+      job_title: employmentData.job_title || "",
+      department: employmentData.department || "",
+      work_domain: employmentData.work_domain || "",
+      work_city: employmentData.work_city || "",
+      contract_type: employmentData.contract_type,
+      employment_status: employmentData.employment_status,
+      hire_date: employmentData.hire_date
+        ? employmentData.hire_date.split("T")[0]
+        : "",
+      employment_end_date: employmentData.employment_end_date
+        ? employmentData.employment_end_date.split("T")[0]
+        : "",
+      departure_reason: employmentData.departure_reason || undefined,
+      resignation_date: employmentData.resignation_date
+        ? employmentData.resignation_date.split("T")[0]
+        : "",
+      payment_method: employmentData.payment_method || "",
+      payout_method: employmentData.payout_method || "cash",
+      rib: employmentData.rib || "",
+      default_monthly_working_days:
+        employmentData.default_monthly_working_days || 26,
+      worked_day_rate:
+        employmentData.worked_day_rate != null
+          ? String(employmentData.worked_day_rate)
+          : "",
+      absence_day_rate:
+        employmentData.absence_day_rate != null
+          ? String(employmentData.absence_day_rate)
+          : "",
+      observations: employmentData.observations || "",
+    };
+  }, [employmentData]);
+  const formDirty = useFormDirty(originalValues, watch());
   const onSubmit = async (data: EmploymentFormValues) => {
     setIsSubmitting(true);
     try {
@@ -430,7 +475,7 @@ export default function EditEmploymentPage() {
           <StatCard icon={Briefcase} label={sourceText("Reference")} value={employmentData?.employee_reference || sourceText("Unavailable")} tone="primary" />
           <StatCard icon={FileText} label={sourceText("Contract mode")} value={contractType ? sourceText(contractType) : sourceText("Unknown")} tone="indigo" />
           <StatCard icon={AlertCircle} label={sourceText("Status")} value={employmentStatus ? sourceText(employmentStatus) : sourceText("Unknown")} tone="amber" />
-          <StatCard icon={CreditCard} label={sourceText("Payment method")} value={paymentMethod ? sourceText("Configured") : sourceText("Not configured")} tone={paymentMethod ? "emerald" : "rose"} />
+          <StatCard icon={CreditCard} label={sourceText("Payment method")} value={payoutMethod === "bank" ? sourceText("Virement bancaire") : sourceText("Espèces")} tone={payoutMethod === "bank" ? "emerald" : "indigo"} />
         </div>
 
         <GuidePanel
@@ -464,7 +509,7 @@ export default function EditEmploymentPage() {
                 <Select
                   value={personId ?? ""}
                   onValueChange={(value) => {
-                    setValue("person", value, { shouldValidate: true });
+                    setValue("person", value, { shouldDirty: true, shouldValidate: true });
                   }}
                   disabled
                 >
@@ -493,14 +538,17 @@ export default function EditEmploymentPage() {
                 <Select
                   value={companyId ?? ""}
                   onValueChange={(value) => {
-                    setValue("company", value, { shouldValidate: true });
+                    setValue("company", value, { shouldDirty: true, shouldValidate: true });
                   }}
-                  disabled
+                  disabled={isSubmitting}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={sourceText("Select company")} />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={GROUP_COMPANY_VALUE}>
+                      {sourceText("Tout le groupe")}
+                    </SelectItem>
                     {companies?.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name} ({c.reference})
@@ -611,6 +659,7 @@ export default function EditEmploymentPage() {
                     value={contractType ?? ""}
                     onValueChange={(value) => {
                       setValue("contract_type", value as ContractType, {
+                        shouldDirty: true,
                         shouldValidate: true,
                       });
                     }}
@@ -644,6 +693,7 @@ export default function EditEmploymentPage() {
                     value={employmentStatus ?? ""}
                     onValueChange={(value) => {
                       setValue("employment_status", value as EmploymentStatus, {
+                        shouldDirty: true,
                         shouldValidate: true,
                       });
                     }}
@@ -676,7 +726,7 @@ export default function EditEmploymentPage() {
                   <ScheduleDate
                     id="hire_date"
                     value={watch("hire_date") ?? ""}
-                    onChange={(val) => setValue("hire_date", val)}
+                    onChange={(val) => setValue("hire_date", val, { shouldDirty: true, shouldValidate: true })}
                     disabled={(isSubmitting)}
                   />
                   {errors.hire_date && (
@@ -694,7 +744,7 @@ export default function EditEmploymentPage() {
                   <ScheduleDate
                     id="employment_end_date"
                     value={watch("employment_end_date") ?? ""}
-                    onChange={(val) => setValue("employment_end_date", val)}
+                    onChange={(val) => setValue("employment_end_date", val, { shouldDirty: true, shouldValidate: true })}
                     disabled={(isSubmitting || !requiresEndDate)}
                   />
                   {requiresEndDate ? (
@@ -818,7 +868,7 @@ export default function EditEmploymentPage() {
                           setValue(
                             "departure_reason",
                             value as unknown as EmploymentDepartureReason,
-                            { shouldValidate: true },
+                            { shouldDirty: true, shouldValidate: true },
                           );
                         }}
                         disabled={isSubmitting}
@@ -854,7 +904,7 @@ export default function EditEmploymentPage() {
                       <ScheduleDate
                         id="resignation_date"
                         value={watch("resignation_date") ?? ""}
-                        onChange={(val) => setValue("resignation_date", val)}
+                        onChange={(val) => setValue("resignation_date", val, { shouldDirty: true, shouldValidate: true })}
                         disabled={(isSubmitting)}
                       />
                       {errors.resignation_date && (
@@ -877,87 +927,24 @@ export default function EditEmploymentPage() {
                 <SourceText source="Payment & Banking" leading trailing />
               </h3>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="payment_method">
-                    <SourceText source="Payment Method" />
-                  </Label>
-                  <Select
-                    value={paymentMethod || "__none__"}
-                    onValueChange={(value) => {
-                      setValue(
-                        "payment_method",
-                        value === "__none__" ? "" : value,
-                        { shouldValidate: true },
-                      );
-                    }}
-                    disabled={
-                      isSubmitting ||
-                      paymentMethodsLoading ||
-                      paymentMethodsFailed
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={
-                          paymentMethodsLoading
-                            ? sourceText("Loading payment methods…")
-                            : sourceText("Select payment method")
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">
-                        <SourceText source="None" />
-                      </SelectItem>
-                      {(paymentMethods || []).map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          {m.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {paymentMethodsFailed ? (
-                    <button
-                      type="button"
-                      className="text-xs text-red-600 underline"
-                      onClick={() => retryPaymentMethods()}
-                    >
-                      <SourceText
-                        source="Failed to load payment methods. Retry"
-                        leading
-                        trailing
-                      />
-                    </button>
-                  ) : !paymentMethodsLoading &&
-                    (paymentMethods || []).length === 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      <SourceText
-                        source="No active payment methods configured. An administrator can add one in Configuration."
-                        leading
-                        trailing
-                      />
-                    </p>
-                  ) : null}
-                  {errors.payment_method && (
-                    <p className="text-sm text-red-600">
-                      {errors.payment_method.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="rib">
-                    <SourceText source="RIB / IBAN" />
-                  </Label>
-                  <Input
-                    id="rib"
-                    placeholder={sourceText("Bank account details (optional)")}
-                    {...register("rib")}
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
+              <EmploymentPayoutFields
+                payoutMethod={payoutMethod}
+                rib={ribValue || ""}
+                ribError={errors.rib?.message}
+                disabled={isSubmitting}
+                onPayoutChange={(value) =>
+                  setValue("payout_method", value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                onRibChange={(value) =>
+                  setValue("rib", value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+              />
             </div>
 
             <Separator />
@@ -990,7 +977,7 @@ export default function EditEmploymentPage() {
             <X className="me-2 h-4 w-4" />
             <SourceText source="Cancel" leading trailing />
           </Button>
-          <Button type="submit" disabled={isSubmitting || !isDirty}>
+          <Button type="submit" disabled={isSubmitting || !formDirty}>
             {isSubmitting ? (
               <>
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />

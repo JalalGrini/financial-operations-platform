@@ -27,7 +27,7 @@ import {
   Calculator,
   BookOpen,
   Tag,
-  ListTodo,
+  Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { RoleName, User } from "@/types/auth";
@@ -98,6 +98,13 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     name: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+    roles: ["Administrator", "Assistant", "Director"],
+    section: "Overview",
+  },
+  {
+    name: "Trésorerie",
+    href: "/tresorerie",
+    icon: Wallet,
     roles: ["Administrator", "Assistant", "Director"],
     section: "Overview",
   },

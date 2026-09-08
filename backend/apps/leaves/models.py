@@ -70,8 +70,8 @@ class Leave(models.Model):
     def save(self, *args, **kwargs):
         if self.start_date and self.end_date:
             self.duration_days = max(0, (self.end_date - self.start_date).days)
-        if self.employment_id and not self.company_id:
-            self.company_id = self.employment.company_id
+        # Group-wide leaves keep company=None. Inheritance from employment is
+        # done in the serializer only when the client omitted company.
         if not self.decision_number:
             stamp = timezone.now().strftime('%Y%m%d-%H%M%S')
             self.decision_number = f'DEC-{stamp}'

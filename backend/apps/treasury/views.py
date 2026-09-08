@@ -13,19 +13,23 @@ responses; otherwise a rejected business rule would surface to the client as
 a 500.
 """
 
+from datetime import timedelta
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError as DRFValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.companies.models import Company
 from apps.common.mixins import ArchivableObjectMixin, SoftDeleteViewSetMixin
 from apps.common.querying import apply_archive_visibility
-from apps.treasury.models import Account, Reconciliation, Transaction
-from apps.treasury.permissions import CanManageTreasury
+from apps.treasury.models import Account, DailyBudget, Reconciliation, Transaction
+from apps.treasury.permissions import CanFillDailyBudget, CanManageTreasury
 from apps.treasury.selectors import (
     accounts_with_balance_drift,
     all_accounts,
@@ -48,6 +52,8 @@ from apps.treasury.serializers import (
     TransactionSerializer,
     TransactionUpdateSerializer,
     TransferSerializer,
+    DailyBudgetSerializer,
+    DailyBudgetWriteSerializer,
 )
 from apps.treasury.services import (
     archive_transaction,
@@ -477,3 +483,172 @@ class ReconciliationViewSet(viewsets.ModelViewSet):
             reconciliation.account, up_to=reconciliation.period_end
         )
         return Response(TransactionSerializer(candidates, many=True).data)
+
+
+def _is_administrator(user) -> bool:
+    return bool(
+        user
+        and (
+            user.is_superuser
+            or user.groups.filter(name="Administrator").exists()
+        )
+    )
+
+
+class DailyBudgetViewSet(viewsets.GenericViewSet):
+    """Today's cash-on-hand cards and historical chart series."""
+
+    permission_classes = [IsAuthenticated, CanFillDailyBudget]
+    queryset = DailyBudget.objects.select_related("company", "filled_by")
+    serializer_class = DailyBudgetSerializer
+    pagination_class = None
+
+    def get_object(self):
+        obj = super().get_object()
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def list(self, request):
+        today = timezone.localdate()
+        companies = Company.objects.filter(is_archived=False).order_by("name")
+        today_rows = {
+            row.company_id: row
+            for row in DailyBudget.objects.filter(date=today).select_related(
+                "company", "filled_by"
+            )
+        }
+        prior_rows = {}
+        missing = [c.id for c in companies if c.id not in today_rows]
+        if missing:
+            for row in (
+                DailyBudget.objects.filter(company_id__in=missing, date__lt=today)
+                .select_related("company", "filled_by")
+                .order_by("company_id", "-date")
+            ):
+                prior_rows.setdefault(row.company_id, row)
+
+        payload = []
+        for company in companies:
+            today_row = today_rows.get(company.id)
+            if today_row:
+                payload.append(
+                    {
+                        **DailyBudgetSerializer(today_row).data,
+                        "is_filled_today": not today_row.is_carried_over,
+                        "is_carried_over": today_row.is_carried_over,
+                    }
+                )
+                continue
+            prior = prior_rows.get(company.id)
+            payload.append(
+                {
+                    "id": None,
+                    "company": str(company.id),
+                    "company_name": company.name,
+                    "date": today.isoformat(),
+                    "amount": str(prior.amount) if prior else None,
+                    "note": prior.note if prior else "",
+                    "filled_by": str(prior.filled_by_id) if prior and prior.filled_by_id else None,
+                    "filled_by_name": "",
+                    "filled_at": prior.filled_at.isoformat() if prior else None,
+                    "is_carried_over": True,
+                    "is_filled_today": False,
+                    "created_at": None,
+                    "updated_at": None,
+                }
+            )
+        return Response(payload)
+
+    def create(self, request):
+        serializer = DailyBudgetWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        today = timezone.localdate()
+        target_date = data.get("date") or today
+        if target_date != today and not _is_administrator(request.user):
+            raise PermissionDenied(_("Only administrators can edit a past day's entry."))
+        try:
+            company = Company.objects.get(pk=data["company"], is_archived=False)
+        except Company.DoesNotExist:
+            raise DRFValidationError({"company": [_("Company not found.")]})
+
+        row, _created = DailyBudget.objects.update_or_create(
+            company=company,
+            date=target_date,
+            defaults={
+                "amount": data["amount"],
+                "note": data.get("note") or "",
+                "filled_by": request.user,
+                "is_carried_over": False,
+            },
+        )
+        DailyBudget.objects.filter(pk=row.pk).update(filled_at=timezone.now())
+        row.refresh_from_db()
+        body = DailyBudgetSerializer(row).data
+        body["is_filled_today"] = True
+        body["is_carried_over"] = False
+        return Response(body, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, pk=None):
+        row = self.get_object()
+        today = timezone.localdate()
+        if row.date != today and not _is_administrator(request.user):
+            raise PermissionDenied(_("Only administrators can edit a past day's entry."))
+        serializer = DailyBudgetWriteSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        if "amount" in data:
+            row.amount = data["amount"]
+        if "note" in data:
+            row.note = data["note"]
+        row.filled_by = request.user
+        row.is_carried_over = False
+        row.save()
+        DailyBudget.objects.filter(pk=row.pk).update(filled_at=timezone.now())
+        row.refresh_from_db()
+        return Response(DailyBudgetSerializer(row).data)
+
+    @action(detail=False, methods=["get"])
+    def history(self, request):
+        company_id = request.query_params.get("company")
+        if not company_id:
+            raise DRFValidationError({"company": [_("company is required.")]})
+        range_key = (request.query_params.get("range") or "7d").lower()
+        today = timezone.localdate()
+        rows = list(
+            DailyBudget.objects.filter(company_id=company_id)
+            .order_by("date")
+            .values("date", "amount", "is_carried_over")
+        )
+        if range_key == "all":
+            start = rows[0]["date"] if rows else today
+        else:
+            days = {"7d": 7, "1m": 30, "1y": 365}.get(range_key, 7)
+            start = today - timedelta(days=days - 1)
+        by_date = {row["date"]: row for row in rows}
+        series = []
+        cursor = start
+        last_amount = None
+        last_filled = None
+        for prior in rows:
+            if prior["date"] < start:
+                last_amount = prior["amount"]
+                last_filled = prior["date"]
+        while cursor <= today:
+            row = by_date.get(cursor)
+            if row:
+                last_amount = row["amount"]
+                last_filled = cursor
+                carried = row["is_carried_over"]
+            else:
+                carried = True
+            series.append(
+                {
+                    "date": cursor.isoformat(),
+                    "amount": str(last_amount) if last_amount is not None else None,
+                    "is_carried_over": carried if last_amount is not None else False,
+                    "source_date": last_filled.isoformat() if last_filled else None,
+                }
+            )
+            cursor += timedelta(days=1)
+        return Response(series)

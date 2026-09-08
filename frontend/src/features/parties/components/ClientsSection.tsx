@@ -8,6 +8,7 @@ import {
 } from "@/features/configuration/components/EntitySection";
 import { partiesApi } from "@/features/parties/api";
 import { useCompanies, usePaymentMethods } from "@/features/personnel/hooks";
+import { companyDisplayName, GROUP_COMPANY_VALUE } from "@/lib/company-scope";
 import type { Client } from "@/features/parties/types";
 const PARTY_STATUS_OPTIONS = [
   {
@@ -31,10 +32,13 @@ const PARTY_STATUS_OPTIONS = [
 ];
 export function ClientsSection() {
   const { data: companies } = useCompanies();
-  const companyOptions = (companies || []).map((c) => ({
-    value: c.id,
-    label: c.name,
-  }));
+  const companyOptions = [
+    { value: GROUP_COMPANY_VALUE, label: sourceText("Tout le groupe") },
+    ...(companies || []).map((c) => ({
+      value: c.id,
+      label: c.name,
+    })),
+  ];
   const { data: paymentMethods } = usePaymentMethods();
   const paymentMethodOptions = (paymentMethods || []).map((m) => ({
     value: m.id,
@@ -48,7 +52,7 @@ export function ClientsSection() {
       },
       type: "select",
       options: companyOptions,
-      required: true,
+      required: false,
     },
     {
       name: "client_kind",
@@ -262,6 +266,8 @@ export function ClientsSection() {
           key: "company_name",
           header: sourceText("Owning company"),
           className: "w-36",
+          render: (_v: unknown, row: Client) =>
+            companyDisplayName(row.company_name, sourceText("Tout le groupe")),
         },
         { key: "email", header: sourceText("Email"), className: "w-44" },
         { key: "phone", header: sourceText("Phone"), className: "w-32" },
@@ -288,7 +294,7 @@ export function ClientsSection() {
         default_currency: "MAD",
       }}
       getEditValues={(c) => ({
-        company: c.company,
+        company: c.company || GROUP_COMPANY_VALUE,
         client_kind: c.client_kind,
         first_name: c.first_name || "",
         last_name: c.last_name || "",

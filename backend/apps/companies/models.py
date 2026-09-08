@@ -82,12 +82,39 @@ class Company(ReferenceTrackedModel, CustomFieldsModel):
         help_text=_("Tax identification number"),
     )
     vat_number = models.CharField(
-        _("VAT number"),
+        _("Identifiant Commun de l'Entreprise"),
         max_length=100,
         blank=True,
         null=True,
         unique=True,
-        help_text=_("Value Added Tax number"),
+        help_text=_("Identifiant Commun de l'Entreprise (ICE)"),
+    )
+    cnss_number = models.CharField(
+        _("Numéro CNSS"),
+        max_length=100,
+        blank=True,
+        default="",
+        help_text=_("Company CNSS affiliation number"),
+    )
+    patent_number = models.CharField(
+        _("Patente"),
+        max_length=100,
+        blank=True,
+        default="",
+        help_text=_("Patent / patente number"),
+    )
+    rib = models.CharField(
+        _("RIB"),
+        max_length=64,
+        blank=True,
+        default="",
+        help_text=_("Company bank RIB"),
+    )
+    activities = models.TextField(
+        _("Activités"),
+        blank=True,
+        default="",
+        help_text=_("Business activities"),
     )
 
     # Contact Information

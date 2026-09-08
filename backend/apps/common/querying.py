@@ -13,6 +13,19 @@ from rest_framework.exceptions import ValidationError
 ARCHIVE_STATES = frozenset({"active", "archived", "all"})
 
 
+def split_query_values(request, key: str) -> list[str]:
+    """Return repeated or comma-separated query values for ``key``."""
+    values = list(request.query_params.getlist(key))
+    if not values:
+        raw = request.query_params.get(key)
+        if raw:
+            values = [raw]
+    out: list[str] = []
+    for value in values:
+        out.extend(part.strip() for part in str(value).split(",") if part.strip())
+    return out
+
+
 def get_archive_state(request) -> str:
     """Resolve the canonical archive state, with legacy compatibility.
 

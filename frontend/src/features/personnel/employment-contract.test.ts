@@ -56,6 +56,29 @@ describe("Employment browser contract", () => {
     expect(buildEmploymentPayload(parsed).payment_method).toBe(paymentId);
   });
 
+  it("accepts Tout le groupe and sends a null company", () => {
+    const parsed = employmentFormSchema.parse({
+      ...base,
+      company: "all",
+      payout_method: "cash",
+    });
+    expect(buildEmploymentPayload(parsed).company).toBeNull();
+  });
+
+  it("requires a RIB for bank transfer", () => {
+    const result = employmentFormSchema.safeParse({
+      ...base,
+      payout_method: "bank",
+      rib: "",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => issue.path[0] === "rib")).toBe(
+        true,
+      );
+    }
+  });
+
   it("extracts backend field errors for inline display", () => {
     const error = {
       response: { data: { errors: { payment_method: ["Invalid pk."] } } },

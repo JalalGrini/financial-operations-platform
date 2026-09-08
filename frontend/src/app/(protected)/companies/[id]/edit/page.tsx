@@ -39,6 +39,7 @@ import {
 } from "@/features/companies/types";
 import { toast } from "@/components/ui/toast";
 import { Separator } from "@/components/ui/separator";
+import { CompanyComplementaryFields } from "@/features/companies/components/CompanyComplementaryFields";
 import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Breadcrumb, PageHeader } from "@/components/ui/page-components";
 import { GuidePanel } from "@/components/ui/guide-panel";
@@ -62,6 +63,10 @@ function companyToFormData(company: Company): CompanyUpdate {
     registration_number: company.registration_number,
     tax_id: company.tax_id,
     vat_number: company.vat_number || "",
+    cnss_number: company.cnss_number || "",
+    patent_number: company.patent_number || "",
+    rib: company.rib || "",
+    activities: company.activities || "",
     address: company.address,
     phone: company.phone,
     email: company.email,
@@ -317,7 +322,7 @@ function CompanyEditForm({ company }: { company: Company }) {
 
               <div className="space-y-2 min-w-0">
                 <Label htmlFor="vat_number">
-                  <SourceText source="VAT Number (ICE)" />
+                  <SourceText source="Identifiant Commun de l'Entreprise" />
                 </Label>
                 <Input className="w-full"
                   id="vat_number"
@@ -327,6 +332,8 @@ function CompanyEditForm({ company }: { company: Company }) {
                   placeholder={sourceText("Identifiant Commun de l'Entreprise")}
                 />
               </div>
+
+              <CompanyComplementaryFields values={formData} onChange={handleChange} />
 
               <Separator className="my-4" />
 

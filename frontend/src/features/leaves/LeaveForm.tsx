@@ -33,6 +33,7 @@ import {
   leavesApi,
 } from "@/features/leaves/api";
 import { TICKET_ACCEPT, validateSingleUpload } from "@/lib/upload-limits";
+import { GROUP_COMPANY_VALUE } from "@/lib/company-scope";
 
 type LeaveFormValues = {
   company: string;
@@ -62,7 +63,7 @@ const emptyValues: LeaveFormValues = {
 
 function leaveToValues(leave: Leave): LeaveFormValues {
   return {
-    company: leave.company ? String(leave.company) : "",
+    company: leave.company ? String(leave.company) : GROUP_COMPANY_VALUE,
     decision_number: leave.decision_number || "",
     decision_date: leave.decision_date ? leave.decision_date.split("T")[0] : "",
     personnel: String(leave.personnel ?? ""),
@@ -102,7 +103,7 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
         page_size: 200,
       } as any);
       const rows = response?.results ?? [];
-      if (!values.company) return rows;
+      if (!values.company || values.company === GROUP_COMPANY_VALUE) return rows;
       return rows.filter((row) => String(row.company) === String(values.company));
     },
     enabled: Boolean(values.personnel),
@@ -232,6 +233,9 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
                       <SelectValue placeholder={sourceText("Select company")} />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value={GROUP_COMPANY_VALUE}>
+                        {sourceText("Tout le groupe")}
+                      </SelectItem>
                       {companyOptions.map((company) => (
                         <SelectItem key={company.id} value={String(company.id)}>
                           {company.name}

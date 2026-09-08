@@ -620,11 +620,12 @@ export function useCalculatePayroll(
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: payrollApi.calculate,
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: payrollQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: payrollQueryKeys.detail(id) });
-    },
     ...options,
+    onSuccess: async (data, id, onMutateResult, context) => {
+      queryClient.setQueryData(payrollQueryKeys.detail(id), data);
+      await queryClient.invalidateQueries({ queryKey: payrollQueryKeys.all });
+      await options?.onSuccess?.(data, id, onMutateResult, context);
+    },
   });
 }
 
@@ -634,11 +635,12 @@ export function useApprovePayroll(
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: payrollApi.approve,
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: payrollQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: payrollQueryKeys.detail(id) });
-    },
     ...options,
+    onSuccess: async (data, id, onMutateResult, context) => {
+      queryClient.setQueryData(payrollQueryKeys.detail(id), data);
+      await queryClient.invalidateQueries({ queryKey: payrollQueryKeys.all });
+      await options?.onSuccess?.(data, id, onMutateResult, context);
+    },
   });
 }
 
@@ -1132,13 +1134,17 @@ export function useStopCNSSDeclaration(
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }) => cnssApi.stop(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: cnssQueryKeys.declarations() });
-      queryClient.invalidateQueries({
-        queryKey: cnssQueryKeys.declarationDetail(id),
-      });
-    },
     ...options,
+    onSuccess: async (data, variables, onMutateResult, context) => {
+      queryClient.setQueryData(
+        cnssQueryKeys.declarationDetail(variables.id),
+        data,
+      );
+      await queryClient.invalidateQueries({
+        queryKey: cnssQueryKeys.declarations(),
+      });
+      await options?.onSuccess?.(data, variables, onMutateResult, context);
+    },
   });
 }
 
@@ -1289,13 +1295,12 @@ export function useSubmitCNSSMonthly(
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: cnssMonthlyApi.submit,
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: cnssQueryKeys.monthly() });
-      queryClient.invalidateQueries({
-        queryKey: cnssQueryKeys.monthlyDetail(id),
-      });
-    },
     ...options,
+    onSuccess: async (data, id, onMutateResult, context) => {
+      queryClient.setQueryData(cnssQueryKeys.monthlyDetail(id), data);
+      await queryClient.invalidateQueries({ queryKey: cnssQueryKeys.monthly() });
+      await options?.onSuccess?.(data, id, onMutateResult, context);
+    },
   });
 }
 

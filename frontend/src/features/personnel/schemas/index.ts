@@ -179,7 +179,7 @@ export const PersonnelCompletenessSchema = z.object({
 
 const EmploymentBaseSchema = z.object({
   person: z.string().uuid("Invalid person ID"),
-  company: z.string().uuid("Invalid company ID"),
+  company: z.string().uuid("Invalid company ID").nullable(),
   employee_reference: z
     .string()
     .min(1, "Employee reference is required")
@@ -360,7 +360,7 @@ export const PayrollPaymentUpdateSchema = PayrollPaymentCreateSchema.partial();
 
 const CNSSDeclarationBaseSchema = z.object({
   person: z.string().uuid("Invalid person ID"),
-  company: z.string().uuid("Invalid company ID"),
+  company: z.string().uuid("Invalid company ID").nullable(),
   employment: z.string().uuid("Invalid employment ID").optional(),
   cnss_registration_number: z
     .string()

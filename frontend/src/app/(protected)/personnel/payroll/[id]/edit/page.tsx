@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
+import { useFormDirty } from "@/hooks/useFormDirty";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/components/ui/toast";
 import {
@@ -275,6 +276,7 @@ export default function EditPayrollPage() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isDirty },
   } = useForm<UpdatePayrollForm>({
     resolver: zodResolver(updatePayrollSchema),
@@ -293,6 +295,19 @@ export default function EditPayrollPage() {
       observations: payroll.observations || "",
     });
   }, [payroll, isDirty, reset]);
+  const originalValues = useMemo(() => {
+    if (!payroll) return null;
+    return {
+      scheduled_working_days: payroll.scheduled_working_days,
+      worked_days: payroll.worked_days ?? 0,
+      absence_days: payroll.absence_days ?? 0,
+      authorized_leave_days: payroll.authorized_leave_days ?? 0,
+      unpaid_leave_days: payroll.unpaid_leave_days ?? 0,
+      notes: payroll.notes || "",
+      observations: payroll.observations || "",
+    };
+  }, [payroll]);
+  const formDirty = useFormDirty(originalValues, watch());
 
   const canCalculate = payroll?.status === PayrollStatus.DRAFT;
   const canApprove = payroll?.status === PayrollStatus.CALCULATED;
@@ -921,7 +936,7 @@ export default function EditPayrollPage() {
                   <X className="me-2 h-4 w-4" />
                   <SourceText source="Cancel" leading trailing />
                 </Button>
-                <Button type="submit" disabled={isSubmitting || !isDirty || isLocked}>
+                <Button type="submit" disabled={isSubmitting || !formDirty || isLocked}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="me-2 h-4 w-4 animate-spin" />

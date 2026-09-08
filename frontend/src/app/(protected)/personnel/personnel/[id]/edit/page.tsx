@@ -1,7 +1,8 @@
 "use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { SourceText } from "@/components/i18n/SourceText";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useFormDirty } from "@/hooks/useFormDirty";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -234,6 +235,31 @@ export default function EditPersonnelPage() {
       });
     }
   }, [personnelData, isDirty, reset]);
+  const originalValues = useMemo(() => {
+    if (!personnelData) return null;
+    return {
+      first_name: personnelData.first_name,
+      last_name: personnelData.last_name,
+      middle_name: personnelData.middle_name || "",
+      cin: personnelData.cin || "",
+      phone: personnelData.phone || "",
+      email: personnelData.email || "",
+      address: personnelData.address || "",
+      city: personnelData.city || "",
+      province: personnelData.province || "",
+      region: personnelData.region || "",
+      date_of_birth: personnelData.date_of_birth
+        ? personnelData.date_of_birth.split("T")[0]
+        : "",
+      nationality: personnelData.nationality || "",
+      status: statusOptions.some((option) => option.value === personnelData.status)
+        ? personnelData.status
+        : PersonnelStatus.ACTIVE,
+      notes: personnelData.notes || "",
+      observations: personnelData.observations || "",
+    };
+  }, [personnelData]);
+  const formDirty = useFormDirty(originalValues, watch());
   const onSubmit = async (data: UpdatePersonnelForm) => {
     setIsSubmitting(true);
     try {
@@ -517,7 +543,7 @@ export default function EditPersonnelPage() {
                 <ScheduleDate
                   id="date_of_birth"
                   value={watch("date_of_birth") ?? ""}
-                  onChange={(val) => setValue("date_of_birth", val)}
+                  onChange={(val) => setValue("date_of_birth", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting)}
                 />
               </div>
@@ -654,7 +680,7 @@ export default function EditPersonnelPage() {
             <X className="me-2 h-4 w-4" />
             <SourceText source="Cancel" leading trailing />
           </Button>
-          <Button type="submit" disabled={isSubmitting || (!isDirty && !photoFile && !photoRemoved)}>
+          <Button type="submit" disabled={isSubmitting || (!formDirty && !photoFile && !photoRemoved)}>
             {isSubmitting ? (
               <>
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />

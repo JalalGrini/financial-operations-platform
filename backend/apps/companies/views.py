@@ -51,7 +51,11 @@ class CompanyViewSet(
         ("trade_name", "Trade name"),
         ("registration_number", "Registration number"),
         ("tax_id", "Tax ID"),
-        ("vat_number", "VAT number"),
+        ("vat_number", "Identifiant Commun de l'Entreprise"),
+        ("cnss_number", "Numéro CNSS"),
+        ("patent_number", "Patente"),
+        ("rib", "RIB"),
+        ("activities", "Activités"),
         ("email", "Email"),
         ("phone", "Phone"),
         ("address", "Address"),
@@ -237,6 +241,7 @@ class CompanyViewSet(
                     "city": city,
                     "status": company.status,
                     "budget_amount": 0,  # Will be implemented with Treasury
+                    "rib": company.rib or "",
                     "personnel_count": company.employments.filter(
                         is_archived=False, employment_end_date__isnull=True
                     ).count(),

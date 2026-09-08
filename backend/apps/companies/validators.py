@@ -48,7 +48,7 @@ class CompanyValidator:
 
         if data.get("vat_number"):
             if len(data["vat_number"]) > 100:
-                errors["vat_number"] = _("VAT number must be 100 characters or fewer.")
+                errors["vat_number"] = _("Identifiant Commun de l'Entreprise must be 100 characters or fewer.")
 
         if data.get("email") and len(data["email"]) > 254:
             errors["email"] = _("Email must be 254 characters or fewer.")
@@ -104,7 +104,7 @@ class CompanyValidator:
 
         if "vat_number" in data and data["vat_number"]:
             if len(data["vat_number"]) > 100:
-                errors["vat_number"] = _("VAT number must be 100 characters or fewer.")
+                errors["vat_number"] = _("Identifiant Commun de l'Entreprise must be 100 characters or fewer.")
 
         if "email" in data and data["email"] and len(data["email"]) > 254:
             errors["email"] = _("Email must be 254 characters or fewer.")

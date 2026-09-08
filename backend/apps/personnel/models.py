@@ -40,6 +40,13 @@ class PersonnelStatus(models.TextChoices):
     ARCHIVED = "archived", _("Archived")
 
 
+class EmploymentPayoutMethod(models.TextChoices):
+    """How this employment is paid. Independent of configuration.PaymentMethod."""
+
+    CASH = "cash", _("Espèces")
+    BANK = "bank", _("Virement bancaire")
+
+
 class EmploymentStatus(models.TextChoices):
     """Status for Employment (a specific work contract)."""
 
@@ -450,6 +457,9 @@ class Employment(ReferenceTrackedModel):
         on_delete=models.CASCADE,
         related_name="employments",
         verbose_name=_("company"),
+        null=True,
+        blank=True,
+        help_text=_("Leave empty to connect this employment to the whole group."),
     )
 
     # Identity and organization
@@ -540,6 +550,14 @@ class Employment(ReferenceTrackedModel):
         blank=True,
         related_name="+",
         verbose_name=_("payment method"),
+    )
+    payout_method = models.CharField(
+        _("payout method"),
+        max_length=16,
+        choices=EmploymentPayoutMethod.choices,
+        default=EmploymentPayoutMethod.CASH,
+        blank=True,
+        help_text=_("Espèces or bank transfer. Independent of the PaymentMethod catalog."),
     )
     rib = models.CharField(
         _("RIB"),
@@ -635,7 +653,8 @@ class Employment(ReferenceTrackedModel):
         ]
 
     def __str__(self):
-        return f"{self.reference} - {self.person.get_full_name()} @ {self.company.name}"
+        company_name = self.company.name if self.company_id else str(_("Tout le groupe"))
+        return f"{self.reference} - {self.person.get_full_name()} @ {company_name}"
 
     def generate_reference(self) -> str:
         """Generate unique reference: EMP-YYYY-NNNNN"""

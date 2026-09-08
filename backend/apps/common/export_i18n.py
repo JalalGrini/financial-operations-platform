@@ -47,6 +47,14 @@ HEADER_TRANSLATIONS: dict[str, dict[str, str]] = {
     "Registration number": {"fr": "Numéro d'immatriculation", "ar": "رقم التسجيل"},
     "Tax ID": {"fr": "Identifiant fiscal", "ar": "المعرف الضريبي"},
     "VAT number": {"fr": "Numéro de TVA", "ar": "رقم الضريبة على القيمة المضافة"},
+    "Identifiant Commun de l'Entreprise": {
+        "fr": "Identifiant Commun de l'Entreprise",
+        "ar": "المعرّف الموحد للمؤسسة",
+    },
+    "Numéro CNSS": {"fr": "Numéro CNSS", "ar": "رقم الضمان الاجتماعي"},
+    "Patente": {"fr": "Patente", "ar": "البراءة"},
+    "Activités": {"fr": "Activités", "ar": "الأنشطة"},
+    "Currently declared": {"fr": "Actuellement déclaré", "ar": "مصرّح حالياً"},
     "Email": {"fr": "E-mail", "ar": "البريد الإلكتروني"},
     "Phone": {"fr": "Téléphone", "ar": "الهاتف"},
     "Address": {"fr": "Adresse", "ar": "العنوان"},
@@ -150,6 +158,7 @@ SHEET_TRANSLATIONS: dict[str, dict[str, str]] = {
     "Clients": {"fr": "Clients", "ar": "العملاء"},
     "Suppliers": {"fr": "Fournisseurs", "ar": "الموردون"},
     "Cash transfers": {"fr": "Transferts d'espèces", "ar": "التحويلات النقدية"},
+    "CNSS": {"fr": "CNSS", "ar": "الضمان الاجتماعي"},
     "Export": {"fr": "Export", "ar": "تصدير"},
 }
 

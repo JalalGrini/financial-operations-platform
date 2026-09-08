@@ -120,7 +120,7 @@ function ProfileEditor({
   const upload = async (file?: File) => {
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      toast.error(sourceText("Each file must be 10 MB or smaller."));
+      toast.error(sourceText("Each file must be 5 MB or smaller."));
       return;
     }
     const generation = ++uploadGeneration.current;

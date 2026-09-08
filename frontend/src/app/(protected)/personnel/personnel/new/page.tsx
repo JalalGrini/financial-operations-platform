@@ -250,7 +250,7 @@ export default function CreatePersonnelPage() {
                 <ScheduleDate
                   id="date_of_birth"
                   value={watch("date_of_birth") ?? ""}
-                  onChange={(val) => setValue("date_of_birth", val)}
+                  onChange={(val) => setValue("date_of_birth", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting)}
                 />
               </div>

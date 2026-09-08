@@ -15,6 +15,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.common.company_scope import company_display_name
 from apps.companies.models import Company
 from apps.personnel.models import (
     CNSSDeclaration,
@@ -888,8 +889,18 @@ class MonthlyPayrollService:
         payroll.approved_by = user
         payroll.approved_at = timezone.now()
         payroll.updated_by = user
+        payroll.calculate_totals()
         payroll.save(
-            update_fields=["status", "approved_by", "approved_at", "updated_by", "updated_at"]
+            update_fields=[
+                "status",
+                "approved_by",
+                "approved_at",
+                "updated_by",
+                "updated_at",
+                "total_paid",
+                "remaining_amount",
+                "payment_status",
+            ]
         )
 
         return payroll
@@ -904,8 +915,18 @@ class MonthlyPayrollService:
         payroll.approved_by = None
         payroll.approved_at = None
         payroll.updated_by = user
+        payroll.calculate_totals()
         payroll.save(
-            update_fields=["status", "approved_by", "approved_at", "updated_by", "updated_at"]
+            update_fields=[
+                "status",
+                "approved_by",
+                "approved_at",
+                "updated_by",
+                "updated_at",
+                "total_paid",
+                "remaining_amount",
+                "payment_status",
+            ]
         )
 
         return payroll
@@ -1667,7 +1688,9 @@ class ReportService:
                 "region": p.region,
                 "nationality": p.nationality,
                 "date_of_birth": p.date_of_birth,
-                "status": p.status,
+                "status": (
+                    "on_leave" if getattr(p, "is_on_leave", False) else p.status
+                ),
             }
             for p in rows_qs
         ]
@@ -1684,6 +1707,8 @@ class ReportService:
             ("department", "Department"),
             ("work_city", "Work City"),
             ("employment_status", "Status"),
+            ("payout_method", "Payment Method"),
+            ("rib", "RIB"),
             ("contract_type", "Contract"),
             ("hire_date", "Hire Date"),
             ("employment_end_date", "End Date"),
@@ -1694,11 +1719,15 @@ class ReportService:
                 "reference": e.reference,
                 "employee_reference": e.employee_reference,
                 "person_name": e.person.get_full_name(),
-                "company_name": e.company.name,
+                "company_name": company_display_name(e.company),
                 "job_title": e.job_title,
                 "department": e.department,
                 "work_city": e.work_city,
-                "employment_status": e.employment_status,
+                "employment_status": (
+                    "on_leave" if getattr(e, "is_on_leave", False) else e.employment_status
+                ),
+                "payout_method": e.payout_method,
+                "rib": e.rib,
                 "contract_type": e.contract_type,
                 "hire_date": e.hire_date,
                 "employment_end_date": e.employment_end_date,
@@ -1726,7 +1755,7 @@ class ReportService:
                 "reference": s.reference,
                 "employment_reference": s.employment.employee_reference,
                 "person_name": s.employment.person.get_full_name(),
-                "company_name": s.employment.company.name,
+                "company_name": company_display_name(s.employment.company),
                 "fixed_monthly_gross_salary": s.fixed_monthly_gross_salary,
                 "effective_from": s.effective_from,
                 "effective_to": s.effective_to,
@@ -1734,6 +1763,35 @@ class ReportService:
                 "reason": s.reason,
             }
             for s in rows_qs
+        ]
+        return rows, columns
+
+    @staticmethod
+    def cnss_declarations_export(rows_qs) -> tuple[list[dict], list[tuple[str, str]]]:
+        columns = [
+            ("reference", "Reference"),
+            ("person_name", "Employee"),
+            ("company_name", "Company"),
+            ("cnss_registration_number", "CNSS Number"),
+            ("situation", "Situation"),
+            ("is_currently_declared", "Currently declared"),
+            ("first_declaration_date", "First Declaration"),
+            ("declaration_start_date", "Start Date"),
+            ("declaration_stop_date", "Stop Date"),
+        ]
+        rows = [
+            {
+                "reference": row.reference,
+                "person_name": row.person.get_full_name(),
+                "company_name": company_display_name(row.company),
+                "cnss_registration_number": row.cnss_registration_number,
+                "situation": row.situation,
+                "is_currently_declared": "Yes" if row.is_currently_declared else "No",
+                "first_declaration_date": row.first_declaration_date,
+                "declaration_start_date": row.declaration_start_date,
+                "declaration_stop_date": row.declaration_stop_date,
+            }
+            for row in rows_qs
         ]
         return rows, columns
 

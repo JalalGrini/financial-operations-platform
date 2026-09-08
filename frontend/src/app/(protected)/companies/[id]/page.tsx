@@ -3,6 +3,7 @@ import { sourceText } from "@/lib/i18n/source-catalog";
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { SourceText } from "@/components/i18n/SourceText";
 import {
   Building2,
   MapPin,
@@ -255,9 +256,41 @@ export default function CompanyDetailPage() {
             {company.vat_number && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
-                  <SourceText source="VAT Number (ICE)" />
+                  <SourceText source="Identifiant Commun de l'Entreprise" />
                 </span>
                 <span className="font-medium">{company.vat_number}</span>
+              </div>
+            )}
+            {company.cnss_number && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  <SourceText source="Numéro CNSS" />
+                </span>
+                <span className="font-medium">{company.cnss_number}</span>
+              </div>
+            )}
+            {company.patent_number && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  <SourceText source="Patente" />
+                </span>
+                <span className="font-medium">{company.patent_number}</span>
+              </div>
+            )}
+            {company.rib && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  <SourceText source="RIB" />
+                </span>
+                <span className="font-medium">{company.rib}</span>
+              </div>
+            )}
+            {company.activities && (
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">
+                  <SourceText source="Activités" />
+                </span>
+                <span className="font-medium text-end">{company.activities}</span>
               </div>
             )}
             <div className="flex justify-between">
@@ -618,4 +651,3 @@ export default function CompanyDetailPage() {
     </div>
   );
 }
-import { SourceText } from "@/components/i18n/SourceText";

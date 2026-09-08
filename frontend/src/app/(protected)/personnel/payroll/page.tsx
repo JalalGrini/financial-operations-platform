@@ -1,6 +1,7 @@
 ﻿"use client";
 import { useRouter } from "next/navigation";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { companyDisplayName, companyFilterOptions } from "@/lib/company-scope";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { TagAction } from "@/components/collaboration/TagAction";
@@ -384,7 +385,7 @@ export default function PayrollListPage() {
         key: "company_name",
         header: sourceText("Company"),
         render: (_, row) => (
-          <span className="font-medium">{row.company_name}</span>
+          <span className="font-medium">{companyDisplayName(row.company_name, sourceText("Tout le groupe"))}</span>
         ),
         className: "w-36",
       },
@@ -636,7 +637,7 @@ export default function PayrollListPage() {
                   { value: PayrollStatus.PAID, label: sourceText("Paid") },
                   { value: PayrollStatus.CANCELLED, label: sourceText("Cancelled") },
                 ]},
-                { key: "company", label: sourceText("Company"), options: ((companies as any)?.results || companies || []).map((co: any) => ({ value: co.id, label: co.name })) },
+                { key: "company", label: sourceText("Company"), options: companyFilterOptions((companies as any)?.results || companies || [], sourceText("Tout le groupe")) },
                 { key: "employment", label: sourceText("Employee"), options: ((personnelOptions as any)?.results || personnelOptions || []).map((p: any) => ({ value: p.id, label: p.full_name || p.name })) },
               ]}
               selected={filterSelected}
@@ -691,7 +692,7 @@ export default function PayrollListPage() {
                         <StatusBadge status={row.status} variant="payroll" />
                       </div>
                       <p className="font-semibold leading-tight text-foreground">{row.employee_name}</p>
-                      <p className="text-xs text-muted-foreground">{row.company_name}</p>
+                      <p className="text-xs text-muted-foreground">{companyDisplayName(row.company_name, sourceText("Tout le groupe"))}</p>
                       <p className="text-xs text-muted-foreground">{row.year}-{String(row.month).padStart(2, "0")}</p>
                       <div className="mt-auto flex items-center justify-end gap-1 pt-1">
                         <TagAction resourceType="personnel.monthlypayrollrecord" targetId={row.id} compact />
@@ -742,7 +743,7 @@ export default function PayrollListPage() {
                           <TableCell>
                             <div>
                               <p className="font-medium text-foreground">{row.employee_name}</p>
-                              <p className="text-xs text-muted-foreground">{row.company_name}</p>
+                              <p className="text-xs text-muted-foreground">{companyDisplayName(row.company_name, sourceText("Tout le groupe"))}</p>
                             </div>
                           </TableCell>
                           <TableCell className="hidden text-sm text-muted-foreground md:table-cell">

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { companyFieldToApi, GROUP_COMPANY_VALUE } from "@/lib/company-scope";
 import {
   ContractType,
   EmploymentDepartureReason,
@@ -37,7 +38,13 @@ const optionalAmount = z
 export const employmentFormSchema = z
   .object({
     person: z.string().uuid("Select a valid employee"),
-    company: z.string().uuid("Select a valid company"),
+    company: z
+      .string()
+      .min(1, "Select a valid company")
+      .refine(
+        (value) => value === GROUP_COMPANY_VALUE || z.string().uuid().safeParse(value).success,
+        "Select a valid company",
+      ),
     employee_reference: z
       .string()
       .trim()
@@ -60,6 +67,7 @@ export const employmentFormSchema = z
     payment_method: z
       .union([z.literal(""), z.string().uuid("Select a valid payment method")])
       .optional(),
+    payout_method: z.enum(["cash", "bank"]).default("cash"),
     rib: z.string().max(50).optional(),
     default_monthly_working_days: z.number().int().min(1).max(31).default(26),
     // Per-employee day pricing. Kept as strings in the form so "empty" stays
@@ -113,6 +121,13 @@ export const employmentFormSchema = z
         message: "La date de départ est obligatoire",
       });
     }
+    if (data.payout_method === "bank" && !data.rib?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["rib"],
+        message: "Le RIB est requis pour un virement bancaire",
+      });
+    }
   });
 
 export type EmploymentFormValues = z.infer<typeof employmentFormSchema>;
@@ -139,7 +154,7 @@ export function buildEmploymentPayload(
 ): EmploymentCreate {
   return {
     person: values.person,
-    company: values.company,
+    company: companyFieldToApi(values.company),
     employee_reference: values.employee_reference.trim(),
     job_title: optional(values.job_title),
     department: optional(values.department),
@@ -152,6 +167,7 @@ export function buildEmploymentPayload(
     departure_reason: values.departure_reason,
     resignation_date: optional(values.resignation_date),
     payment_method: optional(values.payment_method),
+    payout_method: values.payout_method || "cash",
     rib: optional(values.rib),
     default_monthly_working_days: values.default_monthly_working_days,
     worked_day_rate: optionalNumber(values.worked_day_rate),
@@ -175,6 +191,7 @@ const EMPLOYMENT_FIELDS = new Set<keyof EmploymentFormValues>([
   "departure_reason",
   "resignation_date",
   "payment_method",
+  "payout_method",
   "rib",
   "default_monthly_working_days",
   "worked_day_rate",

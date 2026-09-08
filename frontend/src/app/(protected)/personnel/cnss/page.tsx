@@ -1,6 +1,9 @@
 ﻿"use client";
 import { useRouter } from "next/navigation";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { companyDisplayName, companyFilterOptions } from "@/lib/company-scope";
+import { FilteredExportButton } from "@/components/ui/filtered-export-button";
+import { cnssApi, reportsApi } from "@/features/personnel/api";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { TagAction } from "@/components/collaboration/TagAction";
@@ -92,7 +95,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { toast } from "@/components/ui/toast";
-import { reportsApi } from "@/features/personnel/api";
 import { SkeletonTable, SkeletonHero, SkeletonStatsStrip } from "@/components/ui/page-skeletons";
 import { WriteOnly } from "@/components/auth/WriteOnly";
 import { MonthlyExportDialog } from "@/components/ui/monthly-export-dialog";
@@ -418,7 +420,7 @@ export default function CNSSListPage() {
         key: "company_name",
         header: sourceText("Company"),
         render: (_, row) => (
-          <span className="font-medium">{row.company_name}</span>
+          <span className="font-medium">{companyDisplayName(row.company_name, sourceText("Tout le groupe"))}</span>
         ),
         className: "w-36",
       },
@@ -660,7 +662,7 @@ export default function CNSSListPage() {
                   { value: "PENDING", label: sourceText("Pending") },
                   { value: "CLOSED", label: sourceText("Closed") },
                 ]},
-                { key: "company", label: sourceText("Company"), options: (companies ?? []).map((co) => ({ value: String(co.id), label: co.name })) },
+                { key: "company", label: sourceText("Company"), options: companyFilterOptions(companies ?? [], sourceText("Tout le groupe")) },
                 { key: "person", label: sourceText("Person"), options: (personnelOptions ?? []).map((p) => ({ value: String(p.id), label: p.name })) },
               ]}
               selected={filterSelected}
@@ -692,6 +694,21 @@ export default function CNSSListPage() {
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
             <ViewToggle mode={viewMode} onChange={setViewMode} />
+            <FilteredExportButton
+              prefix="cnss"
+              extraParams={{
+                search: search || undefined,
+                company: companyFilter || undefined,
+                person: personFilter || undefined,
+              }}
+              options={[
+                { value: "ACTIVE", label: sourceText("Actifs seulement"), slug: "actifs" },
+                { value: "STOPPED", label: sourceText("Stopped"), slug: "arretes" },
+                { value: "SUSPENDED", label: sourceText("Suspended"), slug: "suspendus" },
+                { value: "PENDING", label: sourceText("Pending"), slug: "en_attente" },
+              ]}
+              onExport={(params) => cnssApi.export(params, "xlsx")}
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -725,7 +742,7 @@ export default function CNSSListPage() {
                         <StatusBadge status={row.situation} variant="cnssSituation" showDot />
                       </div>
                       <p className="text-xs text-muted-foreground">{row.reference}</p>
-                      <p className="text-xs text-muted-foreground">{row.company_name || sourceText("—")}</p>
+                      <p className="text-xs text-muted-foreground">{companyDisplayName(row.company_name, sourceText("Tout le groupe"))}</p>
                       <div className="mt-auto flex items-center justify-end gap-1 pt-1">
                         <TagAction resourceType="personnel.cnssdeclaration" targetId={row.id} compact />
                         <ExpandingActions
@@ -760,7 +777,7 @@ export default function CNSSListPage() {
                             <p className="text-xs text-muted-foreground">{row.reference}</p>
                           </div>
                         </TableCell>
-                        <TableCell className="hidden text-sm text-muted-foreground md:table-cell">{row.company_name || sourceText("—")}</TableCell>
+                        <TableCell className="hidden text-sm text-muted-foreground md:table-cell">{companyDisplayName(row.company_name, sourceText("Tout le groupe"))}</TableCell>
                         <TableCell><StatusBadge status={row.situation} variant="cnssSituation" showDot /></TableCell>
                         <TableCell className="hidden text-sm text-muted-foreground xl:table-cell">{sourceText("—")}</TableCell>
                         <TableCell>

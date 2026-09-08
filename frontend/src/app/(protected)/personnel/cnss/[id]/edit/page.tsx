@@ -1,6 +1,6 @@
 ﻿"use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -20,6 +20,9 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { SourceText } from "@/components/i18n/SourceText";
+import { useFormDirty } from "@/hooks/useFormDirty";
+import { ScheduleDate } from "@/components/ui/schedule-date";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -209,6 +212,32 @@ export default function EditCNSSDeclarationPage() {
   const employmentId = useWatch({ control, name: "employment" });
   const situation = useWatch({ control, name: "situation" });
   const stopReason = useWatch({ control, name: "stop_reason" });
+  const currentValues = watch();
+  const originalValues = useMemo(() => {
+    if (!cnssData) return null;
+    return {
+      person: cnssData.person,
+      company: cnssData.company,
+      employment: cnssData.employment || "",
+      cnss_registration_number: cnssData.cnss_registration_number,
+      situation: cnssData.situation,
+      first_declaration_date: cnssData.first_declaration_date
+        ? cnssData.first_declaration_date.split("T")[0]
+        : "",
+      declaration_start_date: cnssData.declaration_start_date
+        ? cnssData.declaration_start_date.split("T")[0]
+        : "",
+      declaration_stop_date: cnssData.declaration_stop_date
+        ? cnssData.declaration_stop_date.split("T")[0]
+        : "",
+      resignation_date: cnssData.resignation_date
+        ? cnssData.resignation_date.split("T")[0]
+        : "",
+      stop_reason: cnssData.stop_reason || undefined,
+      observations: cnssData.observations || "",
+    };
+  }, [cnssData]);
+  const formDirty = useFormDirty(originalValues, currentValues);
   const { data: employments } = useEmploymentsByPerson(personId);
 
   /**
@@ -447,6 +476,7 @@ export default function EditCNSSDeclarationPage() {
                   value={situation ?? ""}
                   onValueChange={(value) => {
                     setValue("situation", value as CNSSSituation, {
+                      shouldDirty: true,
                       shouldValidate: true,
                     });
                   }}
@@ -491,7 +521,7 @@ export default function EditCNSSDeclarationPage() {
                 <ScheduleDate
                   id="first_declaration_date"
                   value={watch("first_declaration_date") ?? ""}
-                  onChange={(val) => setValue("first_declaration_date", val)}
+                  onChange={(val) => setValue("first_declaration_date", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting)}
                 />
                 {errors.first_declaration_date && (
@@ -512,7 +542,7 @@ export default function EditCNSSDeclarationPage() {
                 <ScheduleDate
                   id="declaration_start_date"
                   value={watch("declaration_start_date") ?? ""}
-                  onChange={(val) => setValue("declaration_start_date", val)}
+                  onChange={(val) => setValue("declaration_start_date", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting)}
                 />
                 {errors.declaration_start_date && (
@@ -529,7 +559,7 @@ export default function EditCNSSDeclarationPage() {
                 <ScheduleDate
                   id="declaration_stop_date"
                   value={watch("declaration_stop_date") ?? ""}
-                  onChange={(val) => setValue("declaration_stop_date", val)}
+                  onChange={(val) => setValue("declaration_stop_date", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting || !showStopFields)}
                 />
               </div>
@@ -541,7 +571,7 @@ export default function EditCNSSDeclarationPage() {
                 <ScheduleDate
                   id="resignation_date"
                   value={watch("resignation_date") ?? ""}
-                  onChange={(val) => setValue("resignation_date", val)}
+                  onChange={(val) => setValue("resignation_date", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting || !showStopFields)}
                 />
               </div>
@@ -569,6 +599,7 @@ export default function EditCNSSDeclarationPage() {
                         value={stopReason ?? ""}
                         onValueChange={(value) => {
                           setValue("stop_reason", value as CNSSStopReason, {
+                            shouldDirty: true,
                             shouldValidate: true,
                           });
                         }}
@@ -633,7 +664,7 @@ export default function EditCNSSDeclarationPage() {
             <X className="me-2 h-4 w-4" />
             <SourceText source="Cancel" leading trailing />
           </Button>
-          <Button type="submit" disabled={isSubmitting || !isDirty}>
+          <Button type="submit" disabled={isSubmitting || !formDirty}>
             {isSubmitting ? (
               <>
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />
@@ -651,5 +682,3 @@ export default function EditCNSSDeclarationPage() {
     </div>
   );
 }
-import { SourceText } from "@/components/i18n/SourceText";
-import { ScheduleDate } from "@/components/ui/schedule-date";

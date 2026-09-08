@@ -33,11 +33,12 @@ fact someone has signed off against a bank statement. Neither is edited. The
 
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from apps.common.models import CustomFieldsModel, ReferenceTrackedModel
+from apps.common.models import CustomFieldsModel, ReferenceTrackedModel, TimeStampedModel, UUIDModel
 
 MONEY_MAX_DIGITS = 18
 MONEY_DECIMAL_PLACES = 4
@@ -417,3 +418,59 @@ class Transaction(ReferenceTrackedModel, CustomFieldsModel):
                 if not Transaction.all_objects.filter(reference=candidate).exists():
                     return candidate
         raise RuntimeError("Could not allocate a transaction reference after 10 attempts.")
+
+
+class DailyBudget(UUIDModel, TimeStampedModel):
+    """One cash-on-hand figure per company per calendar day.
+
+    Missing days are treated as carried-over from the last filled date. The
+    GET list computes that without writing; a management command persists
+    midnight carry-over rows when a scheduler is available.
+    """
+
+    company = models.ForeignKey(
+        "companies.Company",
+        on_delete=models.CASCADE,
+        related_name="daily_budgets",
+        verbose_name=_("company"),
+    )
+    date = models.DateField(_("date"))
+    amount = models.DecimalField(
+        _("amount"),
+        max_digits=15,
+        decimal_places=2,
+    )
+    filled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="daily_budgets_filled",
+        verbose_name=_("filled by"),
+    )
+    filled_at = models.DateTimeField(_("filled at"), auto_now_add=True)
+    note = models.TextField(_("note"), blank=True, default="")
+    is_carried_over = models.BooleanField(
+        _("carried over"),
+        default=False,
+        help_text=_("True when this day's amount was copied from a previous day."),
+    )
+
+    class Meta:
+        verbose_name = _("daily budget")
+        verbose_name_plural = _("daily budgets")
+        ordering = ["-date", "company__name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "date"],
+                name="unique_daily_budget_per_company_date",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["company", "date"], name="daily_budget_co_date_idx"),
+            models.Index(fields=["date"], name="daily_budget_date_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.company_id} {self.date} {self.amount}"
+

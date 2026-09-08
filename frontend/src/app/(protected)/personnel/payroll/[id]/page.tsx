@@ -1,5 +1,6 @@
 "use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { companyDisplayName } from "@/lib/company-scope";
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -293,7 +294,7 @@ export default function PayrollProfilePage() {
                     <p className="text-xs text-muted-foreground">
                       <SourceText source="Company" />
                     </p>
-                    <p className="font-medium">{payroll?.company_name}</p>
+                    <p className="font-medium">{companyDisplayName(payroll?.company_name, sourceText("Tout le groupe"))}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">

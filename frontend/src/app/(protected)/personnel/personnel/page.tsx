@@ -1,6 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { companyFilterOptions } from "@/lib/company-scope";
+import { FilteredExportButton } from "@/components/ui/filtered-export-button";
+import { personnelApi } from "@/features/personnel/api";
 import React, { useState, useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import {
@@ -37,7 +40,6 @@ import {
   useArchivePersonnel,
   useRestorePersonnel,
   usePermanentDeletePersonnel,
-  useExportPersonnel,
 } from "@/features/personnel/hooks";
 import { usePersonnelSelect } from "@/features/personnel/hooks";
 import { useCompanies } from "@/features/personnel/hooks";
@@ -260,21 +262,6 @@ export default function PersonnelListPage() {
       setSelectedForArchive("");
     },
   });
-  const exportMutation = useExportPersonnel({
-    onSuccess: (blob, { format }) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${sourceText("personnel_export_file_prefix")}_${todayInputValue()}.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    },
-    onError: (error) => {
-      toast.error(error?.message || sourceText("Export failed"));
-    },
-  });
   const handleSort = useCallback(
     (key: keyof PersonnelPerson | string) => {
       if (sortBy === key) {
@@ -403,7 +390,7 @@ export default function PersonnelListPage() {
         key: "status",
         header: sourceText("Status"),
         render: (_, row) => (
-          <StatusBadge status={row.status} variant="personnel" />
+          <StatusBadge status={row.is_on_leave ? "on_leave" : row.status} variant="personnel" />
         ),
         className: "w-36",
       },
@@ -623,8 +610,9 @@ export default function PersonnelListPage() {
                   { value: "suspended", label: sourceText("Suspended") },
                   { value: "terminated", label: sourceText("Terminated") },
                   { value: "archived", label: sourceText("Archived") },
+                  { value: "on_leave", label: sourceText("On Leave") },
                 ]},
-                { key: "company", label: sourceText("Company"), options: ((companies as any)?.results || companies || []).map((c: any) => ({ value: c.id, label: c.name })) },
+                { key: "company", label: sourceText("Company"), options: companyFilterOptions((companies as any)?.results || companies || [], sourceText("Tout le groupe")) },
               ]}
               selected={filterSelected}
               onSelectedChange={(next) => { setFilterSelected(next); setPage(1); }}
@@ -649,6 +637,24 @@ export default function PersonnelListPage() {
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
             <ViewToggle mode={viewMode} onChange={setViewMode} />
+            <FilteredExportButton
+              prefix="personnel"
+              allowMulti
+              extraParams={{
+                search: search || undefined,
+                company: companyFilter || undefined,
+                archive_state: archiveStateForView(showArchived),
+              }}
+              options={[
+                { value: "active", label: sourceText("Actifs seulement"), slug: "actifs" },
+                { value: "inactive", label: sourceText("Inactifs seulement"), slug: "inactifs" },
+                { value: "suspended", label: sourceText("Suspended"), slug: "suspendus" },
+                { value: "terminated", label: sourceText("Terminated"), slug: "termines" },
+                { value: "archived", label: sourceText("Archived"), slug: "archives" },
+                { value: "on_leave", label: sourceText("On Leave"), slug: "en_conge" },
+              ]}
+              onExport={(params) => personnelApi.export(params, "xlsx")}
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -692,7 +698,7 @@ export default function PersonnelListPage() {
                             {row.email && <p className="truncate text-xs text-muted-foreground">{row.email}</p>}
                           </div>
                         </div>
-                        <StatusBadge status={row.status} variant="personnel" />
+                        <StatusBadge status={row.is_on_leave ? "on_leave" : row.status} variant="personnel" />
                       </div>
                       <p className="text-xs text-muted-foreground font-mono">{row.reference}</p>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -759,7 +765,7 @@ export default function PersonnelListPage() {
                             {row.reference}
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
-                            <StatusBadge status={row.status} variant="personnel" />
+                            <StatusBadge status={row.is_on_leave ? "on_leave" : row.status} variant="personnel" />
                           </TableCell>
                           <TableCell className="hidden xl:table-cell">
                             {row.has_active_cnss ? (

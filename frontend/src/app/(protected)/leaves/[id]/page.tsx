@@ -14,6 +14,7 @@ import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { leavesApi, LEAVE_STATUS_LABELS, LEAVE_STATUS_COLORS, LEAVE_TYPES } from "@/features/leaves/api";
 import { cn } from "@/lib/utils";
+import { companyDisplayName } from "@/lib/company-scope";
 import { ConfirmDialog } from "@/features/personnel/components/common";
 
 export default function LeaveDetailPage() {
@@ -94,6 +95,10 @@ export default function LeaveDetailPage() {
               <div>
                 <p className="text-muted-foreground"><SourceText source="Type" /></p>
                 <p className="font-medium">{leaveTypeLabel}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground"><SourceText source="Company" /></p>
+                <p className="font-medium">{companyDisplayName(leave.company_name, sourceText("Tout le groupe"))}</p>
               </div>
               <div>
                 <p className="text-muted-foreground"><SourceText source="Duration" /></p>

@@ -1,14 +1,15 @@
 from rest_framework import serializers
 
+from apps.common.company_scope import GroupCompanyInputMixin, company_display_name, is_group_company
 from apps.common.security import LEAVE_DOCUMENT_EXTENSIONS, validate_private_upload
 
 from .models import Leave
 
 
-class LeaveSerializer(serializers.ModelSerializer):
+class LeaveSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
     personnel_name = serializers.SerializerMethodField(read_only=True)
     created_by_name = serializers.SerializerMethodField(read_only=True)
-    company_name = serializers.CharField(source="company.name", read_only=True, default=None)
+    company_name = serializers.SerializerMethodField()
     job_title = serializers.CharField(source="employment.job_title", read_only=True, default="")
     department = serializers.CharField(source="employment.department", read_only=True, default="")
     signed_document = serializers.FileField(required=False, allow_null=True)
@@ -37,6 +38,9 @@ class LeaveSerializer(serializers.ModelSerializer):
     def get_created_by_name(self, obj):
         return str(obj.created_by) if obj.created_by else None
 
+    def get_company_name(self, obj):
+        return company_display_name(obj.company)
+
     def validate_signed_document(self, upload):
         if not upload:
             return upload
@@ -56,7 +60,9 @@ class LeaveSerializer(serializers.ModelSerializer):
                 {'leave_type_other': 'Specify the leave type when Autre is selected.'}
             )
         employment = data.get('employment', getattr(self.instance, 'employment', None))
-        company = data.get('company')
-        if employment and not company:
+        if 'company' in data:
+            if is_group_company(data.get('company')):
+                data['company'] = None
+        elif employment:
             data['company'] = employment.company
         return data

@@ -1,6 +1,9 @@
 ﻿"use client";
 import { useRouter } from "next/navigation";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { companyDisplayName, companyFilterOptions } from "@/lib/company-scope";
+import { FilteredExportButton } from "@/components/ui/filtered-export-button";
+import { salaryApi } from "@/features/personnel/api";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { TagAction } from "@/components/collaboration/TagAction";
@@ -23,7 +26,6 @@ import {
 import { cn } from "@/lib/utils";
 import {
   useSalaryList,
-  useExportSalary,
   useCompanies,
   usePersonnelSelect,
   useArchiveSalary,
@@ -209,21 +211,6 @@ export default function SalaryListPage() {
     onError: (error) =>
       toast.error(error.message || sourceText("Permanent deletion failed")),
   });
-  const exportMutation = useExportSalary({
-    onSuccess: (blob, { format }) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${sourceText("salary_export_file_prefix")}_${todayInputValue()}.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    },
-    onError: (error) => {
-      toast.error(error?.message || sourceText("Export failed"));
-    },
-  });
   const handleSort = useCallback(
     (key: keyof EmploymentSalary | string) => {
       if (sortBy === key) {
@@ -271,7 +258,7 @@ export default function SalaryListPage() {
       key: "company_name",
       header: sourceText("Company"),
       render: (_, row) => (
-        <span className="font-medium">{row.company_name}</span>
+        <span className="font-medium">{companyDisplayName(row.company_name, sourceText("Tout le groupe"))}</span>
       ),
       className: "w-40",
     },
@@ -429,7 +416,7 @@ export default function SalaryListPage() {
                   { value: "current", label: sourceText("Current") },
                   { value: "historical", label: sourceText("Historical") },
                 ]},
-                { key: "company", label: sourceText("Company"), options: ((companies as any)?.results || companies || []).map((c: any) => ({ value: c.id, label: c.name })) },
+                { key: "company", label: sourceText("Company"), options: companyFilterOptions((companies as any)?.results || companies || [], sourceText("Tout le groupe")) },
               ]}
               selected={filterSelected}
               onSelectedChange={(next) => { setFilterSelected(next); setPage(1); }}
@@ -453,6 +440,18 @@ export default function SalaryListPage() {
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
+            <FilteredExportButton
+              prefix="salaries"
+              extraParams={{
+                search: search || undefined,
+                company: companyFilter || undefined,
+              }}
+              options={[
+                { value: "current", label: sourceText("Current"), slug: "courants" },
+                { value: "historical", label: sourceText("Historical"), slug: "historiques" },
+              ]}
+              onExport={(params) => salaryApi.export(params, "xlsx")}
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -494,7 +493,7 @@ export default function SalaryListPage() {
                             <p className="text-xs text-muted-foreground">{row.reference}</p>
                           </div>
                         </TableCell>
-                        <TableCell className="hidden text-sm text-muted-foreground md:table-cell">{row.company_name || sourceText("—")}</TableCell>
+                        <TableCell className="hidden text-sm text-muted-foreground md:table-cell">{companyDisplayName(row.company_name, sourceText("Tout le groupe"))}</TableCell>
                         {/* A salary history row is an effective-dated range, not a
                             payroll month: it has no year/month/status/net_salary.
                             This view previously read those payroll fields, which

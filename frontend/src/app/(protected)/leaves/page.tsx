@@ -26,6 +26,7 @@ import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { leavesApi, Leave, LEAVE_STATUS_LABELS, LEAVE_STATUS_COLORS, LEAVE_TYPES } from "@/features/leaves/api";
 import { cn } from "@/lib/utils";
+import { companyDisplayName } from "@/lib/company-scope";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { TagAction } from "@/components/collaboration/TagAction";
 import { ExportButton } from "@/components/ui/export-button";
@@ -246,6 +247,7 @@ export default function LeavesListPage() {
                     <TableHeader>
                       <TableRow className="bg-muted/30">
                         <TableHead><SourceText source="Personnel" /></TableHead>
+                        <TableHead className="hidden xl:table-cell"><SourceText source="Company" /></TableHead>
                         <TableHead className="hidden md:table-cell"><SourceText source="Leave Type" /></TableHead>
                         <TableHead><SourceText source="Dates" /></TableHead>
                         <TableHead className="hidden lg:table-cell"><SourceText source="Duration" /></TableHead>
@@ -271,6 +273,9 @@ export default function LeavesListPage() {
                                 {tab === "soon" && <PulseIndicator color="amber" size="sm" />}
                                 {leave.personnel_name ?? `#${leave.personnel}`}
                               </span>
+                            </TableCell>
+                            <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">
+                              {companyDisplayName(leave.company_name, sourceText("Tout le groupe"))}
                             </TableCell>
                             <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                               {getLeaveTypeLabel(leave.leave_type)}

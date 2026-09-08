@@ -34,6 +34,9 @@ from apps.collaboration.querying import TaggedForMeFilterMixin
 from apps.common.files import private_image_response
 from apps.common.mixins import ArchivableObjectMixin, SoftDeleteViewSetMixin
 from apps.common.querying import apply_archive_visibility as _apply_archive_visibility
+from apps.common.company_scope import GROUP_COMPANY_TOKEN, company_display_name, filter_queryset_by_company
+from apps.common.querying import apply_date_range, split_query_values
+from apps.personnel.leave_status import annotate_is_on_leave
 from apps.personnel.models import (
     CNSSDeclaration,
     CNSSMonthlyDeclaration,
@@ -156,19 +159,17 @@ class PersonnelPersonViewSet(
             PersonnelPerson.all_objects.all(), PersonnelPerson, self.request
         )
 
-        # Filter by company if provided
         company_id = self.request.query_params.get("company")
-        if company_id:
+        if company_id == GROUP_COMPANY_TOKEN:
+            queryset = queryset.filter(
+                employments__company__isnull=True, employments__is_active=True
+            ).distinct()
+        elif company_id:
             queryset = queryset.filter(
                 employments__company_id=company_id, employments__is_active=True
             ).distinct()
 
-        # Filter by status
-        status = self.request.query_params.get("status")
-        if status:
-            queryset = queryset.filter(status=status)
-
-        # Search
+        statuses = split_query_values(self.request, "status")
         search = self.request.query_params.get("search")
         if search:
             queryset = queryset.filter(
@@ -179,19 +180,7 @@ class PersonnelPersonViewSet(
                 | Q(email__icontains=search)
             )
 
-        # Filter by company
-        company = self.request.query_params.get("company")
-        if company:
-            queryset = queryset.filter(
-                employments__company_id=company, employments__is_active=True
-            ).distinct()
-
-        # Annotate the two per-row counts the list serializer needs instead of
-        # letting it call .count()/.exists() per row (2 extra queries per
-        # person; ~40 wasted queries on a full page at PAGE_SIZE=20).
-        # PersonnelPersonSerializer reads these annotations when present and
-        # falls back to the model helpers otherwise (Cycle 23, N-1).
-        return (
+        queryset = (
             queryset.select_related("created_by", "updated_by", "archived_by")
             .annotate(
                 active_employments_count_annotated=Count(
@@ -209,6 +198,16 @@ class PersonnelPersonViewSet(
             )
             .order_by("reference", "pk")
         )
+        queryset = annotate_is_on_leave(queryset, leave_fk="personnel")
+        if statuses:
+            leave_q = Q()
+            stored = [s for s in statuses if s != "on_leave"]
+            if "on_leave" in statuses:
+                leave_q |= Q(is_on_leave=True)
+            if stored:
+                leave_q |= Q(status__in=stored)
+            queryset = queryset.filter(leave_q)
+        return queryset
 
     @action(detail=True, methods=["post"])
     def archive(self, request, pk=None):
@@ -351,24 +350,18 @@ class EmploymentViewSet(
             queryset = queryset.filter(person_id=person_id)
 
         # Filter by company
-        company_id = self.request.query_params.get("company")
-        if company_id:
-            queryset = queryset.filter(company_id=company_id)
+        queryset = filter_queryset_by_company(
+            queryset, field="company", raw=self.request.query_params.get("company")
+        )
 
         # Filter by active status
         is_active = self.request.query_params.get("is_active")
         if is_active is not None:
             queryset = queryset.filter(is_active=is_active.lower() == "true")
 
-        # Filter by employment status. The list pages send ``status``;
-        # ``employment_status`` stays accepted for backward compatibility.
-        employment_status = self.request.query_params.get(
-            "status"
-        ) or self.request.query_params.get("employment_status")
-        if employment_status:
-            queryset = queryset.filter(employment_status=employment_status)
-
-        # Search by person name/CIN or employee reference
+        statuses = split_query_values(self.request, "status") or split_query_values(
+            self.request, "employment_status"
+        )
         search = self.request.query_params.get("search")
         if search:
             queryset = queryset.filter(
@@ -379,9 +372,23 @@ class EmploymentViewSet(
             )
 
         queryset = apply_date_range(queryset, self.request, "hire_date")
-        return queryset.select_related("person", "company", "payment_method").prefetch_related(
+        queryset = queryset.select_related("person", "company", "payment_method").prefetch_related(
             "salaries", "payroll_records", "cnss_declarations"
         )
+        queryset = annotate_is_on_leave(queryset, leave_fk="employment")
+        if statuses:
+            leave_q = Q()
+            stored = [s for s in statuses if s != "on_leave"]
+            if "on_leave" in statuses:
+                leave_q |= Q(is_on_leave=True)
+            if stored:
+                if "inactive" in stored:
+                    stored = [s for s in stored if s != "inactive"]
+                    leave_q |= Q(is_active=False)
+                if stored:
+                    leave_q |= Q(employment_status__in=stored)
+            queryset = queryset.filter(leave_q)
+        return queryset
 
     @action(detail=True, methods=["post"])
     def terminate(self, request, pk=None):
@@ -461,10 +468,9 @@ class EmploymentSalaryViewSet(
         if employment_id:
             queryset = queryset.filter(employment_id=employment_id)
 
-        # Filter by company (through the employment)
-        company_id = self.request.query_params.get("company")
-        if company_id:
-            queryset = queryset.filter(employment__company_id=company_id)
+        queryset = filter_queryset_by_company(
+            queryset, field="employment__company", raw=self.request.query_params.get("company")
+        )
 
         # The salaries page sends ``status=current|historical``; map it onto
         # the ``is_current`` flag. A raw ``is_current=true|false`` param keeps
@@ -607,10 +613,9 @@ class MonthlyPayrollRecordViewSet(
         if employment_id:
             queryset = queryset.filter(employment_id=employment_id)
 
-        # Filter by company
-        company_id = self.request.query_params.get("company")
-        if company_id:
-            queryset = queryset.filter(employment__company_id=company_id)
+        queryset = filter_queryset_by_company(
+            queryset, field="employment__company", raw=self.request.query_params.get("company")
+        )
 
         # Filter by period
         year = self.request.query_params.get("year")
@@ -1351,18 +1356,17 @@ class CNSSDeclarationViewSet(
         if person_id:
             queryset = queryset.filter(person_id=person_id)
 
-        # Filter by company
-        company_id = self.request.query_params.get("company")
-        if company_id:
-            queryset = queryset.filter(company_id=company_id)
+        queryset = filter_queryset_by_company(
+            queryset, field="company", raw=self.request.query_params.get("company")
+        )
 
         # Filter by situation. The CNSS list page sends its situation filter
         # values under ``status``; ``situation`` stays accepted as well.
-        situation = self.request.query_params.get("situation") or self.request.query_params.get(
-            "status"
+        situations = split_query_values(self.request, "situation") or split_query_values(
+            self.request, "status"
         )
-        if situation:
-            queryset = queryset.filter(situation=situation)
+        if situations:
+            queryset = queryset.filter(situation__in=situations)
 
         # Filter by active status
         is_current = self.request.query_params.get("is_current")
@@ -1387,6 +1391,17 @@ class CNSSDeclarationViewSet(
 
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
+
+    @action(detail=False, methods=["post"])
+    def export(self, request):
+        """Export the (filtered) CNSS declaration list as CSV or XLSX."""
+        return _export_list_response(
+            request,
+            self.filter_queryset(self.get_queryset()),
+            ReportService.cnss_declarations_export,
+            "CNSS",
+            "cnss_export",
+        )
 
     @action(detail=True, methods=["post"])
     def stop(self, request, pk=None):
@@ -1554,10 +1569,11 @@ class CNSSMonthlyDeclarationViewSet(
         if month:
             queryset = queryset.filter(month=month)
 
-        # Filter by company
-        company_id = self.request.query_params.get("company")
-        if company_id:
-            queryset = queryset.filter(cnss_declaration__company_id=company_id)
+        queryset = filter_queryset_by_company(
+            queryset,
+            field="cnss_declaration__company",
+            raw=self.request.query_params.get("company"),
+        )
 
         # Filter by status
         status = self.request.query_params.get("status")

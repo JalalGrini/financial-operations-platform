@@ -259,7 +259,7 @@ export default function CreateSalaryPage() {
                 <ScheduleDate
                   id="effective_from"
                   value={watch("effective_from") ?? ""}
-                  onChange={(val) => setValue("effective_from", val)}
+                  onChange={(val) => setValue("effective_from", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting)}
                 />
                 {errors.effective_from && (
@@ -276,7 +276,7 @@ export default function CreateSalaryPage() {
                 <ScheduleDate
                   id="effective_to"
                   value={watch("effective_to") ?? ""}
-                  onChange={(val) => setValue("effective_to", val)}
+                  onChange={(val) => setValue("effective_to", val, { shouldDirty: true, shouldValidate: true })}
                   disabled={(isSubmitting)}
                 />
               </div>

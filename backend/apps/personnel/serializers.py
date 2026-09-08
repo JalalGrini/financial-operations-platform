@@ -13,6 +13,7 @@ from django.utils.datastructures import MultiValueDict
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from apps.common.company_scope import GroupCompanyInputMixin, company_display_name
 from apps.common.security import PHOTO_ALLOWED_EXTENSIONS, validate_private_upload
 from apps.companies.models import Company
 from apps.configuration.models import PaymentMethod
@@ -20,6 +21,7 @@ from apps.personnel.models import (
     CNSSDeclaration,
     CNSSMonthlyDeclaration,
     Employment,
+    EmploymentPayoutMethod,
     EmploymentSalary,
     MonthlyPayrollRecord,
     PayrollAdjustment,
@@ -77,6 +79,8 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
     active_employments_count = serializers.SerializerMethodField()
     has_active_cnss = serializers.SerializerMethodField()
     photo = serializers.ImageField(required=False, allow_null=True, write_only=True)
+    is_on_leave = serializers.SerializerMethodField()
+    display_status = serializers.SerializerMethodField()
 
     empty_to_null_fields = ("cin", "date_of_birth")
 
@@ -106,6 +110,8 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
             "completeness_percentage",
             "active_employments_count",
             "has_active_cnss",
+            "is_on_leave",
+            "display_status",
             "created_at",
             "updated_at",
         ]
@@ -118,6 +124,8 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
             "completeness_percentage",
             "active_employments_count",
             "has_active_cnss",
+            "is_on_leave",
+            "display_status",
         ]
 
     def validate_photo(self, upload):
@@ -151,6 +159,14 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
         if annotated is not None:
             return bool(annotated)
         return obj.has_active_cnss_declaration()
+
+    def get_is_on_leave(self, obj):
+        return bool(getattr(obj, "is_on_leave", False))
+
+    def get_display_status(self, obj):
+        if getattr(obj, "is_on_leave", False):
+            return "on_leave"
+        return obj.status
 
 
 class PersonnelPersonDetailSerializer(PersonnelPersonSerializer):
@@ -255,9 +271,11 @@ class EmploymentSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
     """Serializer for Employment list view."""
 
     person_name = serializers.CharField(source="person.get_full_name", read_only=True)
-    company_name = serializers.CharField(source="company.name", read_only=True)
+    company_name = serializers.SerializerMethodField()
     current_salary = serializers.SerializerMethodField()
     is_multi_company = serializers.SerializerMethodField()
+    is_on_leave = serializers.SerializerMethodField()
+    display_status = serializers.SerializerMethodField()
 
     empty_to_null_fields = (
         "employment_end_date",
@@ -281,6 +299,8 @@ class EmploymentSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
             "work_domain",
             "work_city",
             "employment_status",
+            "is_on_leave",
+            "display_status",
             "contract_type",
             "hire_date",
             "employment_end_date",
@@ -288,6 +308,7 @@ class EmploymentSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
             "resignation_date",
             "is_active",
             "payment_method",
+            "payout_method",
             "rib",
             "bank_name",
             "bank_account_holder",
@@ -309,7 +330,20 @@ class EmploymentSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
             "updated_at",
             "current_salary",
             "is_multi_company",
+            "is_on_leave",
+            "display_status",
         ]
+
+    def get_company_name(self, obj):
+        return company_display_name(obj.company)
+
+    def get_is_on_leave(self, obj):
+        return bool(getattr(obj, "is_on_leave", False))
+
+    def get_display_status(self, obj):
+        if getattr(obj, "is_on_leave", False):
+            return "on_leave"
+        return obj.employment_status
 
     def get_current_salary(self, obj):
         salary = obj.get_current_salary()
@@ -362,14 +396,18 @@ class EmploymentDetailSerializer(EmploymentSerializer):
         return None
 
 
-class EmploymentCreateSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
+class EmploymentCreateSerializer(
+    GroupCompanyInputMixin, EmptyStringToNullMixin, serializers.ModelSerializer
+):
     """Authoritative create/update contract used by the browser form."""
 
     person = serializers.PrimaryKeyRelatedField(
         queryset=PersonnelPerson.objects.filter(status="active", is_archived=False)
     )
     company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.filter(status="active", is_archived=False)
+        queryset=Company.objects.filter(status="active", is_archived=False),
+        required=False,
+        allow_null=True,
     )
     payment_method = serializers.PrimaryKeyRelatedField(
         queryset=PaymentMethod.objects.filter(status="active", is_archived=False),
@@ -381,6 +419,7 @@ class EmploymentCreateSerializer(EmptyStringToNullMixin, serializers.ModelSerial
         "employment_end_date",
         "resignation_date",
         "payment_method",
+        "company",
     )
 
     class Meta:
@@ -401,6 +440,7 @@ class EmploymentCreateSerializer(EmptyStringToNullMixin, serializers.ModelSerial
             "departure_reason",
             "resignation_date",
             "payment_method",
+            "payout_method",
             "rib",
             "bank_name",
             "bank_account_holder",
@@ -466,17 +506,26 @@ class EmploymentCreateSerializer(EmptyStringToNullMixin, serializers.ModelSerial
         except DjangoValidationError as exc:
             errors.update(self._django_error_detail(exc, "employment_end_date"))
 
-        if not errors and person and company and hire_date:
+        if not errors and person and hire_date:
             try:
                 validator.validate_employment_overlap(
                     person_id=person.id,
-                    company_id=company.id,
+                    company_id=company.id if company else None,
                     hire_date=hire_date,
                     end_date=end_date,
                     exclude_id=getattr(instance, "id", None),
                 )
             except DjangoValidationError as exc:
                 errors["non_field_errors"] = list(exc.messages)
+
+        payout_method = attrs.get(
+            "payout_method",
+            getattr(instance, "payout_method", EmploymentPayoutMethod.CASH),
+        ) or EmploymentPayoutMethod.CASH
+        attrs["payout_method"] = payout_method
+        rib = attrs.get("rib", getattr(instance, "rib", "") if instance else "")
+        if payout_method == EmploymentPayoutMethod.BANK and not str(rib or "").strip():
+            errors["rib"] = [_("Le RIB est requis pour un virement bancaire")]
 
         inactive_statuses = {"resigned", "terminated", "retired", "former"}
         attrs["is_active"] = employment_status not in inactive_statuses
@@ -517,7 +566,7 @@ class EmploymentSalarySerializer(serializers.ModelSerializer):
         source="employment.employee_reference", read_only=True
     )
     person_name = serializers.CharField(source="employment.person.get_full_name", read_only=True)
-    company_name = serializers.CharField(source="employment.company.name", read_only=True)
+    company_name = serializers.SerializerMethodField()
     fixed_monthly_gross_salary = serializers.DecimalField(
         max_digits=18,
         decimal_places=4,
@@ -563,6 +612,9 @@ class EmploymentSalarySerializer(serializers.ModelSerializer):
     def get_is_valid_now(self, obj):
         return obj.is_valid_on(timezone.now().date())
 
+    def get_company_name(self, obj):
+        return company_display_name(obj.employment.company if obj.employment_id else None)
+
 
 class MonthlyPayrollRecordSerializer(serializers.ModelSerializer):
     """Serializer for MonthlyPayrollRecord list view.
@@ -584,7 +636,7 @@ class MonthlyPayrollRecordSerializer(serializers.ModelSerializer):
     employee_reference = serializers.CharField(
         source="employment.employee_reference", read_only=True
     )
-    company_name = serializers.CharField(source="employment.company.name", read_only=True)
+    company_name = serializers.SerializerMethodField()
 
     UPDATE_ONLY_READ_ONLY_FIELDS = (
         "employment",
@@ -664,6 +716,11 @@ class MonthlyPayrollRecordSerializer(serializers.ModelSerializer):
                 if field_name in self.fields:
                     self.fields[field_name].read_only = True
                     self.fields[field_name].required = False
+
+    def get_company_name(self, obj):
+        return company_display_name(
+            obj.employment.company if getattr(obj, "employment_id", None) else None
+        )
 
 
 class MonthlyPayrollRecordDetailSerializer(MonthlyPayrollRecordSerializer):
@@ -857,7 +914,7 @@ class CNSSDeclarationSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
     """Serializer for CNSSDeclaration list view."""
 
     person_name = serializers.CharField(source="person.get_full_name", read_only=True)
-    company_name = serializers.CharField(source="company.name", read_only=True)
+    company_name = serializers.SerializerMethodField()
     employment_ref = serializers.CharField(source="employment.employee_reference", read_only=True)
     is_active_now = serializers.SerializerMethodField()
 
@@ -921,6 +978,9 @@ class CNSSDeclarationSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
     def get_is_active_now(self, obj):
         return obj.is_currently_active()
 
+    def get_company_name(self, obj):
+        return company_display_name(obj.company)
+
 
 class CNSSDeclarationDetailSerializer(CNSSDeclarationSerializer):
     """Detailed serializer with monthly declarations."""
@@ -943,7 +1003,7 @@ class CNSSDeclarationListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for lists."""
 
     person_name = serializers.CharField(source="person.get_full_name", read_only=True)
-    company_name = serializers.CharField(source="company.name", read_only=True)
+    company_name = serializers.SerializerMethodField()
 
     class Meta:
         model = CNSSDeclaration
@@ -956,6 +1016,9 @@ class CNSSDeclarationListSerializer(serializers.ModelSerializer):
             "situation",
             "is_currently_declared",
         ]
+
+    def get_company_name(self, obj):
+        return company_display_name(obj.company)
 
 
 class CNSSMonthlyDeclarationSerializer(serializers.ModelSerializer):

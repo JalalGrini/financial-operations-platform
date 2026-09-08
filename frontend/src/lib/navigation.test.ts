@@ -69,6 +69,24 @@ describe("role-normalized navigation", () => {
     ).toBe("/reports");
   });
 
+  it("shows Trésorerie to every recognised role, under Dashboard", () => {
+    const href = "/tresorerie";
+    const item = NAVIGATION.find((entry) => entry.href === href);
+    expect(item, `${href} must be present in the sidebar`).toBeDefined();
+    expect(item!.roles).toEqual(["Administrator", "Assistant", "Director"]);
+    expect(NAVIGATION[0]?.href).toBe("/dashboard");
+    expect(NAVIGATION[1]?.href).toBe(href);
+
+    const visibleFor = (audience: User) =>
+      NAVIGATION.filter((entry) => canAccessNavigationItem(audience, entry)).map(
+        (entry) => entry.href,
+      );
+
+    expect(visibleFor(user(["Administrator"]))).toContain(href);
+    expect(visibleFor(user(["Assistant"]))).toContain(href);
+    expect(visibleFor(user(["Director"]))).toContain(href);
+  });
+
   it("shows Treasury and Personnel Reports to administrators only", () => {
     // v17.21 supersedes the v17.18 retirement. Both modules are back in the
     // sidebar, restricted to Administrator. This is NOT a cosmetic gate: the

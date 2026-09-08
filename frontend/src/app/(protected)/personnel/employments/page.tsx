@@ -1,6 +1,9 @@
 ﻿"use client";
 import { useRouter } from "next/navigation";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { companyDisplayName, companyFilterOptions } from "@/lib/company-scope";
+import { FilteredExportButton } from "@/components/ui/filtered-export-button";
+import { employmentPayoutLabel } from "@/features/personnel/components/EmploymentPayoutFields";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { TagAction } from "@/components/collaboration/TagAction";
@@ -213,35 +216,6 @@ export default function EmploymentsListPage() {
       setSelectedForArchive("");
     },
   });
-  // Export the employments list with the current filters (audit fix: the
-  // export menu items were dead TODOs).
-  const [exporting, setExporting] = useState(false);
-  const handleExport = async (format: "csv" | "xlsx") => {
-    setExporting(true);
-    try {
-      const blob = await employmentApi.export(
-        {
-          search: search || undefined,
-          company: companyFilter || undefined,
-          person: personFilter || undefined,
-          employment_status: statusFilter || undefined,
-        },
-        format,
-      );
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${sourceText("employment_export_file_prefix")}_${todayInputValue()}.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error: any) {
-      toast.error(error?.message || sourceText("Export failed"));
-    } finally {
-      setExporting(false);
-    }
-  };
   const handleSort = useCallback(
     (key: keyof Employment | string) => {
       if (sortBy === key) {
@@ -324,7 +298,7 @@ export default function EmploymentsListPage() {
         key: "company_name",
         header: sourceText("Company"),
         render: (_, row) => (
-          <span className="font-medium">{row.company_name}</span>
+          <span className="font-medium">{companyDisplayName(row.company_name, sourceText("Tout le groupe"))}</span>
         ),
         className: "w-40",
       },
@@ -344,7 +318,10 @@ export default function EmploymentsListPage() {
         key: "employment_status",
         header: sourceText("Status"),
         render: (_, row) => (
-          <StatusBadge status={row.employment_status} variant="employment" />
+          <StatusBadge
+            status={row.is_on_leave ? EmploymentStatus.ON_LEAVE : row.employment_status}
+            variant="employment"
+          />
         ),
         className: "w-36",
       },
@@ -497,9 +474,11 @@ export default function EmploymentsListPage() {
                 { key: "status", label: sourceText("Employment Status"), options: [
                   { value: "active", label: sourceText("Active") },
                   { value: "inactive", label: sourceText("Inactive") },
+                  { value: "on_leave", label: sourceText("On Leave") },
+                  { value: "suspended", label: sourceText("Suspended") },
                   { value: "terminated", label: sourceText("Terminated") },
                 ]},
-                { key: "company", label: sourceText("Company"), options: ((companies as any)?.results || companies || []).map((c: any) => ({ value: c.id, label: c.name })) },
+                { key: "company", label: sourceText("Company"), options: companyFilterOptions((companies as any)?.results || companies || [], sourceText("Tout le groupe")) },
                 { key: "person", label: sourceText("Person"), options: ((personnelOptions as any)?.results || personnelOptions || []).map((p: any) => ({ value: p.id, label: p.full_name || p.name })) },
               ]}
               selected={filterSelected}
@@ -524,6 +503,34 @@ export default function EmploymentsListPage() {
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
+            <FilteredExportButton
+              prefix="employments"
+              allowMulti
+              extraParams={{
+                search: search || undefined,
+                company: companyFilter || undefined,
+                person: personFilter || undefined,
+              }}
+              options={[
+                { value: "active", label: sourceText("Actifs seulement"), slug: "actifs" },
+                { value: "inactive", label: sourceText("Inactifs seulement"), slug: "inactifs" },
+                { value: "on_leave", label: sourceText("On Leave"), slug: "en_conge" },
+                { value: "suspended", label: sourceText("Suspended"), slug: "suspendus" },
+                { value: "resigned", label: sourceText("Resigned"), slug: "demission" },
+                { value: "terminated", label: sourceText("Terminated"), slug: "termines" },
+              ]}
+              onExport={(params) =>
+                employmentApi.export(
+                  {
+                    search: params.search,
+                    company: params.company,
+                    person: params.person,
+                    employment_status: params.status,
+                  },
+                  "xlsx",
+                )
+              }
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -552,6 +559,7 @@ export default function EmploymentsListPage() {
                       <TableHead className="hidden md:table-cell">{sourceText("Position")}</TableHead>
                       <TableHead className="hidden lg:table-cell">{sourceText("Company")}</TableHead>
                       <TableHead>{sourceText("Status")}</TableHead>
+                      <TableHead className="hidden xl:table-cell">{sourceText("Payment")}</TableHead>
                       <TableHead className="hidden xl:table-cell text-end">{sourceText("Salary")}</TableHead>
                       <TableHead className="w-32"></TableHead>
                     </TableRow>
@@ -570,8 +578,9 @@ export default function EmploymentsListPage() {
                             status/gross_salary, none of which exist on the
                             serializer, so those cells always rendered undefined. */}
                         <TableCell className="hidden text-sm text-muted-foreground md:table-cell">{row.job_title || sourceText("—")}</TableCell>
-                        <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">{row.company_name || sourceText("—")}</TableCell>
-                        <TableCell><StatusBadge status={row.employment_status} variant="employment" /></TableCell>
+                        <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">{companyDisplayName(row.company_name, sourceText("Tout le groupe"))}</TableCell>
+                        <TableCell><StatusBadge status={row.is_on_leave ? EmploymentStatus.ON_LEAVE : row.employment_status} variant="employment" /></TableCell>
+                        <TableCell className="hidden text-xs text-muted-foreground xl:table-cell">{employmentPayoutLabel(row.payout_method, row.rib)}</TableCell>
                         <TableCell className="hidden xl:table-cell text-end"><Amount value={(row.current_salary ?? row.current_salary_detail)?.fixed_monthly_gross_salary ?? 0} currency="MAD" size="sm" /></TableCell>
                         <TableCell>
                           {/* Same defect class as the CNSS list: this is the table

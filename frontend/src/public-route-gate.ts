@@ -58,6 +58,7 @@ const PROTECTED_PREFIXES: readonly string[] = [
   "/notifications",
   "/tagged",
   "/companies",
+  "/tresorerie",
 ];
 
 function isProtectedRoute(pathname: string): boolean {

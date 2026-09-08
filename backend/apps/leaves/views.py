@@ -3,6 +3,7 @@ from rest_framework import generics, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from apps.common.company_scope import filter_queryset_by_company
 from apps.common.permissions import RoleBasedAccessPermission
 from .models import Leave
 from .serializers import LeaveSerializer
@@ -27,6 +28,9 @@ class LeaveListCreateView(generics.ListCreateAPIView):
             qs = qs.filter(status=status_f)
         if personnel_f:
             qs = qs.filter(personnel_id=personnel_f)
+        qs = filter_queryset_by_company(
+            qs, field="company", raw=self.request.query_params.get("company")
+        )
         search = self.request.query_params.get('search')
         if search:
             from django.db.models import Q
