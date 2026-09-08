@@ -1,7 +1,7 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
 
-from apps.common.security import safe_export_cell, validate_private_upload
+from apps.common.security import safe_export_cell, validate_private_upload, validate_ticket_uploads
 
 
 class Release36SecurityTests(SimpleTestCase):
@@ -17,3 +17,16 @@ class Release36SecurityTests(SimpleTestCase):
     def test_upload_accepts_real_pdf_signature(self):
         f = SimpleUploadedFile("invoice.pdf", b"%PDF-1.7 test", content_type="application/pdf")
         self.assertIs(validate_private_upload(f), f)
+
+    def test_ticket_uploads_reject_too_many_files(self):
+        files = [
+            SimpleUploadedFile(f"doc{i}.pdf", b"%PDF-1.7 x", content_type="application/pdf")
+            for i in range(6)
+        ]
+        with self.assertRaises(Exception):
+            validate_ticket_uploads(files)
+
+    def test_ticket_uploads_reject_executables(self):
+        f = SimpleUploadedFile("payload.exe", b"MZ\x90\x00", content_type="application/octet-stream")
+        with self.assertRaises(Exception):
+            validate_ticket_uploads([f])

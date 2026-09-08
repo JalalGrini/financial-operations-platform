@@ -1,19 +1,41 @@
 "use client";
 
 /**
- * Premium login page — v2.
+ * LoginPage v3 — Ultimate redesign for Groupe 3RB / EFOP
+ * Layout: [FORM ← LEFT]  [SLIDESHOW → RIGHT]
  *
- * Left panel: the same WebGL LiveBackground from the landing hero,
- * making the login unmistakably part of the same visual identity.
- * A dark navy overlay sits on top so the text is always readable.
- * In light mode the overlay is lighter; the shader adapts automatically.
- *
- * Right panel: clean white / dark-card form. Input fields show a
- * slow-cycling brand-gradient border ring on focus — the “two main
- * colours rolling inside the box” effect requested by the team.
+ * Features:
+ * ─ Floating label inputs (label animates up on focus / fill)
+ * ─ Gradient focus ring (brand blue → azure → orange cycling)
+ * ─ Shimmer submit button with spring hover
+ * ─ Framer Motion staggered entrance on every element
+ * ─ Right panel: 5-image Ken Burns slideshow with crossfade
+ * ─ Per-slide animated quote + highlight text
+ * ─ Dot progress indicators + prev/next arrows
+ * ─ Animated bottom progress bar
+ * ─ Glassmorphism feature pills
+ * ─ 100% CSS-variable based — both themes work, no white-on-white
  */
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback, type ReactNode } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import {
+  Eye,
+  EyeOff,
+  LifeBuoy,
+  ShieldCheck,
+  Database,
+  Clock,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  HelpCircle,
+} from "lucide-react";
+import { z } from "zod";
+import { SourceText } from "@/components/i18n/SourceText";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -30,34 +52,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Image from "next/image";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Eye,
-  EyeOff,
-  HelpCircle,
-  LifeBuoy,
-  ShieldCheck,
-  Database,
-  Gauge,
-  ArrowLeft,
-} from "lucide-react";
-import { z } from "zod";
-import { SourceText } from "@/components/i18n/SourceText";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LandingExperienceControls } from "@/components/product/LandingExperienceControls";
-import { LiveBackground } from "@/components/landing/LiveBackground";
+import { Input } from "@/components/ui/input";
 import { ThemeSwitch } from "@/components/ui/theme-switch-button";
+import { GradientSpinner } from "@/components/ui/gradient-spinner";
 import { apiClient } from "@/lib/api";
 import { useExperience } from "@/lib/experience";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import { GradientSpinner } from "@/components/ui/gradient-spinner";
+import { cn } from "@/lib/utils";
 
-/* ------------------------------------------------------------------ schema */
+/* ─────────────────────── validation ─────────────────────── */
 
 const loginSchema = z.object({
   email: z.string().min(1, "Please enter your email or username"),
@@ -65,111 +69,301 @@ const loginSchema = z.object({
   rememberMe: z.boolean().optional(),
 });
 
-/* ------------------------------------------------------------------ data */
+/* ────────────────────── slideshow data ────────────────────── */
 
-const FEATURES = [
+const SLIDES = [
   {
-    Icon: ShieldCheck,
-    text: "Secure access to group operations",
+    src: "/images/landing/hero-office-hi.jpg",
+    quote: "We are Groupe 3RB.",
+    highlight: "Your operations workspace.",
+    sub: "Guarding, cleaning and technical staffing — one platform.",
   },
   {
-    Icon: Database,
-    text: "Personnel, payroll, CNSS and treasury in one place",
+    src: "/images/companies/3rb-extreme/hero.jpg",
+    quote: "Trained teams.",
+    highlight: "Guaranteed results.",
+    sub: "368 completed projects. 99% client satisfaction.",
   },
   {
-    Icon: Gauge,
-    text: "Live tracking of records and tickets",
+    src: "/images/companies/3rb-maroc/hero.jpg",
+    quote: "Security does not wait.",
+    highlight: "Neither do we.",
+    sub: "Surveillance and intervention, operational 24/7.",
+  },
+  {
+    src: "/brand/services/nettoyage-bureaux.jpg",
+    quote: "Your company deserves",
+    highlight: "the best partner.",
+    sub: "Groupe 3.R.B — Morocco, since 2014.",
+  },
+  {
+    src: "/brand/services/protection-evenements.jpg",
+    quote: "A clear vision.",
+    highlight: "Flawless execution.",
+    sub: "Cleaning, disinfection, events and transfers.",
   },
 ] as const;
 
-/* ---------------------------------------------------------------- gradient border */
+const FEATURES = [
+  { Icon: ShieldCheck, text: "Secure access to group operations" },
+  { Icon: Database, text: "Personnel, payroll, CNSS and treasury in one place" },
+  { Icon: Clock, text: "Real-time tracking — 24/7" },
+] as const;
 
-/**
- * Wraps an input in a 1.5 px animated gradient ring.
- * The gradient cycles through the three brand colours while focused.
- * When blurred, it collapses back to the standard border colour.
- */
-function GradientBorderInput({
+const SLIDE_MS = 5000;
+
+/* ──────────────────── inline CSS (keyframes + utilities) ──────────────────── */
+
+const CSS = `
+@keyframes _bar {
+  0%,100%{ background-position:0% 50%; }
+  50%    { background-position:100% 50%; }
+}
+@keyframes _shimmer {
+  0%      { transform:translateX(-100%); }
+  60%,100%{ transform:translateX(100%); }
+}
+@keyframes _prog {
+  from{ width:0%; } to{ width:100%; }
+}
+@keyframes _kb1 {
+  from{ transform:scale(1)    translate(0%,0%);   }
+  to  { transform:scale(1.08) translate(-1%,-.5%); }
+}
+@keyframes _kb2 {
+  from{ transform:scale(1.06) translate(1%,0%); }
+  to  { transform:scale(1)    translate(0%,1%); }
+}
+
+/* accent bar */
+.l-bar {
+  background:linear-gradient(90deg,
+    hsl(var(--primary)),
+    hsl(var(--brand-blue-500)),
+    hsl(var(--brand-orange-500)),
+    hsl(var(--brand-blue-500)),
+    hsl(var(--primary)));
+  background-size:300% 100%;
+  animation:_bar 4s ease infinite;
+}
+
+/* shimmer button overlay */
+.l-shimmer::after {
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.18) 50%,transparent 100%);
+  transform:translateX(-100%);
+  animation:_shimmer 2.6s ease infinite;
+  pointer-events:none;
+}
+
+/* gradient focus ring */
+.l-ring-wrap:focus-within .l-ring { opacity:1; }
+.l-ring {
+  position:absolute;inset:0;border-radius:.875rem;
+  opacity:0;transition:opacity .22s ease;
+  background:linear-gradient(90deg,
+    hsl(var(--primary)),
+    hsl(var(--brand-blue-500)),
+    hsl(var(--brand-orange-500)),
+    hsl(var(--brand-blue-500)),
+    hsl(var(--primary)));
+  background-size:300% 100%;
+  animation:_bar 3s ease infinite;
+  pointer-events:none;
+}
+
+/* slides — Ken Burns only on the visible photo so idle slides stay still */
+.l-slide {
+  position:absolute;inset:0;overflow:hidden;
+  opacity:0;transition:opacity 1.3s cubic-bezier(.4,0,.2,1);
+}
+.l-slide.on{ opacity:1; }
+.l-slide img {
+  width:100%;height:100%;object-fit:cover;object-position:center;
+  transform:scale(1.02);
+}
+.l-slide.on img {
+  animation:_kb1 14s ease-in-out infinite alternate;
+}
+.l-slide.on:nth-child(even) img { animation-name:_kb2; }
+
+/* solid field fill so autofill / theme never go white-on-white */
+.l-field input:-webkit-autofill,
+.l-field input:-webkit-autofill:hover,
+.l-field input:-webkit-autofill:focus {
+  -webkit-text-fill-color:hsl(var(--foreground));
+  caret-color:hsl(var(--foreground));
+  box-shadow:0 0 0 1000px hsl(var(--muted)) inset;
+  transition:background-color 9999s ease-out;
+}
+
+/* progress bar */
+.l-prog{ animation:_prog linear forwards; }
+
+@media (prefers-reduced-motion:reduce) {
+  .l-bar,.l-shimmer::after,.l-ring,.l-prog,.l-slide.on img { animation:none !important; }
+  .l-slide { transition:none; }
+}
+`;
+
+/* ──────────────────── floating label input ──────────────────── */
+
+function FloatInput({
   id,
-  name,
-  type,
+  label,
+  type = "text",
   autoComplete,
-  required,
-  className,
+  value,
+  onChange,
   suffix,
-  hasError,
 }: {
   id: string;
-  name: string;
-  type: string;
+  label: string;
+  type?: string;
   autoComplete?: string;
-  required?: boolean;
-  className?: string;
-  suffix?: React.ReactNode;
-  hasError?: boolean;
+  value: string;
+  onChange: (v: string) => void;
+  suffix?: ReactNode;
 }) {
   const [focused, setFocused] = useState(false);
-
+  const floated = focused || value.length > 0;
   return (
-    <div
-      className="relative rounded-xl p-[1.5px] transition-all duration-300"
-      style={{
-        background: hasError
-          ? "hsl(0 72% 51%)"
-          : focused
-          ? "linear-gradient(90deg, hsl(224,71%,45%), hsl(197,100%,41%), hsl(30,88%,51%), hsl(197,100%,41%), hsl(224,71%,45%))"
-          : "hsl(220 20% 88%)",
-        backgroundSize: focused && !hasError ? "300% 100%" : "100% 100%",
-        animation:
-          focused && !hasError ? "loginGradientSpin 2.8s linear infinite" : "none",
-      }}
-    >
-      <div className="relative overflow-hidden rounded-[10px] bg-white dark:bg-[hsl(222,40%,12%)]">  
-        <Input
+    <div className="l-ring-wrap relative">
+      <div className="l-ring" aria-hidden />
+      <div
+        className={cn(
+          "l-field relative z-10 m-[1.5px] overflow-hidden rounded-[13px]",
+          "bg-muted dark:bg-muted/55",
+          "border border-border transition-colors",
+        )}
+      >
+        <label
+          htmlFor={id}
+          className={cn(
+            "pointer-events-none absolute left-4 z-10 origin-left",
+            "font-medium text-muted-foreground",
+            "transition-all duration-200 ease-out",
+            floated
+              ? "top-[9px] scale-[0.72] text-[10px] font-bold uppercase tracking-[.08em] text-[hsl(var(--brand-blue-500))]"
+              : "top-1/2 -translate-y-1/2 text-[14px]",
+          )}
+        >
+          {label}
+        </label>
+        <input
           id={id}
-          name={name}
+          name={id}
           type={type}
           autoComplete={autoComplete}
-          required={required}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className={[
-            "h-12 border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0",
-            suffix ? "pe-12" : "",
-            className ?? "",
-          ].join(" ")}
+          placeholder=" "
+          className={cn(
+            "w-full border-0 bg-transparent outline-none ring-0",
+            "pe-12 ps-4 text-[14px] font-medium text-foreground caret-[hsl(var(--foreground))]",
+            "transition-all duration-200",
+            floated ? "pb-2 pt-6" : "py-4",
+          )}
         />
-        {suffix}
+        {suffix && (
+          <div className="absolute inset-y-0 end-0 flex items-center pe-3">
+            {suffix}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-/* ---------------------------------------------------------------- component */
+/* ─────────────────────────── main export ─────────────────────────── */
 
 export function LoginPage() {
   const searchParams = useSearchParams();
   useExperience();
+  const reduceMotion = useReducedMotion();
 
-  const [showPassword, setShowPassword] = useState(false);
+  /* form */
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
+  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  /* help dialog state */
+  /* help dialog */
   const [helpOpen, setHelpOpen] = useState(false);
   const [helpReason, setHelpReason] = useState("");
   const [helpName, setHelpName] = useState("");
   const [helpEmail, setHelpEmail] = useState("");
-  const [helpMessage, setHelpMessage] = useState("");
+  const [helpMsg, setHelpMsg] = useState("");
   const [helpSending, setHelpSending] = useState(false);
   const [helpSent, setHelpSent] = useState(false);
-  const [helpError, setHelpError] = useState("");
+  const [helpErr, setHelpErr] = useState("");
 
-  const handleHelpSubmit = async (e: React.FormEvent) => {
+  /* slideshow */
+  const [slide, setSlide] = useState(0);
+  const [progKey, setProgKey] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const goTo = useCallback((n: number) => {
+    setSlide(n);
+    setProgKey((k) => k + 1);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => goTo((n + 1) % SLIDES.length), SLIDE_MS);
+  }, []);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setSlide((s) => {
+        setProgKey((k) => k + 1);
+        return (s + 1) % SLIDES.length;
+      });
+    }, SLIDE_MS);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  /* redirect */
+  const safeNext = () => {
+    const n = searchParams.get("next");
+    return n && n.startsWith("/") && !n.startsWith("//") ? n : "/dashboard";
+  };
+
+  /* submit — same API, tokens, and error handling as the previous login */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const r = loginSchema.safeParse({ email, password, rememberMe: remember });
+    if (!r.success) {
+      setError(
+        sourceText(r.error.issues[0]?.message || "Please check your input."),
+      );
+      return;
+    }
+    setLoading(true);
+    try {
+      await apiClient.login(r.data.email, r.data.password, r.data.rememberMe);
+      window.location.href = safeNext();
+    } catch (ex: any) {
+      setError(
+        ex?.response?.data?.message ||
+          ex?.message ||
+          sourceText("Unable to sign in"),
+      );
+      setLoading(false);
+    }
+  };
+
+  /* help submit */
+  const handleHelp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!helpReason || !helpName || !helpEmail) return;
     setHelpSending(true);
-    setHelpError("");
+    setHelpErr("");
     try {
       await fetch("/api/v1/help/tickets/", {
         method: "POST",
@@ -178,12 +372,12 @@ export function LoginPage() {
           reason: helpReason,
           name: helpName,
           email: helpEmail,
-          message: helpMessage,
+          message: helpMsg,
         }),
       });
       setHelpSent(true);
     } catch {
-      setHelpError(sourceText("Failed to send. Please try again."));
+      setHelpErr(sourceText("Failed to send. Please try again."));
     } finally {
       setHelpSending(false);
     }
@@ -194,434 +388,371 @@ export function LoginPage() {
     setHelpReason("");
     setHelpName("");
     setHelpEmail("");
-    setHelpMessage("");
+    setHelpMsg("");
     setHelpSent(false);
-    setHelpError("");
+    setHelpErr("");
   };
 
-  const safeRedirect = () => {
-    const next = searchParams.get("next");
-    return next && next.startsWith("/") && !next.startsWith("//")
-      ? next
-      : "/dashboard";
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
-    const parsed = loginSchema.safeParse({
-      email: event.currentTarget.email.value,
-      password: event.currentTarget.password.value,
-      rememberMe: event.currentTarget.rememberMe?.checked ?? false,
-    });
-    if (!parsed.success) {
-      setError(
-        sourceText(parsed.error.issues[0]?.message || "Please check your input."),
-      );
-      return;
-    }
-    setIsLoading(true);
-    try {
-      await apiClient.login(
-        parsed.data.email,
-        parsed.data.password,
-        parsed.data.rememberMe,
-      );
-      window.location.href = safeRedirect();
-    } catch (cause: any) {
-      setError(
-        cause?.response?.data?.message ||
-          cause?.message ||
-          sourceText("Unable to sign in"),
-      );
-      setIsLoading(false);
-    }
+  /* animation variants — never start at opacity 0. In some browsers
+   * (and when JS motion is delayed) hidden+stagger left the whole form
+   * invisible while the header still painted. */
+  const list = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
+  const row = {
+    hidden: { opacity: 1, y: 0 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring" as const, stiffness: 400, damping: 30 },
+    },
   };
 
   return (
-    <>
-      {/* Keyframe for the gradient border spin animation */}
-      <style>{`
-        @keyframes loginGradientSpin {
-          0%   { background-position: 0%   50%; }
-          50%  { background-position: 100% 50%; }
-          100% { background-position: 0%   50%; }
-        }
-        @keyframes loginPanelFloat {
-          0%, 100% { transform: translateY(0px); }
-          50%       { transform: translateY(-6px); }
-        }
-      `}</style>
+    <main className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
-      <main className="grid min-h-screen lg:grid-cols-2">
-
-        {/* ========================================================
-            LEFT PANEL — Brand identity + WebGL background
-        ======================================================== */}
-        <section
-          aria-hidden="true"
-          className="relative hidden min-h-screen overflow-hidden lg:flex lg:flex-col"
-        >
-          {/* WebGL background — same shader as landing hero */}
-          <LiveBackground className="absolute inset-0 -z-10" intensity={1.2} interactive={false} />
-
-          {/* Dark overlay: deep navy in dark, teal-navy in light */}
-          <div
-            className="absolute inset-0 -z-[5]"
-            style={{
-              background: "linear-gradient(160deg, hsl(224,71%,10%,0.88) 0%, hsl(197,80%,12%,0.82) 50%, hsl(224,71%,8%,0.92) 100%)",
-            }}
-          />
-          {/* Light mode overlay — lighter teal wash */}
-          <div
-            className="absolute inset-0 -z-[4] dark:opacity-0 transition-opacity duration-500"
-            style={{
-              background: "linear-gradient(160deg, hsl(224,71%,92%,0.82) 0%, hsl(197,60%,88%,0.78) 50%, hsl(224,50%,90%,0.86) 100%)",
-            }}
-          />
-
-          {/* Subtle grid dot pattern for depth */}
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)",
-              backgroundSize: "28px 28px",
-            }}
-          />
-
-          {/* Logo block — top centre */}
-          <div className="relative z-10 flex flex-col items-center pt-16">
-            <motion.div
-              initial={{ opacity: 0, y: -16, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col items-center gap-4"
+      {/* ======================================================= LEFT: FORM */}
+      <section className="relative flex flex-col bg-background border-r border-border">
+        {/* top bar */}
+        <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/60 px-4 sm:px-6">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" />
+            <SourceText source="Home" />
+          </Link>
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setHelpOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-bold text-muted-foreground transition-colors hover:text-foreground"
             >
-              {/* Logo mark */}
-              <div
-                className="grid size-[88px] place-items-center rounded-[24px] shadow-2xl"
-                style={{
-                  background: "rgba(255,255,255,0.12)",
-                  backdropFilter: "blur(16px)",
-                  border: "1px solid rgba(255,255,255,0.20)",
-                }}
-              >
-                <Image
-                  src="/brand/3rb-logo.png"
-                  alt="Groupe 3RB"
-                  width={64}
-                  height={64}
-                  priority
-                  className="h-[60px] w-[60px] object-contain"
-                />
-              </div>
+              <LifeBuoy className="size-3.5" />
+              <SourceText source="Help" />
+            </button>
+            <ThemeSwitch className="h-8 w-8" />
+          </div>
+        </div>
 
-              {/* Company name */}
-              <div className="text-center">
-                <p
-                  className="text-[1.75rem] font-black tracking-[-0.04em] text-white dark:text-white"
-                  style={{ textShadow: "0 2px 16px rgba(0,0,0,0.4)" }}
-                >
-                  Groupe 3.R.B
-                </p>
-                <p
-                  className="mt-1 text-[0.8125rem] font-semibold uppercase tracking-[0.18em]"
-                  style={{ color: "rgba(255,255,255,0.65)" }}
-                >
-                  <SourceText source="Services and operations" />
-                </p>
-                {/* Separator dots */}
-                <p
-                  className="mt-1 text-[0.75rem]"
-                  style={{ color: "rgba(255,255,255,0.40)" }}
-                >
-                  <SourceText source="Morocco · Since 2014" />
-                </p>
-              </div>
+        {/* form */}
+        <div className="flex flex-1 items-center justify-center px-8 py-10">
+          <motion.div
+            className="w-full max-w-[340px]"
+            variants={list}
+            initial={false}
+            animate="show"
+          >
+            {/* accent bar */}
+            <motion.div variants={row}>
+              <div className="l-bar mb-7 h-[3px] w-12 rounded-full" />
             </motion.div>
+
+            {/* heading */}
+            <motion.div variants={row}>
+              <h1 className="text-[30px] font-black tracking-[-0.045em] text-foreground">
+                <SourceText source="Welcome" />
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                <SourceText source="Sign in to your operations workspace" />
+              </p>
+            </motion.div>
+
+            <form onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate>
+              {/* email */}
+              <motion.div variants={row}>
+                <FloatInput
+                  id="email"
+                  label={sourceText("Email")}
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={setEmail}
+                />
+              </motion.div>
+
+              {/* password */}
+              <motion.div variants={row}>
+                <FloatInput
+                  id="password"
+                  label={sourceText("Password")}
+                  type={showPass ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={setPassword}
+                  suffix={
+                    <button
+                      type="button"
+                      onClick={() => setShowPass((v) => !v)}
+                      aria-label={sourceText(
+                        showPass ? "Hide password" : "Show password",
+                      )}
+                      className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {showPass ? (
+                        <EyeOff className="size-4" />
+                      ) : (
+                        <Eye className="size-4" />
+                      )}
+                    </button>
+                  }
+                />
+              </motion.div>
+
+              {/* error */}
+              <AnimatePresence>
+                {error && (
+                  <motion.p
+                    key="err"
+                    initial={{ opacity: 0, y: -6, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden rounded-xl bg-destructive/10 px-3.5 py-2.5 text-sm font-semibold text-destructive"
+                  >
+                    {error}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              {/* remember */}
+              <motion.label
+                variants={row}
+                className="flex cursor-pointer items-center gap-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <input
+                  type="checkbox"
+                  name="rememberMe"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="size-4 rounded border-input accent-primary"
+                />
+                <SourceText source="Remember me" />
+              </motion.label>
+
+              {/* submit */}
+              <motion.div variants={row} className="space-y-3 pt-1">
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={loading}
+                  className={cn(
+                    "l-shimmer relative h-[52px] w-full overflow-hidden rounded-[14px]",
+                    "bg-gradient-to-br from-primary to-[hsl(var(--brand-blue-600))]",
+                    "font-bold text-white shadow-[0_4px_20px_hsl(var(--primary)/0.35)]",
+                    "transition-[transform,box-shadow] hover:-translate-y-px hover:shadow-[0_8px_28px_hsl(var(--primary)/0.50)] active:translate-y-0",
+                    loading && "cursor-not-allowed opacity-75",
+                  )}
+                >
+                  {loading && (
+                    <GradientSpinner size={18} className="mr-2 shrink-0" />
+                  )}
+                  <SourceText
+                    source={loading ? "Signing in…" : "Sign in"}
+                  />
+                </Button>
+
+                <Link
+                  href="/forgot-password"
+                  className="inline-block text-sm font-bold text-primary transition-colors hover:text-primary/70"
+                >
+                  <SourceText source="Forgot password?" />
+                </Link>
+              </motion.div>
+            </form>
+
+            <motion.p
+              variants={row}
+              className="mt-10 text-center text-[11px] text-muted-foreground/45"
+            >
+              <SourceText source="Groupe 3.R.B · Services & Operations · Morocco" />
+            </motion.p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===================================================== RIGHT: SLIDESHOW */}
+      <section className="relative hidden overflow-hidden bg-[hsl(222_47%_8%)] lg:block">
+        {/* 5 slides */}
+        {SLIDES.map((s, i) => {
+          const shouldLoad =
+            i === slide || i === (slide + 1) % SLIDES.length;
+          return (
+          <div
+            key={s.src}
+            className={cn("l-slide", i === slide && "on")}
+            aria-hidden={i !== slide}
+          >
+            {shouldLoad ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={s.src} alt="" decoding="async" />
+            ) : null}
+          </div>
+          );
+        })}
+
+        {/* Readability: left/bottom scrim so copy stays readable on bright service photos */}
+        <div
+          className="pointer-events-none absolute inset-0 z-10"
+          style={{
+            background:
+              "linear-gradient(90deg,rgba(6,12,28,.72) 0%,rgba(6,12,28,.40) 46%,rgba(6,12,28,.22) 100%),linear-gradient(180deg,rgba(6,12,28,.38) 0%,transparent 32%,rgba(6,12,28,.58) 100%)",
+          }}
+        />
+
+        {/* dot grid texture */}
+        <div
+          className="pointer-events-none absolute inset-0 z-10 opacity-[0.055]"
+          style={{
+            backgroundImage: "radial-gradient(circle,white 1px,transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+
+        {/* content */}
+        <div className="absolute inset-0 z-20 flex flex-col p-10 pb-24 xl:p-12 xl:pb-24">
+          {/* logo */}
+          <div className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/brand/3rb-logo-icon.png"
+              alt=""
+              className="size-11 rounded-[13px] border border-white/20 bg-black/40 object-contain p-1 backdrop-blur-sm"
+            />
+            <div>
+              <p className="text-[15px] font-black leading-none text-white">
+                Groupe 3.R.B
+              </p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-[.16em] text-white/55">
+                <SourceText source="Services and operations" />
+              </p>
+            </div>
           </div>
 
-          {/* Centre illustration: glowing ring around the logo */}
-          <div className="relative z-10 flex flex-1 items-center justify-center">
+          <div className="mt-auto max-w-[400px] space-y-8">
+          {/* animated quote */}
+          <AnimatePresence mode="wait">
             <motion.div
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="relative flex h-52 w-52 items-center justify-center"
-              style={{ animation: "loginPanelFloat 5s ease-in-out infinite" }}
+              key={slide}
+              initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+              }}
+              exit={
+                reduceMotion
+                  ? { opacity: 1 }
+                  : {
+                      opacity: 0,
+                      y: -12,
+                      transition: { duration: 0.3 },
+                    }
+              }
+              className="max-w-[380px]"
             >
-              {/* Outer ring */}
-              <div
-                className="absolute inset-0 rounded-full"
+              <p className="text-[27px] font-black leading-[1.12] tracking-[-0.04em] text-white [text-shadow:0_1px_2px_rgba(0,0,0,.55),0_10px_28px_rgba(0,0,0,.45)]">
+                <SourceText source={SLIDES[slide].quote} />
+              </p>
+              <p
+                className="text-[27px] font-black leading-[1.12] tracking-[-0.04em] [text-shadow:0_8px_24px_rgba(0,0,0,.35)]"
                 style={{
                   background:
-                    "conic-gradient(from 0deg, hsl(197,100%,41%,0.6), hsl(30,88%,51%,0.4), hsl(224,71%,60%,0.6), hsl(197,100%,41%,0.6))",
-                  animation: "loginGradientSpin 6s linear infinite",
-                  backgroundSize: "300% 100%",
-                  filter: "blur(18px)",
-                }}
-              />
-              {/* Inner card */}
-              <div
-                className="relative z-10 flex h-36 w-36 flex-col items-center justify-center rounded-[28px] text-center"
-                style={{
-                  background: "rgba(255,255,255,0.08)",
-                  backdropFilter: "blur(20px)",
-                  border: "1.5px solid rgba(255,255,255,0.18)",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                    "linear-gradient(90deg,hsl(var(--brand-blue-400)),hsl(var(--brand-orange-500)))",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
                 }}
               >
-                <Image
-                  src="/brand/3rb-logo.png"
-                  alt=""
-                  width={56}
-                  height={56}
-                  aria-hidden="true"
-                  className="h-14 w-14 object-contain opacity-90"
-                />
-              </div>
+                <SourceText source={SLIDES[slide].highlight} />
+              </p>
+              <p className="mt-3 text-[14px] leading-relaxed text-white/75">
+                <SourceText source={SLIDES[slide].sub} />
+              </p>
             </motion.div>
-          </div>
+          </AnimatePresence>
 
-          {/* Feature pills — bottom */}
-          <div className="relative z-10 w-full max-w-md self-center space-y-3 px-10 pb-14">
+          {/* feature pills */}
+          <div className="space-y-2.5">
             {FEATURES.map(({ Icon, text }, i) => (
               <motion.div
                 key={text}
-                initial={{ opacity: 0, x: -16 }}
+                initial={reduceMotion ? false : { opacity: 0, x: 16 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{
-                  delay: 0.35 + i * 0.1,
-                  duration: 0.5,
+                  delay: 0.1 + i * 0.08,
+                  duration: 0.45,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3"
-                style={{
-                  background: "rgba(255,255,255,0.08)",
-                  backdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255,255,255,0.14)",
-                }}
+                className="flex items-center gap-3 rounded-2xl border border-white/[0.11] bg-white/[0.07] px-4 py-2.5 backdrop-blur-md"
               >
-                <span
-                  className="grid size-8 shrink-0 place-items-center rounded-xl"
-                  style={{ background: "rgba(255,255,255,0.12)" }}
-                >
+                <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-xl bg-white/10">
                   <Icon
-                    className="size-4"
-                    style={{ color: "hsl(197,100%,70%)" }}
+                    className="size-4 text-[hsl(var(--brand-blue-400))]"
+                    aria-hidden
                   />
                 </span>
-                <p
-                  className="text-sm font-semibold"
-                  style={{ color: "rgba(255,255,255,0.88)" }}
-                >
+                <p className="text-[13px] font-semibold leading-snug text-white/88">
                   <SourceText source={text} />
                 </p>
               </motion.div>
             ))}
           </div>
-        </section>
-
-        {/* ========================================================
-            RIGHT PANEL — Login form
-        ======================================================== */}
-        <section className="relative flex min-h-screen flex-col bg-white dark:bg-[hsl(222,47%,7%)]">          
-          {/* Top bar */}
-          <div className="flex h-16 items-center justify-between border-b border-border/60 px-6">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <ArrowLeft className="size-4" aria-hidden="true" />
-              <SourceText source="Home" />
-            </Link>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setHelpOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <LifeBuoy className="size-3.5" />
-                <SourceText source="Help" />
-              </button>
-              <LandingExperienceControls />
-              <ThemeSwitch />
-            </div>
           </div>
+        </div>
 
-          {/* Form area */}
-          <div className="flex flex-1 items-center justify-center px-6 py-12">
-            <div className="w-full max-w-sm">
+        {/* dot indicators */}
+        <div className="absolute bottom-10 right-12 z-30 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => goTo((slide - 1 + SLIDES.length) % SLIDES.length)}
+            aria-label={sourceText("Previous slide")}
+            className="grid size-7 place-items-center rounded-full bg-white/10 text-white/60 backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white"
+          >
+            <ChevronLeft className="size-3.5" />
+          </button>
 
-              {/* Header */}
-              <motion.div
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {/* Brand accent line */}
-                <div
-                  className="mb-6 h-1 w-10 rounded-full"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, hsl(var(--primary)), hsl(var(--brand-blue-500)))",
-                  }}
-                />
-                <h2 className="text-[1.75rem] font-black tracking-[-0.04em] text-foreground">
-                  <SourceText source="Welcome" />
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  <SourceText source="Sign in to your operations workspace" />
-                </p>
-              </motion.div>
+          {SLIDES.map((s, i) => (
+            <button
+              type="button"
+              key={s.src}
+              onClick={() => goTo(i)}
+              className={cn(
+                "h-[5px] rounded-full transition-all duration-500 ease-out",
+                i === slide
+                  ? "w-6 bg-[hsl(var(--brand-orange-500))]"
+                  : "w-[5px] bg-white/30 hover:bg-white/55",
+              )}
+              aria-label={`Slide ${i + 1}`}
+            />
+          ))}
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="mt-9 space-y-5" noValidate>
+          <button
+            type="button"
+            onClick={() => goTo((slide + 1) % SLIDES.length)}
+            aria-label={sourceText("Next slide")}
+            className="grid size-7 place-items-center rounded-full bg-white/10 text-white/60 backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white"
+          >
+            <ChevronRight className="size-3.5" />
+          </button>
+        </div>
 
-                {/* Email */}
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                  className="space-y-2"
-                >
-                  <Label htmlFor="email" className="text-[0.8125rem] font-semibold">
-                    <SourceText source="Email" />
-                  </Label>
-                  <GradientBorderInput
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    hasError={!!error}
-                  />
-                </motion.div>
+        {/* progress bar */}
+        <div className="absolute bottom-0 left-0 right-0 z-30 h-[2px] bg-white/10">
+          <div
+            key={progKey}
+            className="l-prog h-full rounded-r-full"
+            style={{
+              animationDuration: `${SLIDE_MS}ms`,
+              background:
+                "linear-gradient(90deg, hsl(var(--brand-blue-400)), hsl(var(--brand-orange-500)))",
+            }}
+          />
+        </div>
+      </section>
 
-                {/* Password */}
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                  className="space-y-2"
-                >
-                  <Label htmlFor="password" className="text-[0.8125rem] font-semibold">
-                    <SourceText source="Password" />
-                  </Label>
-                  <GradientBorderInput
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    required
-                    hasError={!!error}
-                    suffix={
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((v) => !v)}
-                        aria-label={sourceText(
-                          showPassword ? "Hide password" : "Show password",
-                        )}
-                        className="absolute end-0 top-0 grid h-12 w-12 place-items-center text-muted-foreground transition-colors hover:text-foreground"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="size-4" />
-                        ) : (
-                          <Eye className="size-4" />
-                        )}
-                      </button>
-                    }
-                  />
-                </motion.div>
-
-                {/* Error message */}
-                <AnimatePresence>
-                  {error ? (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="rounded-lg bg-destructive/8 px-3 py-2 text-sm font-medium text-destructive"
-                    >
-                      {error}
-                    </motion.p>
-                  ) : null}
-                </AnimatePresence>
-
-                {/* Remember me */}
-                <motion.label
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.22 }}
-                  className="flex cursor-pointer items-center gap-3 text-sm text-muted-foreground"
-                >
-                  <input
-                    id="rememberMe"
-                    name="rememberMe"
-                    type="checkbox"
-                    className="size-4 rounded border-input accent-[hsl(var(--primary))]"
-                  />
-                  <SourceText source="Remember me" />
-                </motion.label>
-
-                {/* Submit */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.28 }}
-                  className="space-y-3 pt-1"
-                >
-                  <Button
-                    type="submit"
-                    size="lg"
-                    disabled={isLoading}
-                    className="h-12 w-full rounded-xl font-bold text-white"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--brand-blue-500)) 100%)",
-                      boxShadow: isLoading
-                        ? "none"
-                        : "0 4px 14px hsl(var(--primary)/0.35)",
-                      transition: "box-shadow 0.2s, opacity 0.2s",
-                    }}
-                  >
-                    {isLoading ? (
-                      <GradientSpinner size={18} className="shrink-0" />
-                    ) : null}
-                    <SourceText source={isLoading ? "Signing in…" : "Sign in"} />
-                  </Button>
-
-                  <div className="flex items-center justify-between">
-                    <Link
-                      href="/forgot-password"
-                      className="text-sm font-semibold text-primary hover:underline"
-                    >
-                      <SourceText source="Forgot password?" />
-                    </Link>
-                  </div>
-                </motion.div>
-              </form>
-
-              {/* Footer note */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="mt-10 text-center text-[0.75rem] text-muted-foreground/60"
-              >
-                <SourceText source="Groupe 3.R.B — Internal operations platform" />
-              </motion.p>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      {/* ================================================== Help dialog */}
+      {/* ===================================================== HELP DIALOG */}
       <Dialog
         open={helpOpen}
-        onOpenChange={(open: boolean) => {
-          if (!open) resetHelp();
+        onOpenChange={(o) => {
+          if (!o) resetHelp();
           else setHelpOpen(true);
         }}
       >
@@ -638,7 +769,7 @@ export function LoginPage() {
 
           {helpSent ? (
             <div className="py-6 text-center">
-              <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30">
                 <HelpCircle className="size-6" />
               </div>
               <p className="font-semibold">{sourceText("Message sent!")}</p>
@@ -650,13 +781,17 @@ export function LoginPage() {
               </Button>
             </div>
           ) : (
-            <form onSubmit={handleHelpSubmit} className="space-y-4">
+            <form onSubmit={handleHelp} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="help-reason">
+                <Label htmlFor="hr">
                   <SourceText source="Reason *" />
                 </Label>
-                <Select value={helpReason} onValueChange={setHelpReason} required>
-                  <SelectTrigger id="help-reason">
+                <Select
+                  value={helpReason}
+                  onValueChange={setHelpReason}
+                  required
+                >
+                  <SelectTrigger id="hr">
                     <SelectValue placeholder={sourceText("Select a reason")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -676,11 +811,11 @@ export function LoginPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="help-name">
+                <Label htmlFor="hn">
                   <SourceText source="Full name *" />
                 </Label>
                 <Input
-                  id="help-name"
+                  id="hn"
                   value={helpName}
                   onChange={(e) => setHelpName(e.target.value)}
                   placeholder={sourceText("Your name")}
@@ -688,11 +823,11 @@ export function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="help-email">
+                <Label htmlFor="he">
                   <SourceText source="Email address *" />
                 </Label>
                 <Input
-                  id="help-email"
+                  id="he"
                   type="email"
                   value={helpEmail}
                   onChange={(e) => setHelpEmail(e.target.value)}
@@ -701,31 +836,33 @@ export function LoginPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="help-message">
+                <Label htmlFor="hm">
                   <SourceText source="Message (optional)" />
                 </Label>
                 <Textarea
-                  id="help-message"
-                  value={helpMessage}
+                  id="hm"
+                  value={helpMsg}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setHelpMessage(e.target.value)
+                    setHelpMsg(e.target.value)
                   }
                   placeholder={sourceText("Describe your issue...")}
                   rows={3}
                   className="resize-none"
                 />
               </div>
-              {helpError && <p className="text-sm text-destructive">{helpError}</p>}
+              {helpErr && <p className="text-sm text-destructive">{helpErr}</p>}
               <DialogFooter className="gap-2">
                 <Button type="button" variant="outline" onClick={resetHelp}>
                   <SourceText source="Cancel" />
                 </Button>
                 <Button
                   type="submit"
-                  disabled={helpSending || !helpReason || !helpName || !helpEmail}
+                  disabled={
+                    helpSending || !helpReason || !helpName || !helpEmail
+                  }
                 >
                   {helpSending && (
-                    <GradientSpinner size={16} className="me-2 shrink-0" />
+                    <GradientSpinner size={16} className="mr-2 shrink-0" />
                   )}
                   <SourceText source="Send message" />
                 </Button>
@@ -734,6 +871,6 @@ export function LoginPage() {
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </main>
   );
 }

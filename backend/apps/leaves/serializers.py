@@ -1,4 +1,7 @@
 from rest_framework import serializers
+
+from apps.common.security import TICKET_ALLOWED_EXTENSIONS, validate_private_upload
+
 from .models import Leave
 
 
@@ -33,6 +36,13 @@ class LeaveSerializer(serializers.ModelSerializer):
 
     def get_created_by_name(self, obj):
         return str(obj.created_by) if obj.created_by else None
+
+    def validate_signed_document(self, upload):
+        if not upload:
+            return upload
+        return validate_private_upload(
+            upload, max_bytes=10 * 1024 * 1024, allowed=TICKET_ALLOWED_EXTENSIONS
+        )
 
     def validate(self, data):
         start = data.get('start_date', getattr(self.instance, 'start_date', None))

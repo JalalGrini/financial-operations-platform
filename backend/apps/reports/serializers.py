@@ -207,7 +207,7 @@ class UploadReadyReportSerializer(serializers.Serializer):
 
     def validate_file(self, upload):
         allowed = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".jpg", ".jpeg", ".png"}
-        validate_private_upload(upload, max_bytes=20 * 1024 * 1024, allowed=allowed)
+        validate_private_upload(upload, max_bytes=10 * 1024 * 1024, allowed=allowed)
         return upload
 
 

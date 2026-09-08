@@ -10,11 +10,16 @@
  * One instance of this component is rendered per company in CompaniesSection.
  */
 
-import { AlertCircle, Check, Loader2, Send } from "lucide-react";
+import { AlertCircle, Check, Loader2, Send, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import {
+  MAX_UPLOAD_FILES,
+  TICKET_ACCEPT,
+  validateTicketFiles,
+} from "@/lib/upload-limits";
 import { Input, Textarea } from "@/components/ui/input";
 import { FOCUS_RING, RADIUS, TYPE } from "./design-system";
 import { MagneticButton } from "./interactive";
@@ -54,7 +59,6 @@ const schema = z.object({
     .trim()
     .min(20, "Please describe your request in at least 20 characters.")
     .max(2000, "Please keep the message under 2000 characters."),
-  attachmentName: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema> & { contact?: string };
@@ -66,7 +70,6 @@ const EMPTY = {
   contact: "",
   subject: "",
   message: "",
-  attachmentName: "",
 };
 
 type FieldName = keyof typeof EMPTY;
@@ -78,27 +81,31 @@ const THROTTLE_MS = 60_000;
 async function submitCompanyTicket(
   values: FormValues,
   company: CompanyKey,
+  files: File[],
 ): Promise<number | null> {
   const composedMessage = [
     values.subject ? `Sujet: ${values.subject}` : "",
-    values.attachmentName ? `Pièce jointe: ${values.attachmentName}` : "",
     values.contact ? `Contact: ${values.contact}` : "",
     values.message,
   ]
     .filter(Boolean)
     .join("\n\n");
 
+  const body = new FormData();
+  body.append("name", values.name);
+  body.append("email", values.email);
+  body.append("phone", values.phone);
+  body.append("company", company);
+  body.append("message", composedMessage);
+  files.forEach((file, index) => {
+    body.append("files", file);
+    if (index === 0) body.append("file", file);
+  });
+
   const response = await fetch("/api/v1/help/client-tickets/", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     credentials: "omit",
-    body: JSON.stringify({
-      name: values.name,
-      email: values.email,
-      phone: values.phone,
-      company,
-      message: composedMessage,
-    }),
+    body,
   });
 
   if (!response.ok) {
@@ -141,6 +148,7 @@ export function CompanyTicketForm({
   const [status, setStatus] = useState<Status>("idle");
   const [formError, setFormError] = useState<string | null>(null);
   const [ticketNumber, setTicketNumber] = useState<number | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const honeypotRef = useRef<HTMLInputElement | null>(null);
   const firstErrorRef = useRef<FieldName | null>(null);
   const throttleKeyRef = useRef(`efop:ticket:last-submit:${company}`);
@@ -219,6 +227,13 @@ export function CompanyTicketForm({
       }
       if (!parsed.success) return;
 
+      const fileError = validateTicketFiles(files);
+      if (fileError) {
+        setStatus("error");
+        setFormError(fileError);
+        return;
+      }
+
       setStatus("submitting");
       setErrors({});
       setFormError(null);
@@ -227,11 +242,13 @@ export function CompanyTicketForm({
         const id = await submitCompanyTicket(
           { ...parsed.data, contact: values.contact },
           company,
+          files,
         );
         window.sessionStorage.setItem(throttleKeyRef.current, String(Date.now()));
         setTicketNumber(id);
         setStatus("success");
         setValues(EMPTY);
+        setFiles([]);
       } catch {
         setStatus("error");
         setFormError(
@@ -239,7 +256,7 @@ export function CompanyTicketForm({
         );
       }
     },
-    [status, values, company, combinedContact],
+    [status, values, company, combinedContact, files],
   );
 
   /* ---------------------------------------------------------- success */
@@ -487,17 +504,61 @@ export function CompanyTicketForm({
 
         {/* Pièce jointe */}
         <div className={`${fw} sm:col-span-2`}>
-          <label htmlFor={id("attachmentName")} className={lc}>
-            <SourceText source="Attachment (optional)" />
+          <label htmlFor={`ctf-${company}-files`} className={lc}>
+            <SourceText source="Attachments" />
           </label>
           <Input
-            id={id("attachmentName")}
-            name="attachment"
+            id={`ctf-${company}-files`}
+            name="files"
             type="file"
-            onChange={(e) => setField("attachmentName", e.target.files?.[0]?.name ?? "")}
+            multiple
+            accept={TICKET_ACCEPT}
+            onChange={(e) => {
+              const incoming = Array.from(e.target.files ?? []);
+              const next = [...files, ...incoming].slice(0, MAX_UPLOAD_FILES);
+              const problem = validateTicketFiles(next);
+              if (problem) {
+                setFormError(problem);
+                e.target.value = "";
+                return;
+              }
+              setFiles(next);
+              setFormError(null);
+              e.target.value = "";
+            }}
           />
+          {files.length > 0 ? (
+            <ul className="space-y-1.5">
+              {files.map((file, index) => (
+                <li
+                  key={`${file.name}-${file.size}-${index}`}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-[hsl(var(--primary)/0.12)] px-3 py-2 text-[0.8125rem]"
+                >
+                  <span className="min-w-0 truncate">
+                    {file.name}{" "}
+                    <span className="text-muted-foreground">
+                      ({Math.max(1, Math.round(file.size / 1024))} KB)
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFiles((current) =>
+                        current.filter((_, item) => item !== index),
+                      )
+                    }
+                    className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
+                    aria-label={sourceText("Remove file")}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    <SourceText source="Remove file" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
           <p className="text-[0.75rem] text-muted-foreground">
-            <SourceText source="The file name is sent with your message." />
+            <SourceText source="You can attach up to 5 files (10 MB each, 25 MB total)." />
           </p>
         </div>
       </div>

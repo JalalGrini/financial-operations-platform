@@ -94,6 +94,7 @@ MIDDLEWARE = [
     "apps.audit_log.middleware.AuditTrailMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.common.security_headers.SecurityHeadersMiddleware",
+    "apps.common.request_limits.MaxBodySizeMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -189,6 +190,11 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Media files
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Hard cap before files reach R2. Per-file 10 MB, ticket totals 25 MB.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+DATA_UPLOAD_MAX_NUMBER_FILES = 8
 
 USE_CLOUDFLARE_R2 = env.bool("USE_CLOUDFLARE_R2", default=False)
 _django_environment = os.environ.get("DJANGO_ENVIRONMENT", "production")

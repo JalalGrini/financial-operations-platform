@@ -105,3 +105,25 @@ class ClientTicket(models.Model):
 
     def __str__(self):
         return f"ClientTicket #{self.pk} {self.name} <{self.email}>"
+
+
+class ClientTicketAttachment(models.Model):
+    """A document attached to a public client ticket, stored in R2 via default storage."""
+
+    ticket = models.ForeignKey(
+        ClientTicket,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    file = models.FileField(upload_to="private/client-tickets/%Y/%m/", max_length=500)
+    file_name = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=100, blank=True)
+    size_bytes = models.PositiveBigIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "client_ticket_attachments"
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.file_name

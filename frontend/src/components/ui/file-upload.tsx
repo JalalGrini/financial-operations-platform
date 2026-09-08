@@ -49,7 +49,7 @@ export function FileUpload({
   accept,
   multiple = false,
   maxSize = 10 * 1024 * 1024,
-  maxFiles = 10,
+  maxFiles = 5,
   value,
   className,
   disabled,

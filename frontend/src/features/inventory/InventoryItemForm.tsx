@@ -146,6 +146,13 @@ export function InventoryItemForm({ item }: { item?: InventoryItem }) {
       setErrors(local);
       return;
     }
+    if (image && image.size > 5 * 1024 * 1024) {
+      setErrors((e) => ({
+        ...e,
+        image: sourceText("Each file must be 10 MB or smaller."),
+      }));
+      return;
+    }
     const data = new FormData();
     Object.entries(form).forEach(([k, v]) => {
       if (item && k === "quantity") return;

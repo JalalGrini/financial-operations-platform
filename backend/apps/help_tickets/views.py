@@ -1,12 +1,15 @@
 from rest_framework import generics
 from django.db import transaction
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import permissions, status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 from apps.common.permissions import RoleBasedAccessPermission
-from .models import ClientTicket, HelpTicket
+from .models import ClientTicket, ClientTicketAttachment, HelpTicket
 from .serializers import HelpTicketCreateSerializer, HelpTicketSerializer, HelpTicketReplySerializer
 from .serializers import (
     ClientTicketCreateSerializer,
@@ -181,6 +184,7 @@ class ClientTicketCreateView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
     throttle_classes = [AnonRateThrottle]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
 
 class ClientTicketListView(generics.ListAPIView):
@@ -188,7 +192,7 @@ class ClientTicketListView(generics.ListAPIView):
     permission_classes = [IsClientTicketStaff]
 
     def get_queryset(self):
-        qs = ClientTicket.objects.all()
+        qs = ClientTicket.objects.prefetch_related("attachments")
         status_param = self.request.query_params.get("status")
         if status_param in dict(ClientTicket.STATUS_CHOICES):
             qs = qs.filter(status=status_param)
@@ -198,7 +202,7 @@ class ClientTicketListView(generics.ListAPIView):
 class ClientTicketDetailView(generics.RetrieveUpdateAPIView):
     """Retrieve, and update status / is_read. Solved tickets are retained."""
 
-    queryset = ClientTicket.objects.all()
+    queryset = ClientTicket.objects.prefetch_related("attachments")
     serializer_class = ClientTicketSerializer
     permission_classes = [IsClientTicketStaff]
 
@@ -209,6 +213,34 @@ class ClientTicketDetailView(generics.RetrieveUpdateAPIView):
             obj.resolved_at = timezone.now()
             obj.resolved_by = self.request.user
             obj.save(update_fields=["resolved_at", "resolved_by"])
+
+
+class ClientTicketAttachmentDownloadView(APIView):
+    """Staff-only download of a stored ticket attachment."""
+
+    permission_classes = [IsClientTicketStaff]
+
+    def get(self, request, pk, attachment_id):
+        attachment = get_object_or_404(
+            ClientTicketAttachment.objects.select_related("ticket"),
+            pk=attachment_id,
+            ticket_id=pk,
+        )
+        if not attachment.file:
+            return Response({"detail": "No file is attached."}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            handle = attachment.file.open("rb")
+        except FileNotFoundError:
+            return Response(
+                {"detail": "The stored file is unavailable."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return FileResponse(
+            handle,
+            as_attachment=True,
+            filename=attachment.file_name or attachment.file.name.rsplit("/", 1)[-1],
+            content_type=attachment.content_type or "application/octet-stream",
+        )
 
 
 class ClientTicketReplyView(APIView):

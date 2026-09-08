@@ -32,6 +32,7 @@ import {
   leaveDurationDays,
   leavesApi,
 } from "@/features/leaves/api";
+import { TICKET_ACCEPT, validateSingleUpload } from "@/lib/upload-limits";
 
 type LeaveFormValues = {
   company: string;
@@ -162,6 +163,11 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
     }
     if (values.leave_type === "other" && !values.leave_type_other.trim()) {
       setError(sourceText("Please specify the leave type."));
+      return;
+    }
+    const fileProblem = validateSingleUpload(attachment);
+    if (fileProblem) {
+      setError(sourceText(fileProblem));
       return;
     }
     const payload: CreateLeaveData = {
@@ -377,6 +383,7 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
                 <Input
                   className="w-full"
                   type="file"
+                  accept={TICKET_ACCEPT}
                   onChange={(event) => setAttachment(event.target.files?.[0] ?? null)}
                 />
                 {leave?.signed_document && !attachment && (

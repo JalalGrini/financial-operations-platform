@@ -138,11 +138,14 @@ export const EmployeeAvatar: FC<EmployeeAvatarProps> = ({
       <input
         ref={fileRef}
         type="file"
-        accept="image/*"
+        accept="image/png,image/jpeg,image/webp"
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) onPhotoChange?.(file);
+          if (file) {
+            if (file.size > 5 * 1024 * 1024) return;
+            onPhotoChange?.(file);
+          }
           e.target.value = "";
         }}
       />

@@ -45,6 +45,7 @@ function resolveBackendUrl(): string {
 const BACKEND_URL = resolveBackendUrl();
 
 const BACKEND_ORIGIN = new URL(BACKEND_URL).origin;
+const MAX_PROXY_BODY_BYTES = 26 * 1024 * 1024;
 
 /** Request headers forwarded from the browser to the backend (allow-list). */
 const FORWARDED_REQUEST_HEADERS = [
@@ -106,6 +107,14 @@ function buildRequestHeaders(request: NextRequest): Record<string, string> {
 }
 
 async function proxyRequest(request: NextRequest) {
+  const declaredLength = Number(request.headers.get("content-length") || 0);
+  if (declaredLength > MAX_PROXY_BODY_BYTES) {
+    return NextResponse.json(
+      { detail: "Request body is too large." },
+      { status: 413 },
+    );
+  }
+
   const headers = buildRequestHeaders(request);
 
   // Read the body exactly once; the buffer is reused if a redirect must be

@@ -10,4 +10,9 @@ urlpatterns = [
     path('client-tickets/list/', views.ClientTicketListView.as_view(), name='client-ticket-list'),
     path('client-tickets/<int:pk>/', views.ClientTicketDetailView.as_view(), name='client-ticket-detail'),
     path('client-tickets/<int:pk>/reply/', views.ClientTicketReplyView.as_view(), name='client-ticket-reply'),
+    path(
+        'client-tickets/<int:pk>/attachments/<int:attachment_id>/download/',
+        views.ClientTicketAttachmentDownloadView.as_view(),
+        name='client-ticket-attachment-download',
+    ),
 ]

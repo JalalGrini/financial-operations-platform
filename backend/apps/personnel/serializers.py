@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from apps.common.security import validate_private_upload
+from apps.common.security import PHOTO_ALLOWED_EXTENSIONS, validate_private_upload
 from apps.companies.models import Company
 from apps.configuration.models import PaymentMethod
 from apps.personnel.models import (
@@ -96,6 +96,13 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
             "has_active_cnss",
         ]
 
+    def validate_photo(self, upload):
+        if not upload:
+            return upload
+        return validate_private_upload(
+            upload, max_bytes=5 * 1024 * 1024, allowed=PHOTO_ALLOWED_EXTENSIONS
+        )
+
     def get_completeness_percentage(self, obj):
         return obj.get_completeness_percentage()
 
@@ -178,6 +185,13 @@ class PersonnelPersonCreateSerializer(EmptyStringToNullMixin, serializers.ModelS
             "photo",
         ]
         read_only_fields = ["id"]
+
+    def validate_photo(self, upload):
+        if not upload:
+            return upload
+        return validate_private_upload(
+            upload, max_bytes=5 * 1024 * 1024, allowed=PHOTO_ALLOWED_EXTENSIONS
+        )
 
     def validate_cin(self, value):
         return self._normalize_unique(value)
@@ -1011,7 +1025,7 @@ class PersonnelDocumentReferenceSerializer(serializers.ModelSerializer):
 
     def validate_file(self, upload):
         allowed = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".jpg", ".jpeg", ".png"}
-        validate_private_upload(upload, max_bytes=20 * 1024 * 1024, allowed=allowed)
+        validate_private_upload(upload, max_bytes=10 * 1024 * 1024, allowed=allowed)
         return upload
 
     def create(self, validated_data):

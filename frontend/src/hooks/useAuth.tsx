@@ -41,22 +41,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const me = await apiClient.getMe();
       setUser(me ?? null);
     } catch {
-      // 401 (no/expired session) or network failure both mean "signed out"
-      // as far as the UI is concerned.
       setUser(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fetch current user on mount. This is the authoritative session check:
-  // the cookie itself is HttpOnly and invisible to us by design.
+  // Login/home/tickets must paint immediately. A missing backend used to
+  // stall getMe for 30s and freeze the page. Login then does a full
+  // navigation, so a skipped session check is safe.
   useEffect(() => {
     let mounted = true;
+    const path = window.location.pathname;
+    const publicPath =
+      path === "/" ||
+      path.startsWith("/login") ||
+      path.startsWith("/forgot-password") ||
+      path.startsWith("/companies/") ||
+      path.startsWith("/tickets") ||
+      path.startsWith("/privacy") ||
+      path.startsWith("/security") ||
+      path.startsWith("/status") ||
+      path.startsWith("/terms") ||
+      path.startsWith("/support") ||
+      path.startsWith("/docs");
+    if (publicPath) {
+      setIsLoading(false);
+      return () => {
+        mounted = false;
+      };
+    }
     const loadUser = async () => {
-      if (mounted) {
-        await fetchUser();
-      }
+      if (mounted) await fetchUser();
     };
     loadUser();
     return () => {
