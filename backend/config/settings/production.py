@@ -289,6 +289,21 @@ if _r2_missing:
         "Set them in Railway Variables."
     )
 
+_r2_endpoint_value = str(globals().get("AWS_S3_ENDPOINT_URL", "")).lower()
+_r2_account_value = str(globals().get("R2_ACCOUNT_ID", "")).lower()
+if "placeholder" in _r2_endpoint_value or _r2_account_value in {
+    "placeholder",
+    "check",
+    "changeme",
+    "example",
+    "your-account-id",
+}:
+    raise ImproperlyConfigured(
+        "R2_ACCOUNT_ID / R2_ENDPOINT_URL is still a placeholder. "
+        "Set the Cloudflare account id so Django talks to "
+        "https://<accountid>.r2.cloudflarestorage.com."
+    )
+
 # Logging - reduce verbosity in production
 LOGGING["root"]["level"] = "WARNING"  # noqa: F405
 LOGGING["loggers"]["django"]["level"] = "WARNING"  # noqa: F405
