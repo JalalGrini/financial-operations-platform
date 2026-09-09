@@ -19,6 +19,7 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { WriteOnly } from "@/components/auth/WriteOnly";
+import { ConfirmDialog } from "@/features/personnel/components/common";
 import { ScheduleDate } from "@/components/ui/schedule-date";
 import { employmentApi } from "@/features/personnel/api";
 import {
@@ -45,6 +46,8 @@ type LeaveFormValues = {
   leave_type_other: string;
   start_date: string;
   end_date: string;
+  national_holiday_days: string;
+  international_holiday_days: string;
   reason: string;
 };
 
@@ -58,6 +61,8 @@ const emptyValues: LeaveFormValues = {
   leave_type_other: "",
   start_date: "",
   end_date: "",
+  national_holiday_days: "0",
+  international_holiday_days: "0",
   reason: "",
 };
 
@@ -72,6 +77,8 @@ function leaveToValues(leave: Leave): LeaveFormValues {
     leave_type_other: leave.leave_type_other || "",
     start_date: leave.start_date ? leave.start_date.split("T")[0] : "",
     end_date: leave.end_date ? leave.end_date.split("T")[0] : "",
+    national_holiday_days: String(leave.national_holiday_days ?? 0),
+    international_holiday_days: String(leave.international_holiday_days ?? 0),
     reason: leave.reason || "",
   };
 }
@@ -84,6 +91,10 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
   );
   const [attachment, setAttachment] = useState<File | null>(null);
   const [error, setError] = useState("");
+  const [overQuota, setOverQuota] = useState<{
+    remaining: number;
+    chargeable: number;
+  } | null>(null);
 
   useEffect(() => {
     if (leave) setValues(leaveToValues(leave));
@@ -130,6 +141,10 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
   }, [selectedEmployment]);
 
   const duration = leaveDurationDays(values.start_date, values.end_date);
+  const national = Number(values.national_holiday_days || 0);
+  const international = Number(values.international_holiday_days || 0);
+  const chargeable = Math.max(0, duration - national - international);
+  const remainingLeave = selectedEmployment?.remaining_leave_days;
 
   const mutation = useMutation({
     mutationFn: (payload: CreateLeaveData) =>
@@ -137,9 +152,19 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
         ? leavesApi.update(leave.id, payload)
         : leavesApi.create(payload),
     onSuccess: (res) => {
+      setOverQuota(null);
       router.push(`/leaves/${(res as Leave).id}`);
     },
     onError: (err: any) => {
+      const payload = err?.response?.data?.errors ?? err?.response?.data ?? {};
+      if (payload.code === "leave_over_quota" || String(err?.message || "").includes("authorized days remain")) {
+        setOverQuota({
+          remaining: Number(payload.remaining_days ?? remainingLeave ?? 0),
+          chargeable: Number(payload.chargeable_days ?? chargeable),
+        });
+        setError("");
+        return;
+      }
       setError(err?.message || sourceText("Failed to save leave."));
     },
   });
@@ -147,6 +172,23 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
   const setField = <K extends keyof LeaveFormValues>(key: K, value: LeaveFormValues[K]) => {
     setValues((prev) => ({ ...prev, [key]: value }));
   };
+
+  const buildPayload = (confirmOverQuota = false): CreateLeaveData => ({
+    personnel: values.personnel,
+    employment: values.employment,
+    company: values.company,
+    leave_type: values.leave_type,
+    leave_type_other: values.leave_type_other,
+    decision_number: values.decision_number,
+    decision_date: values.decision_date,
+    start_date: values.start_date,
+    end_date: values.end_date,
+    national_holiday_days: national,
+    international_holiday_days: international,
+    confirm_over_quota: confirmOverQuota,
+    reason: values.reason,
+    signed_document: attachment,
+  });
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -171,19 +213,7 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
       setError(sourceText(fileProblem));
       return;
     }
-    const payload: CreateLeaveData = {
-      personnel: values.personnel,
-      employment: values.employment,
-      company: values.company,
-      leave_type: values.leave_type,
-      leave_type_other: values.leave_type_other,
-      decision_number: values.decision_number,
-      decision_date: values.decision_date,
-      start_date: values.start_date,
-      end_date: values.end_date,
-      reason: values.reason,
-      signed_document: attachment,
-    };
+    const payload: CreateLeaveData = buildPayload(false);
     mutation.mutate(payload);
   };
 
@@ -380,6 +410,42 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
                 </div>
               </div>
 
+              <div className="grid gap-6 md:grid-cols-3">
+                <div className="space-y-2 min-w-0">
+                  <Label>
+                    <SourceText source="National holiday days" />
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    className="w-full"
+                    value={values.national_holiday_days}
+                    onChange={(event) => setField("national_holiday_days", event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2 min-w-0">
+                  <Label>
+                    <SourceText source="International holiday days" />
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    className="w-full"
+                    value={values.international_holiday_days}
+                    onChange={(event) => setField("international_holiday_days", event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2 min-w-0">
+                  <Label>
+                    <SourceText source="Chargeable days" />
+                  </Label>
+                  <div className="rounded-lg border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                    {chargeable}
+                    {remainingLeave !== undefined ? ` · ${sourceText("Remaining")}: ${remainingLeave}` : ""}
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2 min-w-0">
                 <Label>
                   <SourceText source="Attachment" />
@@ -424,6 +490,22 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
           </CardContent>
         </Card>
       </WriteOnly>
+      <ConfirmDialog
+        isOpen={Boolean(overQuota)}
+        onClose={() => setOverQuota(null)}
+        onConfirm={() => {
+          setOverQuota(null);
+          mutation.mutate(buildPayload(true));
+        }}
+        title={sourceText("Leave days exceeded")}
+        description={sourceText(
+          "This leave uses more authorized days than remain this year. Create it anyway, or keep editing.",
+        )}
+        confirmLabel={sourceText("Create anyway")}
+        cancelLabel={sourceText("Keep editing")}
+        variant="destructive"
+        isLoading={mutation.isPending}
+      />
     </div>
   );
 }

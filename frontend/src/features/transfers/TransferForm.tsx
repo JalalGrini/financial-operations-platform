@@ -11,6 +11,7 @@ import { Input, Textarea } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScheduleDate } from "@/components/ui/schedule-date";
 import { transfersApi } from "./api";
 import { partiesApi } from "@/features/parties/api";
 import { companyApi } from "@/features/companies/api";
@@ -199,7 +200,7 @@ export function TransferForm({ initial, mode }: TransferFormProps) {
           </div>
           <div className="space-y-1.5">
             <Label>{sourceText("Transfer Date")}</Label>
-            <Input type="date" value={date} onChange={e => setDate(e.target.value)} required />
+            <ScheduleDate value={date} onChange={setDate} />
           </div>
           <div className="space-y-1.5 md:col-span-3">
             <Label>{sourceText("Note")} <span className="text-muted-foreground text-xs">{sourceText("(optional)")}</span></Label>

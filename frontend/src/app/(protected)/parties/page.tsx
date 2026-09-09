@@ -11,31 +11,23 @@ import { sourceText } from "@/lib/i18n/source-catalog";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { companyDisplayName, GROUP_COMPANY_VALUE } from "@/lib/company-scope";
-import { Building2, Landmark, Users2,
-  RefreshCw
-} from "lucide-react";
+import { Building2, Landmark, Users2 } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
 import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
-import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Breadcrumb } from "@/components/ui/page-components";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { SourceText } from "@/components/i18n/SourceText";
 import {
   EntitySection,
   type FieldDef,
 } from "@/features/configuration/components/EntitySection";
 import { partiesApi } from "@/features/parties/api";
-import { useCompanies, usePaymentMethods } from "@/features/personnel/hooks";
-import { SkeletonTable, SkeletonHero, SkeletonStatsStrip } from "@/components/ui/page-skeletons";
-import { StaggerList, StaggerItem } from "@/components/ui/stagger-list";
-import { Reveal } from "@/components/ui/reveal";
+import { useCompanies } from "@/features/personnel/hooks";
 import type {
   AssociatedPerson,
   AssociatedPersonType,
   ExternalParty,
   IntercompanyBalance,
-  Supplier,
 } from "@/features/parties/types";
 
 function localeTag() {
@@ -117,10 +109,6 @@ function useCompanyOptions() {
     ...(data || []).map((c) => ({ value: c.id, label: c.name })),
   ];
 }
-function usePaymentMethodOptions() {
-  const { data } = usePaymentMethods();
-  return (data || []).map((m) => ({ value: m.id, label: m.name }));
-}
 
 function formatMad(amount: number) {
   return new Intl.NumberFormat(localeTag(), {
@@ -138,193 +126,6 @@ function todayInputValue(): string {
   return `${year}-${month}-${day}`;
 }
 
-function SummaryTile({
-  title,
-  value,
-  helper,
-  icon,
-}: {
-  title: string;
-  value: string;
-  helper: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Card className="border-border/70 bg-card/90 shadow-[0_12px_28px_rgba(15,23,42,.05)]">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              {title}
-            </p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-              {value}
-            </p>
-          </div>
-          <div className="grid size-10 place-items-center rounded-2xl bg-primary/10 text-primary">
-            {icon}
-          </div>
-        </div>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">{helper}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ---------- Suppliers ----------
-function SuppliersSection() {
-  const companyOptions = useCompanyOptions();
-  const paymentMethodOptions = usePaymentMethodOptions();
-  const fields: FieldDef[] = [
-    {
-      name: "company",
-      get label() {
-        return sourceText("Company");
-      },
-      type: "select",
-      options: companyOptions,
-      required: false,
-    },
-    {
-      name: "name",
-      get label() {
-        return sourceText("Legal name");
-      },
-      type: "text",
-      required: true,
-    },
-    {
-      name: "trade_name",
-      get label() {
-        return sourceText("Trade name");
-      },
-      type: "text",
-    },
-    {
-      name: "email",
-      get label() {
-        return sourceText("Email");
-      },
-      type: "text",
-    },
-    {
-      name: "phone",
-      get label() {
-        return sourceText("Phone");
-      },
-      type: "text",
-    },
-    {
-      name: "registration_number",
-      get label() {
-        return sourceText("Registration number");
-      },
-      type: "text",
-    },
-    {
-      name: "tax_id",
-      get label() {
-        return sourceText("Tax ID");
-      },
-      type: "text",
-    },
-    {
-      name: "vat_number",
-      get label() {
-        return sourceText("VAT number");
-      },
-      type: "text",
-    },
-    {
-      name: "address",
-      get label() {
-        return sourceText("Address");
-      },
-      type: "textarea",
-    },
-    {
-      name: "website",
-      get label() {
-        return sourceText("Website");
-      },
-      type: "text",
-    },
-    {
-      name: "payment_terms",
-      get label() {
-        return sourceText("Payment terms");
-      },
-      type: "text",
-      placeholder: sourceText("e.g., Net 30"),
-    },
-    {
-      name: "default_payment_method",
-      get label() {
-        return sourceText("Default payment method");
-      },
-      type: "select",
-      options: paymentMethodOptions,
-      placeholder: sourceText("None"),
-    },
-    {
-      name: "default_currency",
-      get label() {
-        return sourceText("Default currency");
-      },
-      type: "text",
-      placeholder: sourceText("MAD"),
-    },
-    {
-      name: "status",
-      get label() {
-        return sourceText("Status");
-      },
-      type: "select",
-      options: PARTY_STATUS_OPTIONS,
-    },
-  ];
-  return (
-    <EntitySection<Supplier>
-      queryKey="parties:suppliers"
-      exportKey="suppliers"
-      exportFilenameStem="suppliers_export"
-      crud={partiesApi.suppliers}
-      title={sourceText("Supplier")}
-      description={sourceText(
-        "Vendors your companies pay \u2014 reusable across financial documents.",
-      )}
-      columns={[
-        refColumn,
-        { key: "name", header: sourceText("Name") },
-        {
-          key: "company_name",
-          header: sourceText("Company"),
-          className: "w-36",
-          render: (_v: unknown, row: Supplier) =>
-            companyDisplayName(row.company_name, sourceText("Tout le groupe")),
-        },
-      ]}
-      fields={fields}
-      createDefaults={{ status: "active", default_currency: "MAD" }}
-      getEditValues={(s) => ({
-        company: s.company || GROUP_COMPANY_VALUE,
-        name: s.name,
-        trade_name: s.trade_name || "",
-        email: s.email || "",
-        phone: s.phone || "",
-        registration_number: s.registration_number || "",
-        tax_id: s.tax_id || "",
-        vat_number: s.vat_number || "",
-        address: s.address || "",
-        website: s.website || "",
-        payment_terms: s.payment_terms || "",
-        default_payment_method: s.default_payment_method ?? "",
-        default_currency: s.default_currency || "MAD",
-        status: s.status,
-      })}
-    />
-  );
-}
 // ---------- External Parties ----------
 function ExternalPartiesSection() {
   const fields: FieldDef[] = [
@@ -1056,34 +857,26 @@ export default function PartiesPage() {
         </div>
       </section>
 
-      <Tabs defaultValue="suppliers">
-        <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="suppliers">
-            <SourceText source="Suppliers" />
-          </TabsTrigger>
-          <TabsTrigger value="external-parties">
+      <section className="space-y-8">
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">
             <SourceText source="External Parties" />
-          </TabsTrigger>
-          <TabsTrigger value="associated-persons">
-            <SourceText source="Associated Persons" leading trailing />
-          </TabsTrigger>
-          <TabsTrigger value="person-types">
-            <SourceText source="Person Types" />
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="suppliers" className="pt-4">
-          <SuppliersSection />
-        </TabsContent>
-        <TabsContent value="external-parties" className="pt-4">
+          </h2>
           <ExternalPartiesSection />
-        </TabsContent>
-        <TabsContent value="associated-persons" className="pt-4">
+        </div>
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">
+            <SourceText source="Associated Persons" leading trailing />
+          </h2>
           <AssociatedPersonsSection />
-        </TabsContent>
-        <TabsContent value="person-types" className="pt-4">
+        </div>
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">
+            <SourceText source="Person Types" />
+          </h2>
           <PersonTypesSection />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </section>
     </div>
   );
 }

@@ -5,13 +5,20 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Archive, RotateCcw, Edit, Loader2,
   RefreshCw
 } from "lucide-react";
-import { useRevealOnOpen } from "@/hooks/useRevealOnOpen";
 import { toast } from "@/components/ui/toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScheduleDate } from "@/components/ui/schedule-date";
 
 import { SourceText } from "@/components/i18n/SourceText";
 import { WriteOnly } from "@/components/auth/WriteOnly";
 import { Button } from "@/components/ui/button";
-import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -144,11 +151,6 @@ export function EntitySection<
   const [showArchived, setShowArchived] = useState(false);
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editorAnchor, setEditorAnchor] = useState(0);
-  // `editorAnchor` already changes on every open, including when Edit is pressed
-  // on a second row while the editor is open, so it doubles as the re-reveal
-  // trigger.
-  const editorPanelRef = useRevealOnOpen<HTMLDivElement>(dialogOpen, editorAnchor);
   const [editingRow, setEditingRow] = useState<T | null>(null);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -231,14 +233,12 @@ export function EntitySection<
     setFormData({ ...createDefaults });
     setFormError(null);
     setDialogOpen(true);
-    setEditorAnchor(Date.now());
   };
   const openEdit = (row: T) => {
     setEditingRow(row);
     setFormData(getEditValues(row));
     setFormError(null);
     setDialogOpen(true);
-    setEditorAnchor(Date.now());
   };
   const setField = (name: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -398,50 +398,38 @@ export function EntitySection<
         />
       )}
 
-      {/* Create / Edit editor */}
-      {dialogOpen && (
-        <div
-          key={editorAnchor}
-          ref={editorPanelRef}
-          className="scroll-mt-24 rounded-2xl border bg-card p-5 shadow-[0_14px_34px_rgba(15,23,42,.08)]"
-        >
-          <div className="mb-4 flex flex-wrap gap-3 items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">
-                {editingRow
-                  ? `${sourceText("Edit")} ${title}`
-                  : `${sourceText("New")} ${title}`}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {editingRow
-                  ? sourceText("Update the selected record below.")
-                  : sourceText(
-                      "Fill in the fields below to create a new record.",
-                    )}
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDialogOpen(false)}
-              disabled={saving}
-            >
-              <SourceText source="Close" leading trailing />
-            </Button>
-          </div>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(next) => {
+          if (!next && !saving) setDialogOpen(false);
+        }}
+      >
+        <DialogContent size="xl" className="min-w-0">
+          <DialogHeader>
+            <DialogTitle>
+              {editingRow
+                ? `${sourceText("Edit")} ${title}`
+                : `${sourceText("New")} ${title}`}
+            </DialogTitle>
+            <DialogDescription>
+              {editingRow
+                ? sourceText("Update the selected record below.")
+                : sourceText("Fill in the fields below to create a new record.")}
+            </DialogDescription>
+          </DialogHeader>
           {formError && (
             <p className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
               {formError}
             </p>
           )}
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid min-w-0 gap-4 md:grid-cols-2">
             {fields.filter(isFieldVisible).map((field) => (
               <div
                 key={field.name}
                 className={
                   field.type === "textarea"
-                    ? "space-y-1.5 md:col-span-2 xl:col-span-3"
-                    : "space-y-1.5"
+                    ? "min-w-0 space-y-1.5 md:col-span-2"
+                    : "min-w-0 space-y-1.5"
                 }
               >
                 {field.type === "checkbox" ? (
@@ -463,17 +451,17 @@ export function EntitySection<
                       )}
                     </Label>
                     {(field.lockedInEdit && editingRow) ? (
-                      <div className='rounded-xl border bg-muted/50 px-3 py-2 text-sm text-foreground/80 flex items-center gap-2'>
-                        <span className='text-xs opacity-50'>locked</span>
+                      <div className="flex items-center gap-2 rounded-xl border bg-muted/50 px-3 py-2 text-sm text-foreground/80">
+                        <span className="text-xs opacity-50">locked</span>
                         <span>
-                          {field.type === 'select'
-                            ? (field.options?.find(o => o.value === String(formData[field.name] ?? ''))?.label ?? String(formData[field.name] ?? '—'))
-                            : String(formData[field.name] ?? '—')}
+                          {field.type === "select"
+                            ? (field.options?.find((o) => o.value === String(formData[field.name] ?? ""))?.label ?? String(formData[field.name] ?? "—"))
+                            : String(formData[field.name] ?? "—")}
                         </span>
                       </div>
-                    ) : field.type === 'select' ? (
+                    ) : field.type === "select" ? (
                       <Select
-                        value={String(formData[field.name] ?? '')}
+                        value={String(formData[field.name] ?? "")}
                         onValueChange={(v) => setField(field.name, v)}
                       >
                         <SelectTrigger>
@@ -500,16 +488,16 @@ export function EntitySection<
                         value={String(formData[field.name] ?? "")}
                         onChange={(e) => setField(field.name, e.target.value)}
                       />
+                    ) : field.type === "date" ? (
+                      <ScheduleDate
+                        id={`f_${field.name}`}
+                        value={String(formData[field.name] ?? "")}
+                        onChange={(value) => setField(field.name, value)}
+                      />
                     ) : (
                       <Input
                         id={`f_${field.name}`}
-                        type={
-                          field.type === "number"
-                            ? "number"
-                            : field.type === "date"
-                              ? "date"
-                              : "text"
-                        }
+                        type={field.type === "number" ? "number" : "text"}
                         step={field.step}
                         placeholder={field.placeholder}
                         value={String(formData[field.name] ?? "")}
@@ -526,7 +514,7 @@ export function EntitySection<
               </div>
             ))}
           </div>
-          <div className="mt-5 flex flex-wrap justify-end gap-3">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -539,9 +527,9 @@ export function EntitySection<
               {saving && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {editingRow ? sourceText("Save changes") : sourceText("Create")}
             </Button>
-          </div>
-        </div>
-      )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Archive confirm */}
       <ConfirmDialog

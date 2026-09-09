@@ -5,7 +5,6 @@ import React, { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
 import { WriteOnly } from "@/components/auth/WriteOnly";
-import Link from "next/link";
 import {
   ArrowLeft,
   Loader2,
@@ -63,6 +62,7 @@ import {
 import { toast } from "@/components/ui/toast";
 import { documentApi, statusLabels } from "@/features/personnel/api";
 import { DocumentType } from "@/features/personnel/types";
+import { RelatedPersonnelRecords } from "@/features/personnel/components/RelatedPersonnelRecords";
 
 function humanizeEnumValue(value: string) {
   return value
@@ -113,9 +113,6 @@ export default function PersonnelProfilePage() {
     },
     onError: (error: Error) => toast.error(error.message || "Upload failed"),
   });
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "employments" | "salaries" | "payrolls" | "cnss" | "documents"
-  >("overview");
   const {
     data: personnelData,
     isLoading,
@@ -502,172 +499,9 @@ export default function PersonnelProfilePage() {
         </Card>
       </div>
 
-      {/* Tabs for related data */}
-      <Card>
-        <CardHeader className="border-b">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <CardTitle className="text-lg">
-              <SourceText source="Related Records" />
-            </CardTitle>
-            <div className="flex gap-1 border-b pb-2" role="tablist">
-              {[
-                {
-                  id: "overview",
-                  get label() {
-                    return sourceText("Overview");
-                  },
-                  icon: User,
-                },
-                {
-                  id: "employments",
-                  get label() {
-                    return sourceText("Employments");
-                  },
-                  icon: Briefcase,
-                  count: person?.active_employments_count,
-                },
-                {
-                  id: "salaries",
-                  get label() {
-                    return sourceText("Salaries");
-                  },
-                  icon: CreditCard,
-                },
-                {
-                  id: "payrolls",
-                  get label() {
-                    return sourceText("Payroll");
-                  },
-                  icon: FileText,
-                },
-                {
-                  id: "cnss",
-                  get label() {
-                    return sourceText("CNSS");
-                  },
-                  icon: FileCheck,
-                },
-                {
-                  id: "documents",
-                  get label() {
-                    return sourceText("Documents");
-                  },
-                  icon: FileText,
-                },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  role="tab"
-                  aria-selected={activeTab === tab.id}
-                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-                    activeTab === tab.id
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <tab.icon className="h-4 w-4" />
-                  {tab.label}
-                  {tab.count !== undefined && (
-                    <span className="ms-1 px-1.5 py-0.5 text-xs bg-muted rounded-full">
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {activeTab === "employments" && (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                <SourceText
-                  source="Employments list will be loaded here"
-                  leading
-                  trailing
-                />
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  router.push(`/personnel/employments?person=${id}`)
-                }
-              >
-                <Plus className="me-2 h-4 w-4" />
-                <SourceText source="View All Employments" leading trailing />
-              </Button>
-            </div>
-          )}
-          {activeTab === "salaries" && (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                <SourceText
-                  source="Salary history will be loaded here"
-                  leading
-                  trailing
-                />
-              </p>
-              <WriteOnly>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    router.push(`/personnel/payroll/new?person=${id}`)
-                  }
-                >
-                  <Plus className="me-2 h-4 w-4" />
-                  <SourceText source="Add Payroll" leading trailing />
-                </Button>
-              </WriteOnly>
-            </div>
-          )}
-          {activeTab === "payrolls" && (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                <SourceText
-                  source="Payroll records will be loaded here"
-                  leading
-                  trailing
-                />
-              </p>
-              <WriteOnly>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    router.push(`/personnel/payroll/new?person=${id}`)
-                  }
-                >
-                  <Plus className="me-2 h-4 w-4" />
-                  <SourceText source="Create Payroll" leading trailing />
-                </Button>
-              </WriteOnly>
-            </div>
-          )}
-          {activeTab === "cnss" && (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                <SourceText
-                  source="CNSS declarations will be loaded here"
-                  leading
-                  trailing
-                />
-              </p>
-              <WriteOnly>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push(`/personnel/cnss/new?person=${id}`)}
-                >
-                  <Plus className="me-2 h-4 w-4" />
-                  <SourceText source="Create CNSS Declaration" leading trailing />
-                </Button>
-              </WriteOnly>
-            </div>
-          )}
-          {activeTab === "documents" && (
+      <RelatedPersonnelRecords
+        personId={id}
+        documents={(
             <div className="space-y-4">
               <div className="grid gap-3 rounded-xl border border-dashed p-4 md:grid-cols-[12rem_1fr_auto] md:items-end">
                 <label className="space-y-1 text-sm font-medium">
@@ -769,9 +603,8 @@ export default function PersonnelProfilePage() {
                   )}
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+      />
       <ConfirmDialog
         isOpen={actionConfirm.open}
         onClose={() => setActionConfirm({ open: false, action: null })}

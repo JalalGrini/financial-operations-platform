@@ -472,8 +472,8 @@ export default function CreatePayrollPage() {
               </div>
             )}
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <div className="space-y-2">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2 min-w-0">
                 <Label htmlFor="payroll_month">
                   <SourceText source="Payroll Month *" />
                 </Label>
@@ -494,7 +494,7 @@ export default function CreatePayrollPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <Label htmlFor="scheduled_working_days">
                   <SourceText
                     source="Scheduled Working Days *"
@@ -513,61 +513,77 @@ export default function CreatePayrollPage() {
                   })}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="worked_days">
-                  <SourceText source="Worked Days" />
-                </Label>
-                <Input
-                  id="worked_days"
-                  type="number"
-                  min="0"
-                  max="31"
-                  disabled={isSubmitting}
-                  {...register("worked_days", { valueAsNumber: true })}
-                />
+            </div>
+
+            <div className="space-y-3 rounded-2xl border border-border/70 bg-muted/20 p-4">
+              <div>
+                <p className="text-sm font-medium">
+                  <SourceText source="Attendance Details" />
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  <SourceText source="Leave these at 0 to apply official leaves for the month automatically. Unpaid leave and unjustified absences are deducted using the absence-day rate." />
+                </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="absence_days">
-                  <SourceText source="Absence Days" />
-                </Label>
-                <Input
-                  id="absence_days"
-                  type="number"
-                  min="0"
-                  max="31"
-                  disabled={isSubmitting}
-                  {...register("absence_days", { valueAsNumber: true })}
-                />
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2 min-w-0">
+                  <Label htmlFor="worked_days">
+                    <SourceText source="Worked Days" />
+                  </Label>
+                  <Input
+                    id="worked_days"
+                    type="number"
+                    min="0"
+                    max="31"
+                    disabled={isSubmitting}
+                    {...register("worked_days", { valueAsNumber: true })}
+                  />
+                </div>
+                <div className="space-y-2 min-w-0">
+                  <Label htmlFor="absence_days">
+                    <SourceText source="Absence Days" />
+                  </Label>
+                  <Input
+                    id="absence_days"
+                    type="number"
+                    min="0"
+                    max="31"
+                    disabled={isSubmitting}
+                    {...register("absence_days", { valueAsNumber: true })}
+                  />
+                </div>
+                <div className="space-y-2 min-w-0">
+                  <Label htmlFor="authorized_leave_days">
+                    <SourceText source="Authorized Leave Days" leading trailing />
+                  </Label>
+                  <Input
+                    id="authorized_leave_days"
+                    type="number"
+                    min="0"
+                    max="31"
+                    disabled={isSubmitting}
+                    {...register("authorized_leave_days", {
+                      valueAsNumber: true,
+                    })}
+                  />
+                </div>
+                <div className="space-y-2 min-w-0">
+                  <Label htmlFor="unpaid_leave_days">
+                    <SourceText source="Unpaid Leave Days" />
+                  </Label>
+                  <Input
+                    id="unpaid_leave_days"
+                    type="number"
+                    min="0"
+                    max="31"
+                    disabled={isSubmitting}
+                    {...register("unpaid_leave_days", { valueAsNumber: true })}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="authorized_leave_days">
-                  <SourceText source="Authorized Leave Days" leading trailing />
-                </Label>
-                <Input
-                  id="authorized_leave_days"
-                  type="number"
-                  min="0"
-                  max="31"
-                  disabled={isSubmitting}
-                  {...register("authorized_leave_days", {
-                    valueAsNumber: true,
-                  })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="unpaid_leave_days">
-                  <SourceText source="Unpaid Leave Days" />
-                </Label>
-                <Input
-                  id="unpaid_leave_days"
-                  type="number"
-                  min="0"
-                  max="31"
-                  disabled={isSubmitting}
-                  {...register("unpaid_leave_days", { valueAsNumber: true })}
-                />
-              </div>
-              <div className="space-y-2">
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2 min-w-0">
                 <Label htmlFor="daily_rate_override">
                   <SourceText source="Daily Rate Override (optional)" />
                 </Label>
@@ -585,11 +601,8 @@ export default function CreatePayrollPage() {
                     )
                   }
                 />
-                <p className="text-xs text-muted-foreground">
-                  <SourceText source="Set a fixed per-day rate. Overrides the auto-computed rate and also sets the absence deduction per day." />
-                </p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <Label htmlFor="absence_rate_override">
                   <SourceText source="Absence/Leave Deduction Rate (optional)" />
                 </Label>
@@ -695,93 +708,111 @@ export default function CreatePayrollPage() {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <Select
-                      value={adjustment.adjustment_type}
-                      onValueChange={(value) =>
-                        updateAdjustment(
-                          adjustment.id,
-                          "adjustment_type",
-                          value,
-                        )
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(PayrollAdjustmentType).map((value) => (
-                          <SelectItem key={value} value={value}>
-                            {sourceText(value)}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Type" /></Label>
+                      <Select
+                        value={adjustment.adjustment_type}
+                        onValueChange={(value) =>
+                          updateAdjustment(
+                            adjustment.id,
+                            "adjustment_type",
+                            value,
+                          )
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(PayrollAdjustmentType).map((value) => (
+                            <SelectItem key={value} value={value}>
+                              {sourceText(value)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Direction" /></Label>
+                      <Select
+                        value={adjustment.direction}
+                        onValueChange={(value) =>
+                          updateAdjustment(adjustment.id, "direction", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={PayrollAdjustmentDirection.ADDITION}>
+                            {sourceText("Addition")}
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select
-                      value={adjustment.direction}
-                      onValueChange={(value) =>
-                        updateAdjustment(adjustment.id, "direction", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={PayrollAdjustmentDirection.ADDITION}>
-                          {sourceText("Addition")}
-                        </SelectItem>
-                        <SelectItem
-                          value={PayrollAdjustmentDirection.DEDUCTION}
-                        >
-                          {sourceText("Deduction")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="any"
-                      placeholder={sourceText("Amount *")}
-                      value={adjustment.amount}
-                      onChange={(event) =>
-                        updateAdjustment(
-                          adjustment.id,
-                          "amount",
-                          event.target.value,
-                        )
-                      }
-                    />
-                    <ScheduleDate
-                      value={adjustment.effective_date || ""}
-                      onChange={(val: string) =>
-                        updateAdjustment(
-                          adjustment.id,
-                          "effective_date",
-                          val,
-                        )}
-                    />
-                    <Input
-                      placeholder={sourceText("Description *")}
-                      value={adjustment.description}
-                      onChange={(event) =>
-                        updateAdjustment(
-                          adjustment.id,
-                          "description",
-                          event.target.value,
-                        )
-                      }
-                    />
-                    <Input
-                      placeholder={sourceText("Notes")}
-                      value={adjustment.notes}
-                      onChange={(event) =>
-                        updateAdjustment(
-                          adjustment.id,
-                          "notes",
-                          event.target.value,
-                        )
-                      }
-                    />
+                          <SelectItem
+                            value={PayrollAdjustmentDirection.DEDUCTION}
+                          >
+                            {sourceText("Deduction")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Amount *" /></Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="any"
+                        placeholder={sourceText("Amount *")}
+                        value={adjustment.amount}
+                        onChange={(event) =>
+                          updateAdjustment(
+                            adjustment.id,
+                            "amount",
+                            event.target.value,
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Effective date" /></Label>
+                      <ScheduleDate
+                        value={adjustment.effective_date || ""}
+                        onChange={(val: string) =>
+                          updateAdjustment(
+                            adjustment.id,
+                            "effective_date",
+                            val,
+                          )}
+                      />
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Description *" /></Label>
+                      <Input
+                        placeholder={sourceText("Description *")}
+                        value={adjustment.description}
+                        onChange={(event) =>
+                          updateAdjustment(
+                            adjustment.id,
+                            "description",
+                            event.target.value,
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Notes" /></Label>
+                      <Input
+                        placeholder={sourceText("Notes")}
+                        value={adjustment.notes}
+                        onChange={(event) =>
+                          updateAdjustment(
+                            adjustment.id,
+                            "notes",
+                            event.target.value,
+                          )
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
               ))
@@ -837,91 +868,109 @@ export default function CreatePayrollPage() {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <Select
-                      value={payment.kind}
-                      onValueChange={(value) =>
-                        updatePayment(payment.id, "kind", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={PayrollPaymentKind.ADVANCE}>
-                          {sourceText("Advance")}
-                        </SelectItem>
-                        <SelectItem value={PayrollPaymentKind.PARTIAL}>
-                          {sourceText("Partial Payment")}
-                        </SelectItem>
-                        <SelectItem value={PayrollPaymentKind.FINAL}>
-                          {sourceText("Final Payment")}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="any"
-                      placeholder={sourceText("Amount *")}
-                      value={payment.amount}
-                      onChange={(event) =>
-                        updatePayment(payment.id, "amount", event.target.value)
-                      }
-                    />
-                    <ScheduleDate
-                      value={payment.payment_date || ""}
-                      onChange={(val: string) =>
-                        updatePayment(
-                          payment.id,
-                          "payment_date",
-                          val,
-                        )}
-                    />
-                    <Select
-                      value={payment.payment_method || "__none__"}
-                      onValueChange={(value) =>
-                        updatePayment(
-                          payment.id,
-                          "payment_method",
-                          value === "__none__" ? "" : value,
-                        )
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={sourceText("Select payment method")}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">
-                          {sourceText("None")}
-                        </SelectItem>
-                        {(paymentMethods || []).map((method) => (
-                          <SelectItem key={method.id} value={method.id}>
-                            {method.name}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Kind" /></Label>
+                      <Select
+                        value={payment.kind}
+                        onValueChange={(value) =>
+                          updatePayment(payment.id, "kind", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={PayrollPaymentKind.ADVANCE}>
+                            {sourceText("Advance")}
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      placeholder={sourceText("Reference number")}
-                      value={payment.reference_number}
-                      onChange={(event) =>
-                        updatePayment(
-                          payment.id,
-                          "reference_number",
-                          event.target.value,
-                        )
-                      }
-                    />
-                    <Input
-                      placeholder={sourceText("Notes")}
-                      value={payment.notes}
-                      onChange={(event) =>
-                        updatePayment(payment.id, "notes", event.target.value)
-                      }
-                    />
+                          <SelectItem value={PayrollPaymentKind.PARTIAL}>
+                            {sourceText("Partial Payment")}
+                          </SelectItem>
+                          <SelectItem value={PayrollPaymentKind.FINAL}>
+                            {sourceText("Final Payment")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Amount *" /></Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="any"
+                        placeholder={sourceText("Amount *")}
+                        value={payment.amount}
+                        onChange={(event) =>
+                          updatePayment(payment.id, "amount", event.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Payment date" /></Label>
+                      <ScheduleDate
+                        value={payment.payment_date || ""}
+                        onChange={(val: string) =>
+                          updatePayment(
+                            payment.id,
+                            "payment_date",
+                            val,
+                          )}
+                      />
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Payment method" /></Label>
+                      <Select
+                        value={payment.payment_method || "__none__"}
+                        onValueChange={(value) =>
+                          updatePayment(
+                            payment.id,
+                            "payment_method",
+                            value === "__none__" ? "" : value,
+                          )
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={sourceText("Select payment method")}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">
+                            {sourceText("None")}
+                          </SelectItem>
+                          {(paymentMethods || []).map((method) => (
+                            <SelectItem key={method.id} value={method.id}>
+                              {method.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Reference number" /></Label>
+                      <Input
+                        placeholder={sourceText("Reference number")}
+                        value={payment.reference_number}
+                        onChange={(event) =>
+                          updatePayment(
+                            payment.id,
+                            "reference_number",
+                            event.target.value,
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2 min-w-0">
+                      <Label><SourceText source="Notes" /></Label>
+                      <Input
+                        placeholder={sourceText("Notes")}
+                        value={payment.notes}
+                        onChange={(event) =>
+                          updatePayment(payment.id, "notes", event.target.value)
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
               ))

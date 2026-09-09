@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { companyDisplayName, companyFilterOptions } from "@/lib/company-scope";
 import { FilteredExportButton } from "@/components/ui/filtered-export-button";
-import { cnssApi, reportsApi } from "@/features/personnel/api";
+import { cnssApi } from "@/features/personnel/api";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { FilterPopover } from "@/components/ui/filter-popover";
 import { TagAction } from "@/components/collaboration/TagAction";
@@ -283,14 +283,15 @@ export default function CNSSListPage() {
     month: number;
     format: "csv" | "xlsx";
   }): Promise<Blob> =>
-    reportsApi.export({
-      report_type: "cnss_monthly",
-      year,
-      month,
-      company_ids: companyFilter ? [companyFilter] : undefined,
-      output_format: format,
-      template: "declaration",
-    });
+    cnssApi.export(
+      {
+        company: companyFilter || undefined,
+        year,
+        month,
+        is_current: true,
+      },
+      format,
+    );
   const handleSort = useCallback(
     (key: string) => {
       if (sortBy === key) {

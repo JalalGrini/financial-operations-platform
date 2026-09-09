@@ -10,16 +10,14 @@ from apps.common.permissions import RoleBasedAccessPermission
 
 
 class CanManageConfiguration(RoleBasedAccessPermission):
-    """
-    Permission to manage configuration records.
+    """Configuration workspace is Administrator-only for writes.
 
-    - Administrator: Full CRUD
-    - Assistant: Create, Read, Update (no permanent delete)
-    - Director: Read only
-
-    The matrix itself lives in `apps.common.permissions.RoleBasedAccessPermission`
-    (Cycle 7). This class previously carried its own byte-identical copy of that
-    logic; only the denial message is domain-specific.
+    Assistants and Directors may still GET catalogs (record types, categories,
+    payment methods) because operational forms — financial records, parties,
+    employments — load those lists. Creating or editing configuration itself
+    stays on the Administration screens, which are also URL-gated.
     """
 
+    WRITE_ROLES = ("Administrator",)
+    DELETE_ROLES = ("Administrator",)
     message = _("Insufficient permissions to manage configuration.")

@@ -464,6 +464,10 @@ class EmploymentSalaryViewSet(
         if employment_id:
             queryset = queryset.filter(employment_id=employment_id)
 
+        person_id = self.request.query_params.get("person")
+        if person_id:
+            queryset = queryset.filter(employment__person_id=person_id)
+
         queryset = filter_queryset_by_company(
             queryset, field="employment__company", raw=self.request.query_params.get("company")
         )
@@ -609,6 +613,10 @@ class MonthlyPayrollRecordViewSet(
         if employment_id:
             queryset = queryset.filter(employment_id=employment_id)
 
+        person_id = self.request.query_params.get("person")
+        if person_id:
+            queryset = queryset.filter(employment__person_id=person_id)
+
         queryset = filter_queryset_by_company(
             queryset, field="employment__company", raw=self.request.query_params.get("company")
         )
@@ -681,9 +689,19 @@ class MonthlyPayrollRecordViewSet(
                     "notes",
                     "observations",
                 )
+                attendance_fields = (
+                    "worked_days",
+                    "absence_days",
+                    "authorized_leave_days",
+                    "unpaid_leave_days",
+                )
+                client_set_attendance = any(int(values.get(field) or 0) for field in attendance_fields)
                 for field in editable:
-                    if field in values:
-                        setattr(payroll, field, values[field])
+                    if field not in values:
+                        continue
+                    if field in attendance_fields and not client_set_attendance:
+                        continue
+                    setattr(payroll, field, values[field])
                 payroll.updated_by = request.user
                 payroll.calculate_totals()
                 payroll.save(

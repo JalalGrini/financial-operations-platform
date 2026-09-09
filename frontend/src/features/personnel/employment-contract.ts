@@ -70,6 +70,7 @@ export const employmentFormSchema = z
     payout_method: z.enum(["cash", "bank"]).default("cash"),
     rib: z.string().max(50).optional(),
     default_monthly_working_days: z.number().int().min(1).max(31).default(26),
+    authorized_leave_days_per_year: z.number().int().min(0).max(365).default(18),
     // Per-employee day pricing. Kept as strings in the form so "empty" stays
     // distinguishable from 0 - empty means "derive the rate from gross salary /
     // scheduled days" while 0 is a real price the payroll must honour. The
@@ -170,6 +171,7 @@ export function buildEmploymentPayload(
     payout_method: values.payout_method || "cash",
     rib: optional(values.rib),
     default_monthly_working_days: values.default_monthly_working_days,
+    authorized_leave_days_per_year: values.authorized_leave_days_per_year,
     worked_day_rate: optionalNumber(values.worked_day_rate),
     absence_day_rate: optionalNumber(values.absence_day_rate),
     observations: optional(values.observations),
@@ -194,6 +196,7 @@ const EMPLOYMENT_FIELDS = new Set<keyof EmploymentFormValues>([
   "payout_method",
   "rib",
   "default_monthly_working_days",
+  "authorized_leave_days_per_year",
   "worked_day_rate",
   "absence_day_rate",
   "observations",

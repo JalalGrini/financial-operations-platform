@@ -125,7 +125,12 @@ class DashboardViewSet(viewsets.ViewSet):
 
         from apps.deadlines.models import Deadline
         from apps.personnel.leave_status import annotate_is_on_leave
-        from apps.personnel.models import PersonnelPerson
+        from apps.personnel.models import (
+            CNSSDeclaration,
+            Employment,
+            MonthlyPayrollRecord,
+            PersonnelPerson,
+        )
 
         # `due_at` is a DateTimeField, so these bounds must be timezone-aware
         # datetimes. They were `date` objects, which Django coerced to naive
@@ -175,6 +180,19 @@ class DashboardViewSet(viewsets.ViewSet):
             "confirmed": transfers_qs.filter(status="confirmed").count(),
         }
 
+        period_year, period_month = today.year, today.month
+        personnel_ops = {
+            "active_employees": Employment.objects.filter(
+                is_archived=False, is_active=True
+            ).count(),
+            "payroll_this_month": MonthlyPayrollRecord.objects.filter(
+                is_archived=False, year=period_year, month=period_month
+            ).count(),
+            "cnss_declared": CNSSDeclaration.objects.filter(
+                is_archived=False, is_currently_declared=True
+            ).count(),
+        }
+
         return Response({
             "headcount": {
                 "total": headcount_total,
@@ -196,4 +214,5 @@ class DashboardViewSet(viewsets.ViewSet):
                 ).count(),
             },
             "transfers_summary": transfers_summary,
+            "personnel_ops": personnel_ops,
         })

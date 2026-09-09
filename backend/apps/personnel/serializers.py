@@ -294,6 +294,7 @@ class EmploymentSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
     is_multi_company = serializers.SerializerMethodField()
     is_on_leave = serializers.SerializerMethodField()
     display_status = serializers.SerializerMethodField()
+    remaining_leave_days = serializers.SerializerMethodField()
 
     empty_to_null_fields = (
         "employment_end_date",
@@ -334,6 +335,8 @@ class EmploymentSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
             "default_cnss_declared_days",
             "worked_day_rate",
             "absence_day_rate",
+            "authorized_leave_days_per_year",
+            "remaining_leave_days",
             "observations",
             "current_salary",
             "is_multi_company",
@@ -350,10 +353,20 @@ class EmploymentSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
             "is_multi_company",
             "is_on_leave",
             "display_status",
+            "remaining_leave_days",
         ]
 
     def get_company_name(self, obj):
         return company_display_name(obj.company)
+
+    def get_remaining_leave_days(self, obj):
+        from datetime import date as date_cls
+
+        from apps.leaves.quota import used_chargeable_days
+
+        quota = int(getattr(obj, "authorized_leave_days_per_year", 0) or 0)
+        used = used_chargeable_days(obj, date_cls.today().year)
+        return max(0, quota - used)
 
     def get_is_on_leave(self, obj):
         return bool(getattr(obj, "is_on_leave", False))
@@ -466,6 +479,7 @@ class EmploymentCreateSerializer(
             "default_cnss_declared_days",
             "worked_day_rate",
             "absence_day_rate",
+            "authorized_leave_days_per_year",
             "observations",
         ]
         read_only_fields = ["id"]
@@ -480,6 +494,7 @@ class EmploymentCreateSerializer(
                 "max_value": 31,
             },
             "default_cnss_declared_days": {"min_value": 0, "max_value": 31},
+            "authorized_leave_days_per_year": {"min_value": 0, "max_value": 365},
             # Both day rates stay optional: empty means "derive it", which is the
             # behaviour every existing employment relies on. Negative money is
             # refused outright rather than silently inverting a deduction.

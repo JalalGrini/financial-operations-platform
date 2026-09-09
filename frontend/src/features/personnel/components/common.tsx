@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Popover } from "@/components/ui/popover";
 import { statusColors, statusLabels } from "@/features/personnel/api";
 import {
   PersonnelStatus,
@@ -789,15 +790,6 @@ export function FilterDropdown({
     : value
       ? 1
       : 0;
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!(event.target as HTMLElement).closest("[data-filter-dropdown]")) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
   const handleSelect = (optionValue: string) => {
     if (multiple) {
       const values = Array.isArray(value) ? value : [value];
@@ -825,7 +817,7 @@ export function FilterDropdown({
       placeholder ||
       sourceText("All");
   return (
-    <div className={cn("relative", className)} data-filter-dropdown>
+    <div className={cn("min-w-0", className)}>
       <div className="mb-1 flex items-center justify-between gap-3">
         <label className="block text-sm font-medium text-foreground">
           {sourceText(label)}
@@ -836,105 +828,109 @@ export function FilterDropdown({
             : `${selectableOptions.length} ${sourceText("options")}`}
         </span>
       </div>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "efop-hover-lift w-full rounded-lg border border-input bg-background px-3 py-2 text-start text-sm transition-[border-color,box-shadow,background-color,transform] duration-200 hover:border-primary/30 hover:bg-background/96",
-          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:-translate-y-[1px]",
-          isOpen && "ring-2 ring-ring ring-offset-2",
-        )}
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-      >
-        <span
-          className={cn(
-            "flex items-center justify-between",
-            !displayValue && "text-muted-foreground",
-          )}
-        >
-          {displayValue || placeholder || sourceText("All")}
-          <svg
+      <Popover
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        width={280}
+        align="start"
+        className="p-1.5"
+        trigger={
+          <button
+            type="button"
             className={cn(
-              "ms-2 h-4 w-4 transition-transform duration-300",
-              isOpen && "rotate-180",
+              "efop-hover-lift w-full rounded-lg border border-input bg-background px-3 py-2 text-start text-sm transition-[border-color,box-shadow,background-color,transform] duration-200 hover:border-primary/30 hover:bg-background/96",
+              "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:-translate-y-[1px]",
+              isOpen && "ring-2 ring-ring ring-offset-2",
             )}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+            aria-haspopup="listbox"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </span>
-      </button>
-      {isOpen && (
-        <div className="efop-pop absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-border/80 bg-popover/98 shadow-[0_18px_42px_hsl(var(--foreground)/0.14)] backdrop-blur-xl">
-          <div className="max-h-60 overflow-y-auto p-1.5">
-            {options.length === 0 ? (
-              <div className="rounded-lg px-3 py-2 text-sm text-muted-foreground">
-                <SourceText source="No filter options yet" />
-              </div>
-            ) : (
-              options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => handleSelect(option.value)}
+            <span
               className={cn(
-                "efop-hover-lift w-full rounded-lg px-3 py-2 text-start text-sm transition-[background-color,color,box-shadow,transform] duration-200 hover:bg-accent focus:outline-none focus:bg-accent",
-                Array.isArray(value)
-                  ? value.includes(option.value)
-                    ? "bg-primary/10 text-primary"
-                    : ""
-                  : value === option.value
-                    ? "bg-primary/10 text-primary"
-                    : "",
+                "flex items-center justify-between",
+                !displayValue && "text-muted-foreground",
               )}
-              role="option"
-              aria-selected={
-                Array.isArray(value)
-                  ? value.includes(option.value)
-                  : value === option.value
-              }
             >
-              <span className="flex items-center gap-2">
-                {multiple && (
-                  <svg
-                    className={cn(
-                      "h-4 w-4 flex-shrink-0",
-                      Array.isArray(value) && value.includes(option.value)
-                        ? "text-primary"
-                        : "text-muted-foreground",
-                    )}
-                    fill={
-                      Array.isArray(value) && value.includes(option.value)
-                        ? "currentColor"
-                        : "none"
-                    }
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+              {displayValue || placeholder || sourceText("All")}
+              <svg
+                className={cn(
+                  "ms-2 h-4 w-4 transition-transform duration-300",
+                  isOpen && "rotate-180",
                 )}
-                {sourceText(option.label)}
-              </span>
-            </button>
-              ))
-            )}
-          </div>
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </span>
+          </button>
+        }
+      >
+        <div className="max-h-60 overflow-y-auto">
+          {options.length === 0 ? (
+            <div className="rounded-lg px-3 py-2 text-sm text-muted-foreground">
+              <SourceText source="No filter options yet" />
+            </div>
+          ) : (
+            options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handleSelect(option.value)}
+                className={cn(
+                  "efop-hover-lift w-full rounded-lg px-3 py-2 text-start text-sm transition-[background-color,color,box-shadow,transform] duration-200 hover:bg-accent focus:outline-none focus:bg-accent",
+                  Array.isArray(value)
+                    ? value.includes(option.value)
+                      ? "bg-primary/10 text-primary"
+                      : ""
+                    : value === option.value
+                      ? "bg-primary/10 text-primary"
+                      : "",
+                )}
+                role="option"
+                aria-selected={
+                  Array.isArray(value)
+                    ? value.includes(option.value)
+                    : value === option.value
+                }
+              >
+                <span className="flex items-center gap-2">
+                  {multiple && (
+                    <svg
+                      className={cn(
+                        "h-4 w-4 flex-shrink-0",
+                        Array.isArray(value) && value.includes(option.value)
+                          ? "text-primary"
+                          : "text-muted-foreground",
+                      )}
+                      fill={
+                        Array.isArray(value) && value.includes(option.value)
+                          ? "currentColor"
+                          : "none"
+                      }
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                  {sourceText(option.label)}
+                </span>
+              </button>
+            ))
+          )}
         </div>
-      )}
+      </Popover>
     </div>
   );
 }
@@ -952,55 +948,47 @@ interface ActionMenuProps {
 }
 export function ActionMenu({ items, trigger, className }: ActionMenuProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const menuRef = React.useRef<HTMLDivElement>(null);
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
   return (
-    <div className={cn("relative inline-block", className)} ref={menuRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="efop-hover-lift rounded-lg p-1.5 transition-[background-color,color,box-shadow,transform] duration-200 hover:bg-accent hover:shadow-[0_10px_24px_hsl(var(--foreground)/0.08)]"
-        aria-expanded={isOpen}
-        aria-haspopup="menu"
-      >
-        {trigger}
-      </button>
-      {isOpen && (
-        <div className="efop-pop absolute end-0 z-50 mt-1 w-48 origin-top-right rounded-xl border border-border/80 bg-popover/98 py-1 shadow-[0_18px_44px_hsl(var(--foreground)/0.16)] backdrop-blur-xl animate-in fade-in-0 zoom-in-95">
-          {items.map((item, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => {
-                item.onClick();
-                setIsOpen(false);
-              }}
-              disabled={item.disabled}
-              className={cn(
-                "efop-hover-lift flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start text-sm transition-[background-color,color,box-shadow,transform] duration-200 hover:bg-accent focus:outline-none focus:bg-accent hover:shadow-[0_10px_24px_hsl(var(--foreground)/0.08)]",
-                item.disabled && "opacity-50 cursor-not-allowed",
-                item.variant === "destructive" &&
-                  "text-destructive focus:text-destructive",
-              )}
-              role="menuitem"
-            >
-              {item.icon && (
-                <span className="h-4 w-4 flex-shrink-0">{item.icon}</span>
-              )}
-              {sourceText(item.label)}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <Popover
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      width={192}
+      align="end"
+      className={cn("py-1", className)}
+      trigger={
+        <button
+          type="button"
+          className="efop-hover-lift rounded-lg p-1.5 transition-[background-color,color,box-shadow,transform] duration-200 hover:bg-accent hover:shadow-[0_10px_24px_hsl(var(--foreground)/0.08)]"
+          aria-haspopup="menu"
+        >
+          {trigger}
+        </button>
+      }
+    >
+      {items.map((item, index) => (
+        <button
+          key={index}
+          type="button"
+          onClick={() => {
+            item.onClick();
+            setIsOpen(false);
+          }}
+          disabled={item.disabled}
+          className={cn(
+            "efop-hover-lift flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start text-sm transition-[background-color,color,box-shadow,transform] duration-200 hover:bg-accent focus:outline-none focus:bg-accent hover:shadow-[0_10px_24px_hsl(var(--foreground)/0.08)]",
+            item.disabled && "opacity-50 cursor-not-allowed",
+            item.variant === "destructive" &&
+              "text-destructive focus:text-destructive",
+          )}
+          role="menuitem"
+        >
+          {item.icon && (
+            <span className="h-4 w-4 flex-shrink-0">{item.icon}</span>
+          )}
+          {sourceText(item.label)}
+        </button>
+      ))}
+    </Popover>
   );
 }
 // ============ Confirm Dialog ============

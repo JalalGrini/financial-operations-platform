@@ -3116,5 +3116,19 @@
   "Your reply will be sent to": "Votre réponse sera envoyée à",
   "Your request has been recorded.": "Votre demande a bien été enregistrée.",
   "Your role controls which actions are available. Hidden actions are intentionally unavailable, not missing.": "Votre rôle contrôle les actions disponibles. Les actions masquées sont volontairement indisponibles.",
-  "Your ticket has been recorded.": "Votre ticket a été enregistré."
+  "Your ticket has been recorded.": "Votre ticket a été enregistré.",
+  "Authorized leave days per year": "Jours de congé autorisés par an",
+  "Chargeable days": "Jours imputables",
+  "Create anyway": "Créer quand même",
+  "Effective date": "Date d’effet",
+  "International holiday days": "Jours fériés internationaux",
+  "Keep editing": "Continuer à modifier",
+  "Leave days exceeded": "Jours de congé dépassés",
+  "Leave these at 0 to apply official leaves for the month automatically. Unpaid leave and unjustified absences are deducted using the absence-day rate.": "Laissez à 0 pour appliquer automatiquement les congés officiels du mois. Les congés non payés et les absences injustifiées sont déduits au tarif du jour d’absence.",
+  "National holiday days": "Jours fériés nationaux",
+  "Payment date": "Date de paiement",
+  "Remaining leave": "Congé restant",
+  "Tag a colleague": "Assigner un collègue",
+  "They will see this record in Tagged for me, with your optional note.": "Ils verront cet enregistrement dans Assigné pour moi, avec votre note facultative.",
+  "Used when creating leaves. Extra days require confirmation.": "Utilisé à la création des congés. Les jours supplémentaires exigent une confirmation."
 }

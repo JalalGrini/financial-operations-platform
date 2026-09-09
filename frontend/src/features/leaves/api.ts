@@ -18,6 +18,10 @@ export interface Leave {
   start_date: string;
   end_date: string;
   duration_days: number;
+  national_holiday_days?: number;
+  international_holiday_days?: number;
+  chargeable_days?: number;
+  confirm_over_quota?: boolean;
   reason: string;
   status: "draft" | "official" | "cancelled";
   signed_document?: string | null;
@@ -39,6 +43,9 @@ export interface CreateLeaveData {
   decision_date?: string;
   start_date: string;
   end_date: string;
+  national_holiday_days?: number;
+  international_holiday_days?: number;
+  confirm_over_quota?: boolean;
   reason?: string;
   signed_document?: File | null;
 }

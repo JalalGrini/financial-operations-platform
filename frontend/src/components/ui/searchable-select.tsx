@@ -233,6 +233,7 @@ export function SearchableSelect({
       ? createPortal(
           <div
             ref={panelRef}
+            data-efop-overlay=""
             className="fixed z-[100] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-xl"
             style={{
               top: position.top,

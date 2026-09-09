@@ -58,6 +58,12 @@ class TransfersSummarySchema(serializers.Serializer):
     confirmed = serializers.IntegerField()
 
 
+class PersonnelOpsSchema(serializers.Serializer):
+    active_employees = serializers.IntegerField()
+    payroll_this_month = serializers.IntegerField()
+    cnss_declared = serializers.IntegerField()
+
+
 class OperationalResponseSchema(serializers.Serializer):
     """Response shape for `GET .../dashboard/operational/`.
 
@@ -76,3 +82,4 @@ class OperationalResponseSchema(serializers.Serializer):
     upcoming_deadlines = UpcomingDeadlineSchema(many=True)
     deadlines_count = DeadlinesCountSchema()
     transfers_summary = TransfersSummarySchema()
+    personnel_ops = PersonnelOpsSchema()

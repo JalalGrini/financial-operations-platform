@@ -90,6 +90,11 @@ export interface OperationalSnapshot {
     this_week: number;
   };
   transfers_summary?: TransfersSummaryStats;
+  personnel_ops?: {
+    active_employees: number;
+    payroll_this_month: number;
+    cnss_declared: number;
+  };
 }
 export const dashboardApi = {
   overview: async (company?: string): Promise<DashboardOverview> => {

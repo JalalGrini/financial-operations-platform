@@ -560,6 +560,14 @@ class MonthlyPayrollService:
         scheduled_days = employment.default_monthly_working_days or 26
         declared_days = employment.default_cnss_declared_days or 26
 
+        from apps.leaves.quota import attendance_from_leaves
+
+        attendance = attendance_from_leaves(employment, period_start, period_end)
+        authorized = attendance["authorized_leave_days"]
+        unpaid = attendance["unpaid_leave_days"]
+        absence = attendance["absence_days"]
+        worked = max(0, scheduled_days - authorized - unpaid - absence)
+
         payroll = MonthlyPayrollRecord.objects.create(
             employment=employment,
             year=year,
@@ -567,10 +575,10 @@ class MonthlyPayrollService:
             period_start=period_start,
             period_end=period_end,
             scheduled_working_days=scheduled_days,
-            worked_days=0,
-            absence_days=0,
-            authorized_leave_days=0,
-            unpaid_leave_days=0,
+            worked_days=worked,
+            absence_days=absence,
+            authorized_leave_days=authorized,
+            unpaid_leave_days=unpaid,
             declared_days=declared_days,
             gross_salary_snapshot=gross_salary,
             daily_rate=Decimal("0"),

@@ -231,6 +231,7 @@ export default function CreateEmploymentPage() {
     defaultValues: {
       employment_status: EmploymentStatus.ACTIVE,
       default_monthly_working_days: 26,
+      authorized_leave_days_per_year: 18,
       payout_method: "cash",
     },
   });
@@ -534,8 +535,8 @@ export default function CreateEmploymentPage() {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2 min-w-0">
                   <Label htmlFor="hire_date">
                     <SourceText source="Hire Date *" />
                   </Label>
@@ -552,7 +553,7 @@ export default function CreateEmploymentPage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 min-w-0">
                   <Label htmlFor="employment_end_date">
                     <SourceText source="End Date" leading />{" "}
                     {requiresEndDate && <span className="text-red-600">*</span>}
@@ -579,7 +580,7 @@ export default function CreateEmploymentPage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 min-w-0">
                   <Label htmlFor="default_monthly_working_days">
                     <SourceText
                       source="Default Working Days *"
@@ -597,6 +598,24 @@ export default function CreateEmploymentPage() {
                     })}
                     disabled={isSubmitting}
                   />
+                </div>
+                <div className="space-y-2 min-w-0">
+                  <Label htmlFor="authorized_leave_days_per_year">
+                    <SourceText source="Authorized leave days per year" />
+                  </Label>
+                  <Input
+                    id="authorized_leave_days_per_year"
+                    type="number"
+                    min="0"
+                    max="365"
+                    {...register("authorized_leave_days_per_year", {
+                      valueAsNumber: true,
+                    })}
+                    disabled={isSubmitting}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    <SourceText source="Used when creating leaves. Extra days require confirmation." />
+                  </p>
                 </div>
               </div>
 
@@ -662,7 +681,7 @@ export default function CreateEmploymentPage() {
                       trailing
                     />
                   </h4>
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="departure_reason">
                         <SourceText

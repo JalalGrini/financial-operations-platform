@@ -172,6 +172,13 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     section: "Partners",
   },
   {
+    name: "Suppliers",
+    href: "/suppliers",
+    icon: Handshake,
+    roles: ["Administrator", "Assistant", "Director"],
+    section: "Partners",
+  },
+  {
     name: "Financial Records",
     href: "/financial-records",
     icon: Receipt,

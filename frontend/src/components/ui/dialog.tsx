@@ -73,7 +73,7 @@ const DialogContent = React.forwardRef<
         sizeStyles[size],
         // Appearance — matches the EFOP card system
         "rounded-2xl border border-border bg-background shadow-[0_32px_72px_hsl(var(--foreground)/0.18)]",
-        "p-6",
+        "max-h-[min(90vh,52rem)] overflow-y-auto p-6",
         // Animation
         "duration-200",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",

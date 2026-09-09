@@ -3116,5 +3116,19 @@
   "Your reply will be sent to": "سيُرسَل ردك إلى",
   "Your request has been recorded.": "تم تسجيل طلبكم.",
   "Your role controls which actions are available. Hidden actions are intentionally unavailable, not missing.": "يتحكم دورك في الإجراءات المتاحة. الإجراءات المخفية غير متاحة عمدًا وليست مفقودة.",
-  "Your ticket has been recorded.": "تم تسجيل تذكرتكم."
+  "Your ticket has been recorded.": "تم تسجيل تذكرتكم.",
+  "Authorized leave days per year": "أيام الإجازة المصرح بها سنويا",
+  "Chargeable days": "الأيام المحتسبة",
+  "Create anyway": "إنشاء على أي حال",
+  "Effective date": "تاريخ السريان",
+  "International holiday days": "أيام العطل الدولية",
+  "Keep editing": "متابعة التعديل",
+  "Leave days exceeded": "تجاوز أيام الإجازة",
+  "Leave these at 0 to apply official leaves for the month automatically. Unpaid leave and unjustified absences are deducted using the absence-day rate.": "اترك هذه القيم عند 0 لتطبيق الإجازات الرسمية للشهر تلقائيا. تُخصم الإجازة غير المدفوعة والغيابات غير المبررة حسب تعريفة يوم الغياب.",
+  "National holiday days": "أيام العطل الوطنية",
+  "Payment date": "تاريخ الدفع",
+  "Remaining leave": "الإجازة المتبقية",
+  "Tag a colleague": "وسم زميل",
+  "They will see this record in Tagged for me, with your optional note.": "سيظهر لهم هذا السجل في المعين لي، مع ملاحظتك الاختيارية.",
+  "Used when creating leaves. Extra days require confirmation.": "يُستخدم عند إنشاء الإجازات. الأيام الزائدة تتطلب تأكيدا."
 }

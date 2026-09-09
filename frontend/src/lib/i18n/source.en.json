@@ -3116,5 +3116,19 @@
   "Your reply will be sent to": "Your reply will be sent to",
   "Your request has been recorded.": "Your request has been recorded.",
   "Your role controls which actions are available. Hidden actions are intentionally unavailable, not missing.": "Your role controls which actions are available. Hidden actions are intentionally unavailable, not missing.",
-  "Your ticket has been recorded.": "Your ticket has been recorded."
+  "Your ticket has been recorded.": "Your ticket has been recorded.",
+  "Authorized leave days per year": "Authorized leave days per year",
+  "Chargeable days": "Chargeable days",
+  "Create anyway": "Create anyway",
+  "Effective date": "Effective date",
+  "International holiday days": "International holiday days",
+  "Keep editing": "Keep editing",
+  "Leave days exceeded": "Leave days exceeded",
+  "Leave these at 0 to apply official leaves for the month automatically. Unpaid leave and unjustified absences are deducted using the absence-day rate.": "Leave these at 0 to apply official leaves for the month automatically. Unpaid leave and unjustified absences are deducted using the absence-day rate.",
+  "National holiday days": "National holiday days",
+  "Payment date": "Payment date",
+  "Remaining leave": "Remaining leave",
+  "Tag a colleague": "Tag a colleague",
+  "They will see this record in Tagged for me, with your optional note.": "They will see this record in Tagged for me, with your optional note.",
+  "Used when creating leaves. Extra days require confirmation.": "Used when creating leaves. Extra days require confirmation."
 }

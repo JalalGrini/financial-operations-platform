@@ -47,6 +47,10 @@ class Leave(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     duration_days = models.PositiveIntegerField(editable=False)
+    national_holiday_days = models.PositiveIntegerField(default=0)
+    international_holiday_days = models.PositiveIntegerField(default=0)
+    chargeable_days = models.PositiveIntegerField(editable=False, default=0)
+    confirm_over_quota = models.BooleanField(default=False)
     reason = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
     signed_document = models.FileField(upload_to='leaves/documents/', blank=True, null=True)
@@ -70,6 +74,8 @@ class Leave(models.Model):
     def save(self, *args, **kwargs):
         if self.start_date and self.end_date:
             self.duration_days = max(0, (self.end_date - self.start_date).days)
+        holidays = int(self.national_holiday_days or 0) + int(self.international_holiday_days or 0)
+        self.chargeable_days = max(0, int(self.duration_days or 0) - holidays)
         # Group-wide leaves keep company=None. Inheritance from employment is
         # done in the serializer only when the client omitted company.
         if not self.decision_number:
@@ -81,6 +87,10 @@ class Leave(models.Model):
         if self.start_date and self.end_date:
             if self.end_date < self.start_date:
                 raise ValidationError('end_date must be >= start_date.')
+        holidays = int(self.national_holiday_days or 0) + int(self.international_holiday_days or 0)
+        duration = max(0, (self.end_date - self.start_date).days) if self.start_date and self.end_date else 0
+        if holidays > duration:
+            raise ValidationError('Holiday days cannot exceed the leave duration.')
         qs = Leave.objects.filter(
             personnel=self.personnel,
             status=Leave.STATUS_OFFICIAL,

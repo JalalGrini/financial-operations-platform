@@ -204,10 +204,12 @@ export default function DashboardPage() {
     queryFn: () => dashboardApi.overview(),
     staleTime: 120000,
   });
+  const isAdmin = roles.includes("Administrator");
   const personnelQuery = useQuery({
     queryKey: ["personnel", "dashboard", selectedMonth],
     queryFn: () => personnelDashboardApi.getSummary(selectedMonth),
     staleTime: 120000,
+    enabled: isAdmin,
   });
   const notificationsQuery = useQuery({
     queryKey: ["notifications", "count"],
@@ -449,9 +451,9 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { label: sourceText("Companies"),       value: companyStats?.total_companies ?? 0,  tone: "text-primary" },
-                  { label: sourceText("Active employees"), value: summary?.activeEmployees ?? 0,        tone: "text-emerald-600 dark:text-emerald-400" },
-                  { label: sourceText("Payroll records"),  value: summary?.monthlyPayroll ?? 0,         tone: "text-brand-blue-600" },
-                  { label: sourceText("CNSS declared"),    value: summary?.cnssDeclared ?? 0,          tone: "text-amber-600 dark:text-amber-400" },
+                  { label: sourceText("Active employees"), value: summary?.activeEmployees ?? operationalQuery.data?.personnel_ops?.active_employees ?? 0,        tone: "text-emerald-600 dark:text-emerald-400" },
+                  { label: sourceText("Payroll records"),  value: summary?.monthlyPayroll ?? operationalQuery.data?.personnel_ops?.payroll_this_month ?? 0,         tone: "text-brand-blue-600" },
+                  { label: sourceText("CNSS declared"),    value: summary?.cnssDeclared ?? operationalQuery.data?.personnel_ops?.cnss_declared ?? 0,          tone: "text-amber-600 dark:text-amber-400" },
                 ].map((metric) => (
                   <SpotlightCard key={metric.label} className="rounded-xl border border-border/60 bg-background/70 p-3">
                     <p className={`text-xl font-black tabular-nums ${metric.tone}`}>

@@ -54,6 +54,7 @@ const PROTECTED_PREFIXES: readonly string[] = [
   "/inventory",
   "/users",
   "/clients",
+  "/suppliers",
   "/audit-log",
   "/notifications",
   "/tagged",

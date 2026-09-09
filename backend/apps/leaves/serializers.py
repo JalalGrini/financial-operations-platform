@@ -22,12 +22,14 @@ class LeaveSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
             'leave_type', 'leave_type_other',
             'decision_number', 'decision_date',
             'start_date', 'end_date', 'duration_days',
+            'national_holiday_days', 'international_holiday_days', 'chargeable_days',
+            'confirm_over_quota',
             'reason', 'status', 'signed_document',
             'created_by', 'created_by_name',
             'official_at', 'cancelled_at', 'created_at', 'updated_at',
         ]
         read_only_fields = [
-            'id', 'duration_days', 'created_by',
+            'id', 'duration_days', 'chargeable_days', 'created_by',
             'company_name', 'job_title', 'department',
             'official_at', 'cancelled_at', 'created_at', 'updated_at',
         ]
@@ -65,4 +67,36 @@ class LeaveSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
                 data['company'] = None
         elif employment:
             data['company'] = employment.company
+        national = int(data.get('national_holiday_days', getattr(self.instance, 'national_holiday_days', 0) or 0))
+        international = int(
+            data.get('international_holiday_days', getattr(self.instance, 'international_holiday_days', 0) or 0)
+        )
+        duration = max(0, (end - start).days) if start and end else 0
+        if national + international > duration:
+            raise serializers.ValidationError(
+                {'national_holiday_days': 'Holiday days cannot exceed the leave duration.'}
+            )
+        from .quota import chargeable_days, used_chargeable_days
+
+        chargeable = chargeable_days(duration, national, international)
+        confirm = bool(data.get('confirm_over_quota', getattr(self.instance, 'confirm_over_quota', False)))
+        if employment and chargeable and start:
+            quota = int(getattr(employment, 'authorized_leave_days_per_year', 0) or 0)
+            used = used_chargeable_days(
+                employment, start.year, exclude_pk=getattr(self.instance, 'pk', None)
+            )
+            remaining = max(0, quota - used)
+            if chargeable > remaining and not confirm:
+                raise serializers.ValidationError(
+                    {
+                        'code': 'leave_over_quota',
+                        'remaining_days': remaining,
+                        'chargeable_days': chargeable,
+                        'quota': quota,
+                        'detail': (
+                            f'This leave uses {chargeable} days but only {remaining} authorized '
+                            'days remain this year. Confirm to create it anyway, or keep editing.'
+                        ),
+                    }
+                )
         return data

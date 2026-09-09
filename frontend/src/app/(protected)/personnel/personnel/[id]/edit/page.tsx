@@ -557,7 +557,7 @@ function PersonnelEditForm({
                 />
               </div>
 
-              <div className="space-y-2 min-w-0 md:col-span-2">
+              <div className="space-y-2 min-w-0">
                 <Label htmlFor="company">
                   <SourceText source="Company affiliation" />
                 </Label>

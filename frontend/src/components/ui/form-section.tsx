@@ -114,9 +114,9 @@ export function FormField({
     colSpan === "full"
       ? "col-span-full"
       : colSpan === 3
-        ? "col-span-3"
+        ? "col-span-1 sm:col-span-2 lg:col-span-3"
         : colSpan === 2
-          ? "col-span-2"
+          ? "col-span-1 sm:col-span-2"
           : "col-span-1";
 
   return (

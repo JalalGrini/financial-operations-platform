@@ -54,6 +54,7 @@ describe("role-normalized navigation", () => {
     expect(names).toEqual(
       expect.arrayContaining([
         "Clients",
+        "Suppliers",
         "Financial Records",
         "Reports Registry",
         "Configuration",

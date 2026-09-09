@@ -143,11 +143,15 @@ export function Popover({
     const onPointerDown = (event: MouseEvent) => {
       const target = event.target as Node;
       if (
-        !panelRef.current?.contains(target) &&
-        !triggerRef.current?.contains(target)
+        panelRef.current?.contains(target) ||
+        triggerRef.current?.contains(target)
       ) {
-        setOpen(false);
+        return;
       }
+      if (target instanceof Element && target.closest("[data-efop-overlay]")) {
+        return;
+      }
+      setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -203,6 +207,7 @@ export function Popover({
             <div
               ref={panelRef}
               role="dialog"
+              data-efop-overlay=""
               className={cn(
                 "fixed z-[100] rounded-2xl border bg-popover text-popover-foreground shadow-xl",
                 "efop-popover-in",

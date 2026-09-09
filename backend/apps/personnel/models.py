@@ -633,6 +633,11 @@ class Employment(ReferenceTrackedModel):
             "deduct at the worked-day rate."
         ),
     )
+    authorized_leave_days_per_year = models.PositiveIntegerField(
+        _("authorized leave days per year"),
+        default=18,
+        help_text=_("Paid leave days granted on this employment each calendar year."),
+    )
 
     # Notes
     observations = models.TextField(
@@ -1113,9 +1118,9 @@ class MonthlyPayrollRecord(ReferenceTrackedModel):
             )
         else:
             effective_absence_rate = self.daily_rate
-        self.absence_deduction = (effective_absence_rate * self.unpaid_leave_days).quantize(
-            Decimal("0.0001")
-        )
+        self.absence_deduction = (
+            effective_absence_rate * ((self.unpaid_leave_days or 0) + (self.absence_days or 0))
+        ).quantize(Decimal("0.0001"))
 
         # Calculate supplements and deductions from adjustments
         from apps.personnel.models import PayrollAdjustmentDirection

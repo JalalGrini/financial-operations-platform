@@ -242,6 +242,8 @@ function toEmploymentFormValues(employmentData: Employment): EmploymentFormValue
     rib: employmentData.rib || "",
     default_monthly_working_days:
       employmentData.default_monthly_working_days || 26,
+    authorized_leave_days_per_year:
+      employmentData.authorized_leave_days_per_year ?? 18,
     worked_day_rate:
       employmentData.worked_day_rate != null
         ? String(employmentData.worked_day_rate)
@@ -654,8 +656,8 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2 min-w-0">
                   <Label htmlFor="hire_date">
                     <SourceText source="Hire Date *" />
                   </Label>
@@ -672,7 +674,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 min-w-0">
                   <Label htmlFor="employment_end_date">
                     <SourceText source="End Date" leading />{" "}
                     {requiresEndDate && <span className="text-red-600">*</span>}
@@ -707,7 +709,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 min-w-0">
                   <Label htmlFor="default_monthly_working_days">
                     <SourceText
                       source="Default Working Days *"
@@ -721,6 +723,21 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                     min="1"
                     max="31"
                     {...register("default_monthly_working_days", {
+                      valueAsNumber: true,
+                    })}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="space-y-2 min-w-0">
+                  <Label htmlFor="authorized_leave_days_per_year">
+                    <SourceText source="Authorized leave days per year" />
+                  </Label>
+                  <Input
+                    id="authorized_leave_days_per_year"
+                    type="number"
+                    min="0"
+                    max="365"
+                    {...register("authorized_leave_days_per_year", {
                       valueAsNumber: true,
                     })}
                     disabled={isSubmitting}
@@ -789,7 +806,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                       trailing
                     />
                   </h4>
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="departure_reason">
                         <SourceText

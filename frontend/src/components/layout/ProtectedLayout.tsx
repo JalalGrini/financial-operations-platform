@@ -44,9 +44,10 @@ export function ProtectedLayout({ children }: { children: React.ReactNode }) {
   // --- Global route permission guard ---
   // Find a nav item whose href is a prefix of the current pathname.
   // If found and the user lacks the required role, show a 403 screen.
-  const matchedItem = ALL_NAV_ITEMS.find((item) =>
-    pathname === item.href || pathname.startsWith(item.href + "/")
-  );
+  // Longest prefix wins so /configuration/templates is not swallowed by /configuration.
+  const matchedItem = [...ALL_NAV_ITEMS]
+    .sort((left, right) => right.href.length - left.href.length)
+    .find((item) => pathname === item.href || pathname.startsWith(item.href + "/"));
   const routeForbidden =
     matchedItem !== undefined && !canAccessNavigationItem(user, matchedItem);
   if (routeForbidden) {

@@ -7,10 +7,20 @@ import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { SourceText } from "@/components/i18n/SourceText";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import {
   collaborationApi,
   EligibleUser,
   Mention,
 } from "@/features/collaboration/api";
+
 export function TagAction({
   resourceType,
   targetId,
@@ -18,7 +28,6 @@ export function TagAction({
 }: {
   resourceType: string;
   targetId: string;
-  /** When true, renders only the icon button (no "Tag user" label). Use in table rows. */
   compact?: boolean;
 }) {
   const queryClient = useQueryClient();
@@ -68,40 +77,79 @@ export function TagAction({
   });
   const rows: Mention[] = mentions.data?.results ?? mentions.data ?? [];
   return (
-    <div className="relative">
+    <>
       <Button
         variant="outline"
         size={compact ? "icon" : undefined}
         title={compact ? sourceText("Tag user") : undefined}
-        onClick={() => setOpen(!open)}
+        aria-label={sourceText("Tag user")}
+        onClick={() => setOpen(true)}
       >
         <UserPlus className="h-4 w-4" />
         {!compact && <SourceText source="Tag user" leading trailing />}
       </Button>
-      {open && (
-        <div className="absolute end-0 z-40 mt-2 w-96 space-y-3 rounded border bg-popover p-4 shadow-xl">
-          <select
-            value={user}
-            onChange={(event) => setUser(event.target.value)}
-            className="w-full rounded border bg-background p-2"
-          >
-            <option value="">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent size="default">
+          <DialogHeader>
+            <DialogTitle>
+              <SourceText source="Tag a colleague" />
+            </DialogTitle>
+            <DialogDescription>
+              <SourceText source="They will see this record in Tagged for me, with your optional note." />
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <label className="block space-y-1.5 text-sm font-medium">
               <SourceText source="Choose a user" />
-            </option>
-            {users.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.full_name} — {item.roles.join(", ")}
-              </option>
-            ))}
-          </select>
-          <textarea
-            value={message}
-            maxLength={500}
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder={sourceText("Optional context")}
-            className="w-full rounded border bg-background p-2"
-          />
-          <div className="flex justify-end gap-2">
+              <SearchableSelect
+                value={user}
+                onChange={setUser}
+                placeholder={sourceText("Choose a user")}
+                searchPlaceholder={sourceText("Search...")}
+                options={users.map((item) => ({
+                  value: item.id,
+                  label: item.full_name,
+                  hint: item.roles.join(", "),
+                }))}
+              />
+            </label>
+            <label className="block space-y-1 text-sm font-medium">
+              <SourceText source="Optional context" />
+              <textarea
+                value={message}
+                maxLength={500}
+                onChange={(event) => setMessage(event.target.value)}
+                placeholder={sourceText("Optional context")}
+                className="min-h-24 w-full rounded-lg border bg-background p-3 text-sm"
+              />
+            </label>
+            {rows.length > 0 && (
+              <div className="rounded-xl border bg-muted/40 p-3">
+                <p className="mb-2 text-sm font-medium">
+                  <SourceText source="Active tags" />
+                </p>
+                {rows.map((row) => (
+                  <div
+                    key={row.id}
+                    className="flex items-center justify-between gap-2 py-1 text-sm"
+                  >
+                    <span>{row.tagged_user_name}</span>
+                    {row.can_untag && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        aria-label={`Remove tag for ${row.tagged_user_name}`}
+                        onClick={() => untag.mutate(row.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>
               <SourceText source="Cancel" leading trailing />
             </Button>
@@ -118,34 +166,9 @@ export function TagAction({
             >
               <SourceText source="Tag" leading trailing />
             </Button>
-          </div>
-          {rows.length > 0 && (
-            <div className="border-t pt-3">
-              <p className="mb-2 text-sm font-medium">
-                <SourceText source="Active tags" />
-              </p>
-              {rows.map((row) => (
-                <div
-                  key={row.id}
-                  className="flex items-center justify-between gap-2 py-1 text-sm"
-                >
-                  <span>{row.tagged_user_name}</span>
-                  {row.can_untag && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      aria-label={`Remove tag for ${row.tagged_user_name}`}
-                      onClick={() => untag.mutate(row.id)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

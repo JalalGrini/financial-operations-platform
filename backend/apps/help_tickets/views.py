@@ -49,22 +49,28 @@ class HelpTicketCreateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CanManageHelpTickets(RoleBasedAccessPermission):
-    """Administrators and Assistants manage help tickets; Directors read only."""
+def _is_administrator(user):
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    return user.groups.filter(name="Administrator").exists()
 
+
+class CanManageHelpTickets(RoleBasedAccessPermission):
+    """Help tickets (account recovery) are Administrator-only. Client tickets stay Assistant+Admin."""
+
+    READ_ROLES = ("Administrator",)
+    WRITE_ROLES = ("Administrator",)
+    DELETE_ROLES = ("Administrator",)
     message = "You do not have permission to manage help tickets."
 
 
 class HelpTicketListView(APIView):
-    """GET /api/help/tickets/ — admin only."""
+    """GET /api/help/tickets/list/ — admin only."""
     permission_classes = [CanManageHelpTickets]
 
-    def _is_admin(self, user):
-        return getattr(user, 'role', None) == 'administrator'
-
     def get(self, request):
-        if not self._is_admin(request.user):
-            return Response({'detail': 'Forbidden.'}, status=403)
         qs = HelpTicket.objects.all()
         status_filter = request.query_params.get('status')
         if status_filter:
@@ -76,9 +82,6 @@ class HelpTicketDetailView(APIView):
     """GET/PATCH/DELETE /api/help/tickets/{pk}/ — admin only."""
     permission_classes = [CanManageHelpTickets]
 
-    def _is_admin(self, user):
-        return getattr(user, 'role', None) == 'administrator'
-
     def _get_ticket(self, pk):
         try:
             return HelpTicket.objects.get(pk=pk)
@@ -86,7 +89,7 @@ class HelpTicketDetailView(APIView):
             return None
 
     def patch(self, request, pk):
-        if not self._is_admin(request.user):
+        if not _is_administrator(request.user):
             return Response({'detail': 'Forbidden.'}, status=403)
         ticket = self._get_ticket(pk)
         if not ticket:
@@ -101,7 +104,7 @@ class HelpTicketDetailView(APIView):
         return Response(serializer.errors, status=400)
 
     def delete(self, request, pk):
-        if not self._is_admin(request.user):
+        if not _is_administrator(request.user):
             return Response({'detail': 'Forbidden.'}, status=403)
         ticket = self._get_ticket(pk)
         if not ticket:
@@ -114,11 +117,8 @@ class HelpTicketReplyView(APIView):
     """POST /api/help/tickets/{pk}/reply/ — admin only. Sends reply email."""
     permission_classes = [CanManageHelpTickets]
 
-    def _is_admin(self, user):
-        return getattr(user, 'role', None) == 'administrator'
-
     def post(self, request, pk):
-        if not self._is_admin(request.user):
+        if not _is_administrator(request.user):
             return Response({'detail': 'Forbidden.'}, status=403)
         try:
             ticket = HelpTicket.objects.get(pk=pk)

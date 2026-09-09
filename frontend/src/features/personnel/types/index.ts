@@ -261,6 +261,8 @@ export interface Employment {
    */
   worked_day_rate?: string | number | null;
   absence_day_rate?: string | number | null;
+  authorized_leave_days_per_year?: number;
+  remaining_leave_days?: number;
   observations?: string;
   is_active: boolean;
   current_salary?: EmploymentSalary;
@@ -305,6 +307,7 @@ export interface EmploymentCreate {
   payout_method?: "cash" | "bank";
   rib?: string;
   default_monthly_working_days: number;
+  authorized_leave_days_per_year?: number;
   /** null clears the rate and restores the derived default. */
   worked_day_rate?: number | null;
   absence_day_rate?: number | null;
