@@ -86,9 +86,11 @@ export function Popover({
 
   const triggerRef = useRef<HTMLElement | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(
-    null,
-  );
+  const [position, setPosition] = useState<{
+    top: number;
+    left: number;
+    maxHeight: number;
+  } | null>(null);
 
   const reposition = useCallback(() => {
     const node = triggerRef.current;
@@ -106,9 +108,15 @@ export function Popover({
       return;
     }
 
-    const height = panelRef.current?.offsetHeight ?? 0;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const openUp = height > 0 && spaceBelow < height + GAP && rect.top > height + GAP;
+    const maxHeight = Math.max(120, window.innerHeight - GAP * 2);
+    // First open used to measure height as 0 because the portal was gated on
+    // `position`, so the panel was always placed below the trigger and ran off
+    // the page until a scroll pass measured it. The panel now mounts while
+    // hidden, then we clamp it into the viewport.
+    const height = Math.min(panelRef.current?.offsetHeight || 160, maxHeight);
+    const spaceBelow = window.innerHeight - rect.bottom - GAP;
+    const spaceAbove = rect.top - GAP;
+    const openUp = spaceBelow < height && spaceAbove > spaceBelow;
 
     const isRtl =
       typeof document !== "undefined" &&
@@ -124,18 +132,29 @@ export function Popover({
       preferredLeft = isRtl ? rect.left : rect.right - width;
     }
 
+    const preferredTop = openUp ? rect.top - height - GAP : rect.bottom + GAP;
+
     setPosition({
-      top: openUp ? rect.top - height - GAP : rect.bottom + GAP,
+      top: Math.min(Math.max(GAP, preferredTop), window.innerHeight - height - GAP),
       left: Math.min(
         Math.max(GAP, preferredLeft),
         Math.max(GAP, window.innerWidth - width - GAP),
       ),
+      maxHeight,
     });
   }, [align, setOpen, width]);
 
   // Before paint, so the panel never shows at 0,0 and then jumps.
+  // A second frame remasures after children commit, which is what the first
+  // open was missing when height was still 0.
   useLayoutEffect(() => {
-    if (open) reposition();
+    if (!open) {
+      setPosition(null);
+      return;
+    }
+    reposition();
+    const frame = window.requestAnimationFrame(reposition);
+    return () => window.cancelAnimationFrame(frame);
   }, [open, reposition]);
 
   useEffect(() => {
@@ -202,7 +221,7 @@ export function Popover({
       <span ref={triggerRef as React.RefObject<HTMLSpanElement>} className="inline-flex">
         {triggerNode}
       </span>
-      {open && position
+      {open
         ? createPortal(
             <div
               ref={panelRef}
@@ -213,7 +232,14 @@ export function Popover({
                 "efop-popover-in",
                 className,
               )}
-              style={{ top: position.top, left: position.left, width }}
+              style={{
+                top: position?.top ?? 0,
+                left: position?.left ?? 0,
+                width,
+                maxHeight: position?.maxHeight ?? `calc(100vh - ${GAP * 2}px)`,
+                overflowY: "auto",
+                visibility: position ? "visible" : "hidden",
+              }}
             >
               {children}
             </div>,

@@ -9,7 +9,6 @@ import Link from "next/link";
 import { SourceText } from "@/components/i18n/SourceText";
 import {
   Plus,
-  Filter,
   Building2,
   Archive,
   Eye,
@@ -60,7 +59,6 @@ import { listExportApi } from "@/features/exports/api";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
-import { FilterChip } from "@/components/ui/filter-chip";
 import { ConfirmDialog } from "@/features/personnel/components/common";
 const statusConfig: Record<
   CompanyStatus,
@@ -130,15 +128,6 @@ export default function CompaniesPage() {
   const restoreMutation = useRestoreCompany();
   const deleteMutation = useDeleteCompany();
   const [actionConfirm, setActionConfirm] = useState<{ open: boolean; id: string | null; action: 'archive' | 'restore' | 'delete' | null }>({ open: false, id: null, action: null });
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    if (status) params.set("status", status);
-    if (isArchived) params.set("archive_state", "archived");
-    params.set("page", "1");
-    router.push(`/companies?${params.toString()}`);
-  };
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(newPage));
@@ -247,10 +236,7 @@ export default function CompaniesPage() {
       {/* Table Card */}
       <Card>
         <CardHeader className="pb-4">
-          <form
-            onSubmit={handleSearch}
-            className="flex flex-wrap gap-4 items-center"
-          >
+          <div className="flex flex-wrap gap-4 items-center">
             <SearchInput
               placeholder={sourceText("Search companies...")}
               value={search}
@@ -279,10 +265,6 @@ export default function CompaniesPage() {
                 </SelectItem>
               </SelectContent>
             </Select>
-            <Button type="submit" variant="outline">
-              <Filter className="h-4 w-4 me-2" />
-              <SourceText source="Filter" leading trailing />
-            </Button>
             <Button
               type="button"
               variant={isArchived ? "primary" : "outline"}
@@ -297,7 +279,7 @@ export default function CompaniesPage() {
                 : `${sourceText("Show Archived")} (${stats?.archived_companies || 0})`}
             </Button>
             <ViewToggle mode={viewMode} onChange={setViewMode} />
-          </form>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (

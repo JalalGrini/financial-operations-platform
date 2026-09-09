@@ -1,12 +1,20 @@
 ﻿"use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Filter, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { sourceText } from "@/lib/i18n/source-catalog";
@@ -14,24 +22,12 @@ import { sourceText } from "@/lib/i18n/source-catalog";
 /**
  * Advanced filter panel: multi-select groups plus an optional numeric ceiling.
  *
- * Relationship to the existing `FilterDropdown`: that one is a single-select
- * dropdown per field and stays as it is. This is for the case it cannot express -
- * several checkbox groups and a range reviewed together, applied in one go.
+ * Rendered as a centered dialog instead of an anchored popover so a tall set of
+ * groups (status + company + person) stays fully on screen. Groups sit in a
+ * two-column grid with their own scroll, so they are not stacked into one
+ * overflowing column.
  *
- * Built on `components/ui/popover.tsx`, `checkbox.tsx` and `slider.tsx`, all
- * added alongside this file because Radix ships none of them here and adding a
- * dependency would break the repo's copy-don't-install `node_modules` story.
- *
- * Deliberate choices:
- * - **Controlled.** The caller owns the filter state, because the list query has
- *   to read it. A popover holding its own state would need the parent to mirror
- *   it, which is how two sources of truth start.
- * - **`onReset` is required when anything is active.** The reference design puts
- *   a "Reset all" button in the header unconditionally; a reset that resets
- *   nothing is a dead control, so it is disabled when the filters are untouched.
- * - **The trigger shows a count.** A collapsed panel that hides three active
- *   filters is how users end up reading a filtered list as if it were complete.
- *   The badge is the honesty fix for that.
+ * Controlled: the caller owns filter state because the list query reads it.
  */
 
 export interface FilterGroup {
@@ -72,6 +68,9 @@ export function FilterPopover({
   onReset: () => void;
   className?: string;
 }) {
+  const [open, setOpen] = useState(false);
+  const [queryByGroup, setQueryByGroup] = useState<Record<string, string>>({});
+
   const activeCount = useMemo(
     () =>
       Object.values(selected).reduce((total, values) => total + values.length, 0) +
@@ -89,103 +88,152 @@ export function FilterPopover({
     });
   };
 
-  return (
-    <Popover
-      width={320}
-      align="end"
-      className="p-5"
-      trigger={
-        <Button
-          variant="outline"
-          size="icon"
-          className={cn("relative rounded-xl", className)}
-          aria-label={sourceText("Filters")}
-          title={sourceText("Filters")}
-        >
-          <Filter className="h-4 w-4" />
-          {activeCount > 0 && (
-            <span
-              className="absolute -top-1.5 -end-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-orange-500 px-1 text-[10px] font-bold tabular-nums text-white"
-              aria-label={`${activeCount} ${sourceText("active filters")}`}
-            >
-              {activeCount}
-            </span>
-          )}
-        </Button>
-      }
-    >
-      <div className="flex flex-col gap-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-bold tracking-tight">
-              {sourceText("Advanced filters")}
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {sourceText("Narrow the list by attribute")}
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1.5 rounded-xl px-3 text-[11px] font-bold"
-            onClick={onReset}
-            disabled={activeCount === 0}
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            {sourceText("Reset all")}
-          </Button>
-        </div>
+  const columns = groups.length > 1 ? "sm:grid-cols-2" : "grid-cols-1";
 
-        {groups.map((group) => (
-          <div key={group.key} className="flex flex-col gap-1.5">
-            <Label className="text-xs text-muted-foreground">
-              {sourceText(group.label)}
-            </Label>
-            {group.options.map((option) => {
-              const id = `filter-${group.key}-${option.value}`;
-              const checked = (selected[group.key] ?? []).includes(option.value);
+  return (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        className={cn("relative rounded-xl", className)}
+        aria-label={sourceText("Filters")}
+        title={sourceText("Filters")}
+        aria-expanded={open}
+        onClick={() => setOpen(true)}
+      >
+        <Filter className="h-4 w-4" />
+        {activeCount > 0 && (
+          <span
+            className="absolute -top-1.5 -end-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-orange-500 px-1 text-[10px] font-bold tabular-nums text-white"
+            aria-label={`${activeCount} ${sourceText("active filters")}`}
+          >
+            {activeCount}
+          </span>
+        )}
+      </Button>
+
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (!next) setQueryByGroup({});
+        }}
+      >
+        <DialogContent size={groups.length > 1 ? "lg" : "sm"}>
+          <DialogHeader>
+            <DialogTitle>{sourceText("Advanced filters")}</DialogTitle>
+            <DialogDescription>
+              {sourceText("Narrow the list by attribute")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className={cn("grid gap-5", columns)}>
+            {groups.map((group) => {
+              const query = queryByGroup[group.key] ?? "";
+              const needle = query.trim().toLowerCase();
+              const options = needle
+                ? group.options.filter((option) =>
+                    option.label.toLowerCase().includes(needle),
+                  )
+                : group.options;
+
               return (
-                // The label is the click target, so there is no div-with-onClick
-                // duplicating what the checkbox already does natively - the
-                // reference design has both, which double-fires.
-                <Label
-                  key={option.value}
-                  htmlFor={id}
-                  className="flex cursor-pointer items-center gap-3 rounded-xl p-2 text-sm font-medium transition-colors hover:bg-muted/60"
-                >
-                  <Checkbox
-                    id={id}
-                    checked={checked}
-                    onChange={() => toggle(group.key, option.value)}
-                  />
-                  {sourceText(option.label)}
-                </Label>
+                <div key={group.key} className="flex min-w-0 flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label className="text-xs text-muted-foreground">
+                      {sourceText(group.label)}
+                    </Label>
+                    <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                      {(selected[group.key] ?? []).length > 0
+                        ? `${(selected[group.key] ?? []).length} ${sourceText("selected")}`
+                        : `${group.options.length} ${sourceText("options")}`}
+                    </span>
+                  </div>
+                  {group.options.length > 6 && (
+                    <Input
+                      value={query}
+                      onChange={(event) =>
+                        setQueryByGroup((prev) => ({
+                          ...prev,
+                          [group.key]: event.target.value,
+                        }))
+                      }
+                      placeholder={sourceText("Search...")}
+                      className="h-9"
+                    />
+                  )}
+                  <div className="max-h-52 overflow-y-auto rounded-xl border border-border/70 p-1">
+                    {options.length === 0 ? (
+                      <p className="px-3 py-2 text-sm text-muted-foreground">
+                        {sourceText("No filter options yet")}
+                      </p>
+                    ) : (
+                      options.map((option) => {
+                        const id = `filter-${group.key}-${option.value}`;
+                        const checked = (selected[group.key] ?? []).includes(
+                          option.value,
+                        );
+                        return (
+                          <Label
+                            key={option.value}
+                            htmlFor={id}
+                            className="flex cursor-pointer items-center gap-3 rounded-xl p-2 text-sm font-medium transition-colors hover:bg-muted/60"
+                          >
+                            <Checkbox
+                              id={id}
+                              checked={checked}
+                              onChange={() => toggle(group.key, option.value)}
+                            />
+                            {sourceText(option.label)}
+                          </Label>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
               );
             })}
-          </div>
-        ))}
 
-        {range && onRangeChange && rangeValue !== undefined && (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs text-muted-foreground">
-              {sourceText(range.label)}
-              </Label>
-              <span className="text-xs font-bold tabular-nums text-brand-blue-600">
-                {range.format ? range.format(rangeValue) : rangeValue}
-              </span>
-            </div>
-            <Slider
-              value={rangeValue}
-              min={range.min ?? 0}
-              max={range.max}
-              step={range.step ?? 1}
-              onChange={(event) => onRangeChange(Number(event.target.value))}
+            {range && onRangeChange && rangeValue !== undefined && (
+              <div className={cn("flex flex-col gap-2", groups.length > 1 && "sm:col-span-2")}>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">
+                    {sourceText(range.label)}
+                  </Label>
+                  <span className="text-xs font-bold tabular-nums text-brand-blue-600">
+                    {range.format ? range.format(rangeValue) : rangeValue}
+                  </span>
+                </div>
+                <Slider
+                  value={rangeValue}
+                  min={range.min ?? 0}
+                  max={range.max}
+                  step={range.step ?? 1}
+                  onChange={(event) => onRangeChange(Number(event.target.value))}
                   aria-label={sourceText(range.label)}
-            />
+                />
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </Popover>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="gap-1.5"
+              onClick={onReset}
+              disabled={activeCount === 0}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              {sourceText("Reset all")}
+            </Button>
+            <Button type="button" onClick={() => setOpen(false)}>
+              {sourceText("Close")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

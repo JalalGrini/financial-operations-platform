@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Plus, RefreshCw, Loader2, Calendar, CheckCircle2,
-  ArrowRight, TrendingUp, History, FileEdit, Search, Filter,
+  ArrowRight, TrendingUp, History, FileEdit, Search,
   Archive, Eye, RotateCcw, Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,7 +26,8 @@ import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { leavesApi, Leave, LEAVE_STATUS_LABELS, LEAVE_STATUS_COLORS, LEAVE_TYPES } from "@/features/leaves/api";
 import { cn } from "@/lib/utils";
-import { companyDisplayName } from "@/lib/company-scope";
+import { companyDisplayName, companyFieldToApi } from "@/lib/company-scope";
+import { useCompanies } from "@/features/personnel/hooks";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { TagAction } from "@/components/collaboration/TagAction";
 import { ExportButton } from "@/components/ui/export-button";
@@ -72,10 +73,14 @@ export default function LeavesListPage() {
   const [activeTab, setActiveTab] = useState<TabId>("current");
   const [search, setSearch]       = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [companyFilter, setCompanyFilter] = useState("");
+  const companyParam = companyFieldToApi(companyFilter);
+  const { data: companies } = useCompanies();
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["leaves", "all"],
-    queryFn: () => leavesApi.list(),
+    queryKey: ["leaves", "all", companyParam],
+    queryFn: () =>
+      leavesApi.list(companyParam ? { company: companyParam } : undefined),
     staleTime: 30_000,
   });
 
@@ -171,10 +176,19 @@ export default function LeavesListPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button type="submit" variant="outline" className="shrink-0">
-                <Filter className="h-4 w-4 me-2" />
-                <SourceText source="Filter" leading trailing />
-              </Button>
+              <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder={sourceText("Tout le groupe")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value=""><SourceText source="Tout le groupe" /></SelectItem>
+                  {(companies ?? []).map((company) => (
+                    <SelectItem key={company.id} value={String(company.id)}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-lg"
                 onClick={() => refetch()} disabled={isLoading} title={sourceText("Refresh")}>
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
