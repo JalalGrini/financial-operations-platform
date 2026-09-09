@@ -1,7 +1,7 @@
 "use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { SourceText } from "@/components/i18n/SourceText";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useFormDirty } from "@/hooks/useFormDirty";
 import { useRouter, useParams } from "next/navigation";
 import {
@@ -179,6 +179,7 @@ export default function EditPersonnelPage() {
   const updateMutation = useUpdatePersonnel();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: personnelData, isLoading, error } = usePersonnelDetail(id);
+  const hydratedIdRef = useRef<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -186,7 +187,7 @@ export default function EditPersonnelPage() {
     control,
     setValue,
     watch,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<UpdatePersonnelForm>({
     resolver: zodResolver(updatePersonnelSchema),
     defaultValues: {
@@ -209,32 +210,34 @@ export default function EditPersonnelPage() {
     }).format(parsed);
   };
 
-  // Populate form when data loads
+  // Hydrate once per person so dirty-save compares against loaded values,
+  // not the empty defaults from the first paint.
   useEffect(() => {
-    if (personnelData && !isDirty) {
-      reset({
-        first_name: personnelData.first_name,
-        last_name: personnelData.last_name,
-        middle_name: personnelData.middle_name || "",
-        cin: personnelData.cin || "",
-        phone: personnelData.phone || "",
-        email: personnelData.email || "",
-        address: personnelData.address || "",
-        city: personnelData.city || "",
-        province: personnelData.province || "",
-        region: personnelData.region || "",
-        date_of_birth: personnelData.date_of_birth
-          ? personnelData.date_of_birth.split("T")[0]
-          : "",
-        nationality: personnelData.nationality || "",
-        status: statusOptions.some((option) => option.value === personnelData.status)
-          ? personnelData.status
-          : PersonnelStatus.ACTIVE,
-        notes: personnelData.notes || "",
-        observations: personnelData.observations || "",
-      });
-    }
-  }, [personnelData, isDirty, reset]);
+    if (!personnelData) return;
+    if (hydratedIdRef.current === personnelData.id) return;
+    hydratedIdRef.current = personnelData.id;
+    reset({
+      first_name: personnelData.first_name,
+      last_name: personnelData.last_name,
+      middle_name: personnelData.middle_name || "",
+      cin: personnelData.cin || "",
+      phone: personnelData.phone || "",
+      email: personnelData.email || "",
+      address: personnelData.address || "",
+      city: personnelData.city || "",
+      province: personnelData.province || "",
+      region: personnelData.region || "",
+      date_of_birth: personnelData.date_of_birth
+        ? personnelData.date_of_birth.split("T")[0]
+        : "",
+      nationality: personnelData.nationality || "",
+      status: statusOptions.some((option) => option.value === personnelData.status)
+        ? personnelData.status
+        : PersonnelStatus.ACTIVE,
+      notes: personnelData.notes || "",
+      observations: personnelData.observations || "",
+    });
+  }, [personnelData, reset]);
   const originalValues = useMemo(() => {
     if (!personnelData) return null;
     return {

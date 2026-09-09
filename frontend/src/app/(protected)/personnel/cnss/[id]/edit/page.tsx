@@ -1,6 +1,6 @@
 ﻿"use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -202,7 +202,7 @@ export default function EditCNSSDeclarationPage() {
     control,
     setValue,
     watch,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<UpdateCNSSForm>({
     resolver: zodResolver(updateCNSSSchema),
     defaultValues: {},
@@ -239,6 +239,7 @@ export default function EditCNSSDeclarationPage() {
   }, [cnssData]);
   const formDirty = useFormDirty(originalValues, currentValues);
   const { data: employments } = useEmploymentsByPerson(personId);
+  const hydratedIdRef = useRef<string | null>(null);
 
   /**
    * Human label for the locked employment.
@@ -258,32 +259,35 @@ export default function EditCNSSDeclarationPage() {
     const title = match.job_title || sourceText("No title");
     return `${match.employee_reference ?? ""} · ${title}`.trim();
   }, [employmentId, employments]);
-  // Populate form when data loads
+  // Hydrate once per record. Skipping when RHF `isDirty` is true left the
+  // situation Select on "" (invalid enum) after its first paint, which also
+  // made the dirty-save button look enabled against empty fields.
   useEffect(() => {
-    if (cnssData && !isDirty) {
-      reset({
-        person: cnssData.person,
-        company: cnssData.company,
-        employment: cnssData.employment || "",
-        cnss_registration_number: cnssData.cnss_registration_number,
-        situation: cnssData.situation,
-        first_declaration_date: cnssData.first_declaration_date
-          ? cnssData.first_declaration_date.split("T")[0]
-          : "",
-        declaration_start_date: cnssData.declaration_start_date
-          ? cnssData.declaration_start_date.split("T")[0]
-          : "",
-        declaration_stop_date: cnssData.declaration_stop_date
-          ? cnssData.declaration_stop_date.split("T")[0]
-          : "",
-        resignation_date: cnssData.resignation_date
-          ? cnssData.resignation_date.split("T")[0]
-          : "",
-        stop_reason: cnssData.stop_reason || undefined,
-        observations: cnssData.observations || "",
-      });
-    }
-  }, [cnssData, isDirty, reset]);
+    if (!cnssData) return;
+    if (hydratedIdRef.current === cnssData.id) return;
+    hydratedIdRef.current = cnssData.id;
+    reset({
+      person: cnssData.person,
+      company: cnssData.company,
+      employment: cnssData.employment || "",
+      cnss_registration_number: cnssData.cnss_registration_number,
+      situation: cnssData.situation,
+      first_declaration_date: cnssData.first_declaration_date
+        ? cnssData.first_declaration_date.split("T")[0]
+        : "",
+      declaration_start_date: cnssData.declaration_start_date
+        ? cnssData.declaration_start_date.split("T")[0]
+        : "",
+      declaration_stop_date: cnssData.declaration_stop_date
+        ? cnssData.declaration_stop_date.split("T")[0]
+        : "",
+      resignation_date: cnssData.resignation_date
+        ? cnssData.resignation_date.split("T")[0]
+        : "",
+      stop_reason: cnssData.stop_reason || undefined,
+      observations: cnssData.observations || "",
+    });
+  }, [cnssData, reset]);
   const showStopFields = situation === CNSSSituation.STOPPED;
   const onSubmit = async (data: UpdateCNSSForm) => {
     setIsSubmitting(true);
@@ -473,7 +477,7 @@ export default function EditCNSSDeclarationPage() {
                   <SourceText source="Situation *" />
                 </Label>
                 <Select
-                  value={situation ?? ""}
+                  value={situation || undefined}
                   onValueChange={(value) => {
                     setValue("situation", value as CNSSSituation, {
                       shouldDirty: true,

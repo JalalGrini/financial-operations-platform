@@ -1,5 +1,6 @@
 "use client";
 import { apiClient } from "@/lib/api";
+import { sourceText } from "@/lib/i18n/source-catalog";
 
 export interface Leave {
   id: number;
@@ -49,9 +50,15 @@ export const LEAVE_TYPES = [
 ];
 
 export const LEAVE_STATUS_LABELS: Record<string, string> = {
-  draft: "Draft",
-  official: "Official",
-  cancelled: "Cancelled",
+  get draft() {
+    return sourceText("Draft");
+  },
+  get official() {
+    return sourceText("Official");
+  },
+  get cancelled() {
+    return sourceText("Cancelled");
+  },
 };
 
 export const LEAVE_STATUS_COLORS: Record<string, string> = {

@@ -119,10 +119,13 @@ class DashboardViewSet(viewsets.ViewSet):
         """Operational dashboard: headcount, deadlines, recent activity.
         Does NOT expose any financial amounts.
         """
-        from apps.personnel.models import PersonnelPerson
-        from apps.deadlines.models import Deadline
-        from django.utils import timezone
         from datetime import timedelta
+
+        from django.utils import timezone
+
+        from apps.deadlines.models import Deadline
+        from apps.personnel.leave_status import annotate_is_on_leave
+        from apps.personnel.models import PersonnelPerson
 
         # `due_at` is a DateTimeField, so these bounds must be timezone-aware
         # datetimes. They were `date` objects, which Django coerced to naive
@@ -134,10 +137,17 @@ class DashboardViewSet(viewsets.ViewSet):
         today = now.replace(hour=0, minute=0, second=0, microsecond=0)
         soon = today + timedelta(days=14)
 
-        # Personnel stats
-        personnel_qs = PersonnelPerson.objects.filter(is_archived=False)
+        # Personnel stats: "on leave" follows today's official leave records,
+        # the same annotation used on personnel and employment lists.
+        personnel_qs = annotate_is_on_leave(
+            PersonnelPerson.objects.filter(is_archived=False),
+            leave_fk="personnel",
+        )
         headcount_total = personnel_qs.count()
-        headcount_active = personnel_qs.filter(status="active").count()
+        headcount_on_leave = personnel_qs.filter(is_on_leave=True).count()
+        headcount_active = personnel_qs.filter(
+            status="active", is_on_leave=False
+        ).count()
 
         # Upcoming deadlines
         # due_at is the DateTimeField on the Deadline model (not due_date)
@@ -169,7 +179,7 @@ class DashboardViewSet(viewsets.ViewSet):
             "headcount": {
                 "total": headcount_total,
                 "active": headcount_active,
-                "on_leave": personnel_qs.filter(status="on_leave").count(),
+                "on_leave": headcount_on_leave,
             },
             "upcoming_deadlines": upcoming,
             "deadlines_count": {

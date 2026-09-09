@@ -1,6 +1,6 @@
 ﻿"use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useFormDirty } from "@/hooks/useFormDirty";
 import { useRouter, useParams } from "next/navigation";
 import {
@@ -256,6 +256,7 @@ export default function EditEmploymentPage() {
   const { data: personnelOptions } = usePersonnelSelect();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: employmentData, isLoading, error } = useEmploymentDetail(id);
+  const hydratedIdRef = useRef<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -264,7 +265,7 @@ export default function EditEmploymentPage() {
     setValue,
     setError,
     watch,
-    formState: { errors, isDirty },
+    formState: { errors },
   } = useForm<EmploymentFormValues>({
     resolver: zodResolver(employmentFormSchema),
     defaultValues: {
@@ -299,49 +300,51 @@ export default function EditEmploymentPage() {
       setValue("rib", selected.rib, { shouldDirty: true, shouldValidate: true });
     }
   }, [companies, companyId, payoutMethod, ribValue, setValue]);
-  // Populate form when data loads
+  // Hydrate once per employment so dirty-save is not blocked by the first
+  // paint of empty defaults (or by a Select writing "" into the form).
   useEffect(() => {
-    if (employmentData && !isDirty) {
-      reset({
-        person: employmentData.person,
-        company: companySelectValue(employmentData.company),
-        employee_reference: employmentData.employee_reference,
-        job_title: employmentData.job_title || "",
-        department: employmentData.department || "",
-        work_domain: employmentData.work_domain || "",
-        work_city: employmentData.work_city || "",
-        contract_type: employmentData.contract_type,
-        employment_status: employmentData.employment_status,
-        hire_date: employmentData.hire_date
-          ? employmentData.hire_date.split("T")[0]
+    if (!employmentData) return;
+    if (hydratedIdRef.current === employmentData.id) return;
+    hydratedIdRef.current = employmentData.id;
+    reset({
+      person: employmentData.person,
+      company: companySelectValue(employmentData.company),
+      employee_reference: employmentData.employee_reference,
+      job_title: employmentData.job_title || "",
+      department: employmentData.department || "",
+      work_domain: employmentData.work_domain || "",
+      work_city: employmentData.work_city || "",
+      contract_type: employmentData.contract_type,
+      employment_status: employmentData.employment_status,
+      hire_date: employmentData.hire_date
+        ? employmentData.hire_date.split("T")[0]
+        : "",
+      employment_end_date: employmentData.employment_end_date
+        ? employmentData.employment_end_date.split("T")[0]
+        : "",
+      departure_reason: employmentData.departure_reason || undefined,
+      resignation_date: employmentData.resignation_date
+        ? employmentData.resignation_date.split("T")[0]
+        : "",
+      payment_method: employmentData.payment_method || "",
+      payout_method: employmentData.payout_method || "cash",
+      rib: employmentData.rib || "",
+      default_monthly_working_days:
+        employmentData.default_monthly_working_days || 26,
+      // `?? ""` rather than `|| ""`: a saved rate of 0 is a real price and must
+      // stay in the field, where `||` would blank it and silently revert the
+      // employment to the derived default on the next save.
+      worked_day_rate:
+        employmentData.worked_day_rate != null
+          ? String(employmentData.worked_day_rate)
           : "",
-        employment_end_date: employmentData.employment_end_date
-          ? employmentData.employment_end_date.split("T")[0]
+      absence_day_rate:
+        employmentData.absence_day_rate != null
+          ? String(employmentData.absence_day_rate)
           : "",
-        departure_reason: employmentData.departure_reason || undefined,
-        resignation_date: employmentData.resignation_date
-          ? employmentData.resignation_date.split("T")[0]
-          : "",
-        payment_method: employmentData.payment_method || "",
-        payout_method: employmentData.payout_method || "cash",
-        rib: employmentData.rib || "",
-        default_monthly_working_days:
-          employmentData.default_monthly_working_days || 26,
-        // `?? ""` rather than `|| ""`: a saved rate of 0 is a real price and must
-        // stay in the field, where `||` would blank it and silently revert the
-        // employment to the derived default on the next save.
-        worked_day_rate:
-          employmentData.worked_day_rate != null
-            ? String(employmentData.worked_day_rate)
-            : "",
-        absence_day_rate:
-          employmentData.absence_day_rate != null
-            ? String(employmentData.absence_day_rate)
-            : "",
-        observations: employmentData.observations || "",
-      });
-    }
-  }, [employmentData, isDirty, reset]);
+      observations: employmentData.observations || "",
+    });
+  }, [employmentData, reset]);
   const originalValues = useMemo(() => {
     if (!employmentData) return null;
     return {
