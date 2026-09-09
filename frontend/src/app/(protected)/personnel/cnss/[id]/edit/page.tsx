@@ -1,6 +1,6 @@
 ﻿"use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -38,11 +38,10 @@ import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import {
   useUpdateCNSSDeclaration,
   useCNSSDeclarationDetail,
-  useCompanies,
-  usePersonnelSelect,
   useEmploymentsByPerson,
 } from "@/features/personnel/hooks";
 import {
+  CNSSDeclaration,
   CNSSSituation,
   CNSSStopReason,
   CNSSMonthlySituation,
@@ -68,6 +67,32 @@ const updateCNSSSchema = z.object({
   observations: z.string().optional(),
 });
 type UpdateCNSSForm = z.infer<typeof updateCNSSSchema>;
+
+function toFormValues(cnssData: CNSSDeclaration): UpdateCNSSForm {
+  return {
+    person: cnssData.person,
+    company: cnssData.company,
+    employment: cnssData.employment || "",
+    cnss_registration_number: cnssData.cnss_registration_number,
+    situation: cnssData.situation,
+    first_declaration_date: cnssData.first_declaration_date
+      ? cnssData.first_declaration_date.split("T")[0]
+      : "",
+    declaration_start_date: cnssData.declaration_start_date
+      ? cnssData.declaration_start_date.split("T")[0]
+      : "",
+    declaration_stop_date: cnssData.declaration_stop_date
+      ? cnssData.declaration_stop_date.split("T")[0]
+      : "",
+    resignation_date: cnssData.resignation_date
+      ? cnssData.resignation_date.split("T")[0]
+      : "",
+    stop_reason: cnssData.stop_reason
+      ? (cnssData.stop_reason as UpdateCNSSForm["stop_reason"])
+      : undefined,
+    observations: cnssData.observations || "",
+  };
+}
 const situationOptions = [
   {
     value: CNSSSituation.DECLARED_BY_THIS_COMPANY,
@@ -190,22 +215,46 @@ export default function EditCNSSDeclarationPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const updateMutation = useUpdateCNSSDeclaration();
-  const { data: companies } = useCompanies();
-  const { data: personnelOptions } = usePersonnelSelect();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: cnssData, isLoading, error } = useCNSSDeclarationDetail(id);
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+  if (error || !cnssData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center">
+        <AlertCircleIcon className="h-12 w-12 text-red-600 mb-4" />
+        <p className="text-red-600">
+          <SourceText source="Failed to load CNSS declaration" />
+        </p>
+        <Button variant="outline" onClick={() => router.back()} className="mt-4">
+          <ArrowLeft className="me-2 h-4 w-4" />
+          <SourceText source="Back to List" leading trailing />
+        </Button>
+      </div>
+    );
+  }
+  return <CNSSEditForm key={cnssData.id} cnssData={cnssData} />;
+}
+
+function CNSSEditForm({ cnssData }: { cnssData: CNSSDeclaration }) {
+  const router = useRouter();
+  const id = cnssData.id;
+  const updateMutation = useUpdateCNSSDeclaration();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
     handleSubmit,
-    reset,
     control,
     setValue,
     watch,
     formState: { errors },
   } = useForm<UpdateCNSSForm>({
     resolver: zodResolver(updateCNSSSchema),
-    defaultValues: {},
+    defaultValues: toFormValues(cnssData),
   });
   const personId = useWatch({ control, name: "person" });
   const companyId = useWatch({ control, name: "company" });
@@ -213,33 +262,9 @@ export default function EditCNSSDeclarationPage() {
   const situation = useWatch({ control, name: "situation" });
   const stopReason = useWatch({ control, name: "stop_reason" });
   const currentValues = watch();
-  const originalValues = useMemo(() => {
-    if (!cnssData) return null;
-    return {
-      person: cnssData.person,
-      company: cnssData.company,
-      employment: cnssData.employment || "",
-      cnss_registration_number: cnssData.cnss_registration_number,
-      situation: cnssData.situation,
-      first_declaration_date: cnssData.first_declaration_date
-        ? cnssData.first_declaration_date.split("T")[0]
-        : "",
-      declaration_start_date: cnssData.declaration_start_date
-        ? cnssData.declaration_start_date.split("T")[0]
-        : "",
-      declaration_stop_date: cnssData.declaration_stop_date
-        ? cnssData.declaration_stop_date.split("T")[0]
-        : "",
-      resignation_date: cnssData.resignation_date
-        ? cnssData.resignation_date.split("T")[0]
-        : "",
-      stop_reason: cnssData.stop_reason || undefined,
-      observations: cnssData.observations || "",
-    };
-  }, [cnssData]);
+  const originalValues = useMemo(() => toFormValues(cnssData), [cnssData]);
   const formDirty = useFormDirty(originalValues, currentValues);
   const { data: employments } = useEmploymentsByPerson(personId);
-  const hydratedIdRef = useRef<string | null>(null);
 
   /**
    * Human label for the locked employment.
@@ -259,35 +284,6 @@ export default function EditCNSSDeclarationPage() {
     const title = match.job_title || sourceText("No title");
     return `${match.employee_reference ?? ""} · ${title}`.trim();
   }, [employmentId, employments]);
-  // Hydrate once per record. Skipping when RHF `isDirty` is true left the
-  // situation Select on "" (invalid enum) after its first paint, which also
-  // made the dirty-save button look enabled against empty fields.
-  useEffect(() => {
-    if (!cnssData) return;
-    if (hydratedIdRef.current === cnssData.id) return;
-    hydratedIdRef.current = cnssData.id;
-    reset({
-      person: cnssData.person,
-      company: cnssData.company,
-      employment: cnssData.employment || "",
-      cnss_registration_number: cnssData.cnss_registration_number,
-      situation: cnssData.situation,
-      first_declaration_date: cnssData.first_declaration_date
-        ? cnssData.first_declaration_date.split("T")[0]
-        : "",
-      declaration_start_date: cnssData.declaration_start_date
-        ? cnssData.declaration_start_date.split("T")[0]
-        : "",
-      declaration_stop_date: cnssData.declaration_stop_date
-        ? cnssData.declaration_stop_date.split("T")[0]
-        : "",
-      resignation_date: cnssData.resignation_date
-        ? cnssData.resignation_date.split("T")[0]
-        : "",
-      stop_reason: cnssData.stop_reason || undefined,
-      observations: cnssData.observations || "",
-    });
-  }, [cnssData, reset]);
   const showStopFields = situation === CNSSSituation.STOPPED;
   const onSubmit = async (data: UpdateCNSSForm) => {
     setIsSubmitting(true);
@@ -308,27 +304,6 @@ export default function EditCNSSDeclarationPage() {
   const handleCancel = () => {
     router.back();
   };
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <AlertCircleIcon className="h-12 w-12 text-red-600 mb-4" />
-        <p className="text-red-600">
-          <SourceText source="Failed to load CNSS declaration" />
-        </p>
-        <Button variant="outline" onClick={handleCancel} className="mt-4">
-          <ArrowLeft className="me-2 h-4 w-4" />
-          <SourceText source="Back to List" leading trailing />
-        </Button>
-      </div>
-    );
-  }
   return (
     <div className="space-y-6">
       {/* Breadcrumbs */}
@@ -476,7 +451,6 @@ export default function EditCNSSDeclarationPage() {
                 <Label htmlFor="situation">
                   <SourceText source="Situation *" />
                 </Label>
-                {situation ? (
                 <Select
                   value={situation}
                   onValueChange={(value) => {
@@ -498,13 +472,6 @@ export default function EditCNSSDeclarationPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                ) : (
-                  <Select disabled>
-                    <SelectTrigger>
-                      <SelectValue placeholder={sourceText("Select situation")} />
-                    </SelectTrigger>
-                  </Select>
-                )}
                 {errors.situation && (
                   <p className="text-sm text-red-600">
                     {errors.situation.message}
