@@ -66,21 +66,15 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        // Positioning
-        "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
-        // Layout
-        "w-full",
+        // Center with inset + margin, not transform — zoom/slide animations
+        // overwrite `transform` and were leaving dialogs in the bottom-right.
+        "fixed inset-0 z-50 m-auto h-fit w-[calc(100%-2rem)]",
         sizeStyles[size],
-        // Appearance — matches the EFOP card system
         "rounded-2xl border border-border bg-background shadow-[0_32px_72px_hsl(var(--foreground)/0.18)]",
         "max-h-[min(90vh,52rem)] overflow-y-auto p-6",
-        // Animation
         "duration-200",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-        "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
-        "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
         className,
       )}
       {...props}
