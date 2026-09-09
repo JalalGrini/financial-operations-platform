@@ -55,14 +55,14 @@ function localeTag() {
 }
 
 const updatePersonnelSchema = z.object({
-  first_name: z.string().min(1, sourceText("First name is required.")),
-  last_name: z.string().min(1, sourceText("Last name is required.")),
+  first_name: z.string().min(1, "First name is required."),
+  last_name: z.string().min(1, "Last name is required."),
   middle_name: z.string().optional(),
   cin: z.string().optional(),
   phone: z.string().optional(),
   email: z
     .string()
-    .email(sourceText("Invalid email address."))
+    .email("Invalid email address.")
     .optional()
     .or(z.literal("")),
   address: z.string().optional(),
@@ -458,7 +458,7 @@ function PersonnelEditForm({
                 />
                 {errors.first_name && (
                   <p className="text-sm text-red-600">
-                    {errors.first_name.message}
+                    {sourceText(errors.first_name.message ?? "")}
                   </p>
                 )}
               </div>
@@ -475,7 +475,7 @@ function PersonnelEditForm({
                 />
                 {errors.last_name && (
                   <p className="text-sm text-red-600">
-                    {errors.last_name.message}
+                    {sourceText(errors.last_name.message ?? "")}
                   </p>
                 )}
               </div>

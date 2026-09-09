@@ -672,7 +672,7 @@ export default function PersonnelListPage() {
             <EmptyState
               icon={<span className="h-12 w-12 text-red-500">⚠️</span>}
               title={sourceText("Failed to load personnel")}
-              description={error.message}
+              description={sourceText(error.message)}
               action={
                 <Button onClick={() => refetch()} variant="outline">
                   <SourceText source="Retry" leading trailing />

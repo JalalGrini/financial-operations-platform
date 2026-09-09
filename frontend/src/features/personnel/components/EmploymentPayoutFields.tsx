@@ -64,7 +64,7 @@ export function EmploymentPayoutFields({
             placeholder={sourceText("RIB")}
             disabled={disabled}
           />
-          {ribError ? <p className="text-sm text-red-600">{ribError}</p> : null}
+          {ribError ? <p className="text-sm text-red-600">{sourceText(ribError)}</p> : null}
         </div>
       ) : null}
     </div>

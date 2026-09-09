@@ -351,7 +351,7 @@ export default function CreateEmploymentPage() {
                 />
                 {errors.person && (
                   <p className="text-sm text-red-600">
-                    {errors.person.message}
+                    {sourceText(errors.person.message ?? "")}
                   </p>
                 )}
               </div>
@@ -383,7 +383,7 @@ export default function CreateEmploymentPage() {
                 </Select>
                 {errors.company && (
                   <p className="text-sm text-red-600">
-                    {errors.company.message}
+                    {sourceText(errors.company.message ?? "")}
                   </p>
                 )}
               </div>
@@ -402,7 +402,7 @@ export default function CreateEmploymentPage() {
                 />
                 {errors.employee_reference && (
                   <p className="text-sm text-red-600">
-                    {errors.employee_reference.message}
+                    {sourceText(errors.employee_reference.message ?? "")}
                   </p>
                 )}
               </div>
@@ -497,7 +497,7 @@ export default function CreateEmploymentPage() {
                   </Select>
                   {errors.contract_type && (
                     <p className="text-sm text-red-600">
-                      {errors.contract_type.message}
+                      {sourceText(errors.contract_type.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -529,7 +529,7 @@ export default function CreateEmploymentPage() {
                   </Select>
                   {errors.employment_status && (
                     <p className="text-sm text-red-600">
-                      {errors.employment_status.message}
+                      {sourceText(errors.employment_status.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -548,7 +548,7 @@ export default function CreateEmploymentPage() {
                   />
                   {errors.hire_date && (
                     <p className="text-sm text-red-600">
-                      {errors.hire_date.message}
+                      {sourceText(errors.hire_date.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -575,7 +575,7 @@ export default function CreateEmploymentPage() {
                   )}
                   {errors.employment_end_date && (
                     <p className="text-sm text-red-600">
-                      {errors.employment_end_date.message}
+                      {sourceText(errors.employment_end_date.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -633,7 +633,7 @@ export default function CreateEmploymentPage() {
                     inputMode="decimal"
                     placeholder={sourceText("Auto (gross / working days)")}
                     {...register("worked_day_rate")}
-                    error={errors.worked_day_rate?.message}
+                    error={errors.worked_day_rate?.message ? sourceText(errors.worked_day_rate.message) : undefined}
                     disabled={isSubmitting}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -641,7 +641,7 @@ export default function CreateEmploymentPage() {
                   </p>
                   {errors.worked_day_rate && (
                     <p className="text-sm text-red-600">
-                      {errors.worked_day_rate.message}
+                      {sourceText(errors.worked_day_rate.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -656,7 +656,7 @@ export default function CreateEmploymentPage() {
                     inputMode="decimal"
                     placeholder={sourceText("Same as worked-day rate")}
                     {...register("absence_day_rate")}
-                    error={errors.absence_day_rate?.message}
+                    error={errors.absence_day_rate?.message ? sourceText(errors.absence_day_rate.message) : undefined}
                     disabled={isSubmitting}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -664,7 +664,7 @@ export default function CreateEmploymentPage() {
                   </p>
                   {errors.absence_day_rate && (
                     <p className="text-sm text-red-600">
-                      {errors.absence_day_rate.message}
+                      {sourceText(errors.absence_day_rate.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -716,7 +716,7 @@ export default function CreateEmploymentPage() {
                       </Select>
                       {errors.departure_reason && (
                         <p className="text-sm text-red-600">
-                          {errors.departure_reason.message}
+                          {sourceText(errors.departure_reason.message ?? "")}
                         </p>
                       )}
                     </div>
@@ -737,7 +737,7 @@ export default function CreateEmploymentPage() {
                       />
                       {errors.resignation_date && (
                         <p className="text-sm text-red-600">
-                          {errors.resignation_date.message}
+                          {sourceText(errors.resignation_date.message ?? "")}
                         </p>
                       )}
                     </div>

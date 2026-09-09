@@ -3145,5 +3145,20 @@
   "end_date must be >= start_date.": "The return date must be on or after the start date.",
   "Holiday days cannot exceed the leave duration.": "Holiday days cannot exceed the leave duration.",
   "Specify the leave type when Autre is selected.": "Specify the leave type when Other is selected.",
-  "This personnel already has an official leave overlapping these dates.": "This employee already has an official leave overlapping these dates."
+  "This personnel already has an official leave overlapping these dates.": "This employee already has an official leave overlapping these dates.",
+  "Utilisez le format JJ/MM/AAAA": "Use the DD/MM/YYYY format",
+  "Saisissez un montant positif (4 décimales maximum)": "Enter a positive amount (up to 4 decimals)",
+  "La référence salarié est obligatoire": "Employee reference is required",
+  "Select a valid payment method": "Select a valid payment method",
+  "La date d'embauche est obligatoire": "Hire date is required",
+  "La date de fin est obligatoire pour ce contrat à durée déterminée": "An end date is required for this fixed-term contract",
+  "La date de fin doit être postérieure à la date d'embauche": "The end date must be after the hire date",
+  "Le motif de départ est obligatoire": "Departure reason is required",
+  "La date de départ est obligatoire": "Departure date is required",
+  "Le RIB est requis pour un virement bancaire": "A RIB is required for a bank transfer",
+  "Le salarié est obligatoire": "The employee is required",
+  "L'emploi est obligatoire": "Employment is required",
+  "Le salaire doit être supérieur ou égal à 0": "Salary must be 0 or greater",
+  "La date d'effet est obligatoire": "The effective date is required",
+  "Person is required": "Person is required"
 }

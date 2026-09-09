@@ -63,8 +63,8 @@ function localeTag() {
 }
 
 const createPayrollSchema = z.object({
-  person: z.string().min(1, sourceText("Employee is required.")),
-  employment: z.string().min(1, sourceText("Employment is required.")),
+  person: z.string().min(1, "Employee is required."),
+  employment: z.string().min(1, "Employment is required."),
   year: z.number().int().min(2000).max(2100),
   month: z.number().int().min(1).max(12),
   scheduled_working_days: z.number().int().positive().default(26),
@@ -423,7 +423,7 @@ export default function CreatePayrollPage() {
                 }))}
               />
               {errors.person ? (
-                <p className="text-sm text-red-600">{errors.person.message}</p>
+                <p className="text-sm text-red-600">{sourceText(errors.person.message ?? "")}</p>
               ) : null}
             </div>
 
@@ -466,7 +466,7 @@ export default function CreatePayrollPage() {
                 )}
                 {errors.employment ? (
                   <p className="text-sm text-red-600">
-                    {errors.employment.message}
+                    {sourceText(errors.employment.message ?? "")}
                   </p>
                 ) : null}
               </div>

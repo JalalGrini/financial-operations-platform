@@ -618,7 +618,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                   </Select>
                   {errors.contract_type && (
                     <p className="text-sm text-red-600">
-                      {errors.contract_type.message}
+                      {sourceText(errors.contract_type.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -650,7 +650,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                   </Select>
                   {errors.employment_status && (
                     <p className="text-sm text-red-600">
-                      {errors.employment_status.message}
+                      {sourceText(errors.employment_status.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -669,7 +669,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                   />
                   {errors.hire_date && (
                     <p className="text-sm text-red-600">
-                      {errors.hire_date.message}
+                      {sourceText(errors.hire_date.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -704,7 +704,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                   )}
                   {errors.employment_end_date && (
                     <p className="text-sm text-red-600">
-                      {errors.employment_end_date.message}
+                      {sourceText(errors.employment_end_date.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -758,7 +758,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                     inputMode="decimal"
                     placeholder={sourceText("Auto (gross / working days)")}
                     {...register("worked_day_rate")}
-                    error={errors.worked_day_rate?.message}
+                    error={errors.worked_day_rate?.message ? sourceText(errors.worked_day_rate.message) : undefined}
                     disabled={isSubmitting}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -766,7 +766,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                   </p>
                   {errors.worked_day_rate && (
                     <p className="text-sm text-red-600">
-                      {errors.worked_day_rate.message}
+                      {sourceText(errors.worked_day_rate.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -781,7 +781,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                     inputMode="decimal"
                     placeholder={sourceText("Same as worked-day rate")}
                     {...register("absence_day_rate")}
-                    error={errors.absence_day_rate?.message}
+                    error={errors.absence_day_rate?.message ? sourceText(errors.absence_day_rate.message) : undefined}
                     disabled={isSubmitting}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -789,7 +789,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                   </p>
                   {errors.absence_day_rate && (
                     <p className="text-sm text-red-600">
-                      {errors.absence_day_rate.message}
+                      {sourceText(errors.absence_day_rate.message ?? "")}
                     </p>
                   )}
                 </div>
@@ -841,7 +841,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                       </Select>
                       {errors.departure_reason && (
                         <p className="text-sm text-red-600">
-                          {errors.departure_reason.message}
+                          {sourceText(errors.departure_reason.message ?? "")}
                         </p>
                       )}
                     </div>
@@ -862,7 +862,7 @@ function EmploymentEditForm({ employmentData }: { employmentData: Employment }) 
                       />
                       {errors.resignation_date && (
                         <p className="text-sm text-red-600">
-                          {errors.resignation_date.message}
+                          {sourceText(errors.resignation_date.message ?? "")}
                         </p>
                       )}
                     </div>

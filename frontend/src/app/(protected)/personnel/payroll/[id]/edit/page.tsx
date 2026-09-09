@@ -770,7 +770,7 @@ export default function EditPayrollPage() {
                   />
                   {errors.scheduled_working_days && (
                     <p className="text-sm text-red-600">
-                      {errors.scheduled_working_days.message}
+                      {sourceText(errors.scheduled_working_days.message ?? "")}
                     </p>
                   )}
                 </div>

@@ -207,7 +207,7 @@ export default function EmploymentsListPage() {
       refetch();
       toast.success(sourceText("Employment permanently deleted"));
     },
-    onError: (error) => toast.error(error.message),
+    onError: (error) => toast.error(sourceText(error.message)),
   });
   const restoreMutation = useRestoreEmployment({
     onSuccess: () => {
@@ -538,7 +538,7 @@ export default function EmploymentsListPage() {
             <EmptyState
               icon={<span className="h-12 w-12 text-red-500">⚠️</span>}
               title={sourceText("Failed to load employments")}
-              description={error.message}
+              description={sourceText(error.message)}
               action={
                 <Button onClick={() => refetch()} variant="outline">
                   <SourceText source="Retry" leading trailing />

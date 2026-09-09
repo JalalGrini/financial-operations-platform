@@ -165,7 +165,7 @@ export default function CreateSalaryPage() {
                 }))}
               />
               {errors.person && (
-                <p className="text-sm text-red-600">{errors.person.message}</p>
+                <p className="text-sm text-red-600">{sourceText(errors.person.message ?? "")}</p>
               )}
             </div>
 
@@ -212,7 +212,7 @@ export default function CreateSalaryPage() {
                 )}
                 {errors.employment && (
                   <p className="text-sm text-red-600">
-                    {errors.employment.message}
+                    {sourceText(errors.employment.message ?? "")}
                   </p>
                 )}
                 {!employmentsLoading &&
@@ -247,7 +247,7 @@ export default function CreateSalaryPage() {
                 />
                 {errors.fixed_monthly_gross_salary && (
                   <p className="text-sm text-red-600">
-                    {errors.fixed_monthly_gross_salary.message}
+                    {sourceText(errors.fixed_monthly_gross_salary.message ?? "")}
                   </p>
                 )}
               </div>
@@ -264,7 +264,7 @@ export default function CreateSalaryPage() {
                 />
                 {errors.effective_from && (
                   <p className="text-sm text-red-600">
-                    {errors.effective_from.message}
+                    {sourceText(errors.effective_from.message ?? "")}
                   </p>
                 )}
               </div>

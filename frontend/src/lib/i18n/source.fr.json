@@ -3145,5 +3145,20 @@
   "end_date must be >= start_date.": "La date de retour doit être égale ou postérieure à la date de début.",
   "Holiday days cannot exceed the leave duration.": "Les jours fériés ne peuvent pas dépasser la durée du congé.",
   "Specify the leave type when Autre is selected.": "Précisez le type de congé lorsque Autre est sélectionné.",
-  "This personnel already has an official leave overlapping these dates.": "Cet employé a déjà un congé officiel qui chevauche ces dates."
+  "This personnel already has an official leave overlapping these dates.": "Cet employé a déjà un congé officiel qui chevauche ces dates.",
+  "Utilisez le format JJ/MM/AAAA": "Utilisez le format JJ/MM/AAAA",
+  "Saisissez un montant positif (4 décimales maximum)": "Saisissez un montant positif (4 décimales maximum)",
+  "La référence salarié est obligatoire": "La référence salarié est obligatoire",
+  "Select a valid payment method": "Sélectionnez un mode de paiement valide",
+  "La date d'embauche est obligatoire": "La date d'embauche est obligatoire",
+  "La date de fin est obligatoire pour ce contrat à durée déterminée": "La date de fin est obligatoire pour ce contrat à durée déterminée",
+  "La date de fin doit être postérieure à la date d'embauche": "La date de fin doit être postérieure à la date d'embauche",
+  "Le motif de départ est obligatoire": "Le motif de départ est obligatoire",
+  "La date de départ est obligatoire": "La date de départ est obligatoire",
+  "Le RIB est requis pour un virement bancaire": "Le RIB est requis pour un virement bancaire",
+  "Le salarié est obligatoire": "Le salarié est obligatoire",
+  "L'emploi est obligatoire": "L'emploi est obligatoire",
+  "Le salaire doit être supérieur ou égal à 0": "Le salaire doit être supérieur ou égal à 0",
+  "La date d'effet est obligatoire": "La date d'effet est obligatoire",
+  "Person is required": "La personne est obligatoire"
 }

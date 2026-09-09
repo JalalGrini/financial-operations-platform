@@ -3145,5 +3145,20 @@
   "end_date must be >= start_date.": "يجب أن يكون تاريخ العودة في يوم البداية أو بعده.",
   "Holiday days cannot exceed the leave duration.": "لا يمكن أن تتجاوز أيام العطل مدة الإجازة.",
   "Specify the leave type when Autre is selected.": "حدد نوع الإجازة عند اختيار أخرى.",
-  "This personnel already has an official leave overlapping these dates.": "لدى هذا الموظف إجازة رسمية تتداخل مع هذه التواريخ."
+  "This personnel already has an official leave overlapping these dates.": "لدى هذا الموظف إجازة رسمية تتداخل مع هذه التواريخ.",
+  "Utilisez le format JJ/MM/AAAA": "استخدم التنسيق يوم/شهر/سنة",
+  "Saisissez un montant positif (4 décimales maximum)": "أدخل مبلغاً موجباً (حتى 4 منازل عشرية)",
+  "La référence salarié est obligatoire": "مرجع الموظف مطلوب",
+  "Select a valid payment method": "اختر طريقة دفع صالحة",
+  "La date d'embauche est obligatoire": "تاريخ التوظيف مطلوب",
+  "La date de fin est obligatoire pour ce contrat à durée déterminée": "تاريخ النهاية مطلوب لهذا العقد محدد المدة",
+  "La date de fin doit être postérieure à la date d'embauche": "يجب أن يكون تاريخ النهاية بعد تاريخ التوظيف",
+  "Le motif de départ est obligatoire": "سبب المغادرة مطلوب",
+  "La date de départ est obligatoire": "تاريخ المغادرة مطلوب",
+  "Le RIB est requis pour un virement bancaire": "الـ RIB مطلوب للتحويل البنكي",
+  "Le salarié est obligatoire": "الموظف مطلوب",
+  "L'emploi est obligatoire": "عقد العمل مطلوب",
+  "Le salaire doit être supérieur ou égal à 0": "يجب أن يكون الراتب صفراً أو أكثر",
+  "La date d'effet est obligatoire": "تاريخ السريان مطلوب",
+  "Person is required": "الشخص مطلوب"
 }

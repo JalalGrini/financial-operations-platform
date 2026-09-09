@@ -56,19 +56,19 @@ function todayInputValue(): string {
 }
 
 const createCNSSSchema = z.object({
-  person: z.string().min(1, sourceText("Employee is required")),
-  company: z.string().min(1, sourceText("Company is required")),
+  person: z.string().min(1, "Employee is required"),
+  company: z.string().min(1, "Company is required"),
   employment: z.string().optional(),
   cnss_registration_number: z
     .string()
-    .min(1, sourceText("CNSS registration number is required")),
+    .min(1, "CNSS registration number is required"),
   situation: z.nativeEnum(CNSSSituation),
   first_declaration_date: z
     .string()
-    .min(1, sourceText("First declaration date is required")),
+    .min(1, "First declaration date is required"),
   declaration_start_date: z
     .string()
-    .min(1, sourceText("Declaration start date is required")),
+    .min(1, "Declaration start date is required"),
   declaration_stop_date: z.string().optional(),
   resignation_date: z.string().optional(),
   stop_reason: z.nativeEnum(CNSSStopReason).optional(),
@@ -339,7 +339,7 @@ export default function CreateCNSSDeclarationPage() {
                 />
                 {errors.person && (
                   <p className="text-sm text-red-600">
-                    {errors.person.message}
+                    {sourceText(errors.person.message ?? "")}
                   </p>
                 )}
               </div>
@@ -368,7 +368,7 @@ export default function CreateCNSSDeclarationPage() {
                 </Select>
                 {errors.company && (
                   <p className="text-sm text-red-600">
-                    {errors.company.message}
+                    {sourceText(errors.company.message ?? "")}
                   </p>
                 )}
               </div>
@@ -417,7 +417,7 @@ export default function CreateCNSSDeclarationPage() {
                 )}
                 {errors.employment && (
                   <p className="text-sm text-red-600">
-                    {errors.employment.message}
+                    {sourceText(errors.employment.message ?? "")}
                   </p>
                 )}
                 {!employmentsLoading &&
@@ -451,7 +451,7 @@ export default function CreateCNSSDeclarationPage() {
                 />
                 {errors.cnss_registration_number && (
                   <p className="text-sm text-red-600">
-                    {errors.cnss_registration_number.message}
+                    {sourceText(errors.cnss_registration_number.message ?? "")}
                   </p>
                 )}
               </div>
@@ -483,7 +483,7 @@ export default function CreateCNSSDeclarationPage() {
                 </Select>
                 {errors.situation && (
                   <p className="text-sm text-red-600">
-                    {errors.situation.message}
+                    {sourceText(errors.situation.message ?? "")}
                   </p>
                 )}
               </div>
@@ -514,7 +514,7 @@ export default function CreateCNSSDeclarationPage() {
                 />
                 {errors.first_declaration_date && (
                   <p className="text-sm text-red-600">
-                    {errors.first_declaration_date.message}
+                    {sourceText(errors.first_declaration_date.message ?? "")}
                   </p>
                 )}
               </div>
@@ -535,7 +535,7 @@ export default function CreateCNSSDeclarationPage() {
                 />
                 {errors.declaration_start_date && (
                   <p className="text-sm text-red-600">
-                    {errors.declaration_start_date.message}
+                    {sourceText(errors.declaration_start_date.message ?? "")}
                   </p>
                 )}
               </div>
@@ -606,7 +606,7 @@ export default function CreateCNSSDeclarationPage() {
                     </Select>
                     {errors.stop_reason && (
                       <p className="text-sm text-red-600">
-                        {errors.stop_reason.message}
+                        {sourceText(errors.stop_reason.message ?? "")}
                       </p>
                     )}
                   </div>
@@ -623,7 +623,7 @@ export default function CreateCNSSDeclarationPage() {
                     />
                     {errors.resignation_date && (
                       <p className="text-sm text-red-600">
-                        {errors.resignation_date.message}
+                        {sourceText(errors.resignation_date.message ?? "")}
                       </p>
                     )}
                   </div>
