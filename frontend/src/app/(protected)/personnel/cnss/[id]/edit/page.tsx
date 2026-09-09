@@ -476,8 +476,9 @@ export default function EditCNSSDeclarationPage() {
                 <Label htmlFor="situation">
                   <SourceText source="Situation *" />
                 </Label>
+                {situation ? (
                 <Select
-                  value={situation || undefined}
+                  value={situation}
                   onValueChange={(value) => {
                     setValue("situation", value as CNSSSituation, {
                       shouldDirty: true,
@@ -497,6 +498,13 @@ export default function EditCNSSDeclarationPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                ) : (
+                  <Select disabled>
+                    <SelectTrigger>
+                      <SelectValue placeholder={sourceText("Select situation")} />
+                    </SelectTrigger>
+                  </Select>
+                )}
                 {errors.situation && (
                   <p className="text-sm text-red-600">
                     {errors.situation.message}
@@ -668,7 +676,7 @@ export default function EditCNSSDeclarationPage() {
             <X className="me-2 h-4 w-4" />
             <SourceText source="Cancel" leading trailing />
           </Button>
-          <Button type="submit" disabled={isSubmitting || !formDirty}>
+          <Button type="submit" disabled={isSubmitting || !formDirty || Boolean(errors.situation)}>
             {isSubmitting ? (
               <>
                 <Loader2 className="me-2 h-4 w-4 animate-spin" />
