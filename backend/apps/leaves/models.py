@@ -5,6 +5,10 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 
+def default_working_weekdays():
+    return [0, 1, 2, 3, 4, 5, 6]
+
+
 class Leave(models.Model):
     STATUS_DRAFT = 'draft'
     STATUS_OFFICIAL = 'official'
@@ -47,6 +51,7 @@ class Leave(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     duration_days = models.PositiveIntegerField(editable=False)
+    working_weekdays = models.JSONField(default=default_working_weekdays, blank=True)
     national_holiday_days = models.PositiveIntegerField(default=0)
     international_holiday_days = models.PositiveIntegerField(default=0)
     chargeable_days = models.PositiveIntegerField(editable=False, default=0)
@@ -72,8 +77,11 @@ class Leave(models.Model):
         return f'{self.personnel} — {self.leave_type} ({self.start_date} to {self.end_date})'
 
     def save(self, *args, **kwargs):
+        from .quota import working_duration
+
+        weekdays = self.working_weekdays or [0, 1, 2, 3, 4, 5, 6]
         if self.start_date and self.end_date:
-            self.duration_days = max(0, (self.end_date - self.start_date).days)
+            self.duration_days = working_duration(self.start_date, self.end_date, weekdays)
         holidays = int(self.national_holiday_days or 0) + int(self.international_holiday_days or 0)
         self.chargeable_days = max(0, int(self.duration_days or 0) - holidays)
         # Group-wide leaves keep company=None. Inheritance from employment is
@@ -88,7 +96,13 @@ class Leave(models.Model):
             if self.end_date < self.start_date:
                 raise ValidationError('end_date must be >= start_date.')
         holidays = int(self.national_holiday_days or 0) + int(self.international_holiday_days or 0)
-        duration = max(0, (self.end_date - self.start_date).days) if self.start_date and self.end_date else 0
+        from .quota import working_duration
+
+        duration = (
+            working_duration(self.start_date, self.end_date, self.working_weekdays)
+            if self.start_date and self.end_date
+            else 0
+        )
         if holidays > duration:
             raise ValidationError('Holiday days cannot exceed the leave duration.')
         qs = Leave.objects.filter(

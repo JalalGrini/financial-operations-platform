@@ -21,7 +21,7 @@ class LeaveSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
             'company', 'company_name', 'job_title', 'department',
             'leave_type', 'leave_type_other',
             'decision_number', 'decision_date',
-            'start_date', 'end_date', 'duration_days',
+            'start_date', 'end_date', 'duration_days', 'working_weekdays',
             'national_holiday_days', 'international_holiday_days', 'chargeable_days',
             'confirm_over_quota',
             'reason', 'status', 'signed_document',
@@ -42,6 +42,21 @@ class LeaveSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
 
     def get_company_name(self, obj):
         return company_display_name(obj.company)
+
+    def validate_working_weekdays(self, value):
+        import json
+
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                value = [item.strip() for item in value.split(",") if item.strip() != ""]
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Select the weekdays this person works.")
+        cleaned = sorted({int(day) for day in value if str(day).lstrip("-").isdigit() and int(day) in range(7)})
+        if not cleaned:
+            raise serializers.ValidationError("Select at least one working day.")
+        return cleaned
 
     def validate_signed_document(self, upload):
         if not upload:
@@ -71,13 +86,17 @@ class LeaveSerializer(GroupCompanyInputMixin, serializers.ModelSerializer):
         international = int(
             data.get('international_holiday_days', getattr(self.instance, 'international_holiday_days', 0) or 0)
         )
-        duration = max(0, (end - start).days) if start and end else 0
+        from .quota import chargeable_days, used_chargeable_days, working_duration
+
+        weekdays = data.get(
+            "working_weekdays",
+            getattr(self.instance, "working_weekdays", None) or [0, 1, 2, 3, 4, 5, 6],
+        )
+        duration = working_duration(start, end, weekdays) if start and end else 0
         if national + international > duration:
             raise serializers.ValidationError(
                 {'national_holiday_days': 'Holiday days cannot exceed the leave duration.'}
             )
-        from .quota import chargeable_days, used_chargeable_days
-
         chargeable = chargeable_days(duration, national, international)
         confirm = bool(data.get('confirm_over_quota', getattr(self.instance, 'confirm_over_quota', False)))
         if employment and chargeable and start:

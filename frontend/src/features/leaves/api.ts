@@ -22,6 +22,7 @@ export interface Leave {
   international_holiday_days?: number;
   chargeable_days?: number;
   confirm_over_quota?: boolean;
+  working_weekdays?: number[];
   reason: string;
   status: "draft" | "official" | "cancelled";
   signed_document?: string | null;
@@ -46,6 +47,7 @@ export interface CreateLeaveData {
   national_holiday_days?: number;
   international_holiday_days?: number;
   confirm_over_quota?: boolean;
+  working_weekdays?: number[];
   reason?: string;
   signed_document?: File | null;
 }
@@ -89,11 +91,29 @@ export const LEAVE_STATUS_COLORS: Record<string, string> = {
   cancelled: "bg-red-100 text-red-800",
 };
 
-export function leaveDurationDays(startDate: string, returnDate: string): number {
+export function leaveDurationDays(
+  startDate: string,
+  returnDate: string,
+  weekdays?: number[],
+): number {
   if (!startDate || !returnDate) return 0;
-  const ms = new Date(returnDate).getTime() - new Date(startDate).getTime();
-  if (Number.isNaN(ms)) return 0;
-  return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${returnDate}T00:00:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+    return 0;
+  }
+  const allowed = new Set(
+    (weekdays?.length ? weekdays : [0, 1, 2, 3, 4, 5, 6]).filter((day) => day >= 0 && day <= 6),
+  );
+  let days = 0;
+  const cursor = new Date(start);
+  while (cursor < end) {
+    const jsDay = cursor.getDay();
+    const pythonWeekday = jsDay === 0 ? 6 : jsDay - 1;
+    if (allowed.has(pythonWeekday)) days += 1;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return days;
 }
 
 function unwrapLeaveList(payload: unknown): { results: Leave[]; count: number } {
@@ -113,6 +133,10 @@ function toLeaveFormData(data: CreateLeaveData | Partial<CreateLeaveData>): Form
   const form = new FormData();
   Object.entries(data).forEach(([key, value]) => {
     if (value === undefined || value === null || value === "") return;
+    if (key === "working_weekdays") {
+      form.append("working_weekdays", JSON.stringify(value));
+      return;
+    }
     if (key === "signed_document") {
       if (value instanceof File) form.append("signed_document", value);
       return;

@@ -2,12 +2,33 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 from .models import Leave
 
 
-def calendar_duration(start: date | None, end: date | None) -> int:
+ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
+
+
+def working_duration(start: date | None, end: date | None, weekdays=None) -> int:
+    """Count days in [start, end) whose weekday is selected (Mon=0 … Sun=6)."""
+    if not start or not end:
+        return 0
+    allowed = {int(day) for day in (weekdays or ALL_WEEKDAYS) if int(day) in range(7)}
+    if not allowed:
+        return 0
+    days = 0
+    cursor = start
+    while cursor < end:
+        if cursor.weekday() in allowed:
+            days += 1
+        cursor += timedelta(days=1)
+    return days
+
+
+def calendar_duration(start: date | None, end: date | None, weekdays=None) -> int:
+    if weekdays is not None:
+        return working_duration(start, end, weekdays)
     if not start or not end:
         return 0
     return max(0, (end - start).days)
@@ -32,8 +53,9 @@ def overlapping_chargeable(leave: Leave, period_start: date, period_end: date) -
         return 0
     overlap_start = max(leave.start_date, period_start)
     overlap_end = min(leave.end_date, period_end)
-    overlap_cal = max(0, (overlap_end - overlap_start).days)
-    total_cal = calendar_duration(leave.start_date, leave.end_date) or 1
+    weekdays = getattr(leave, "working_weekdays", None)
+    overlap_cal = working_duration(overlap_start, overlap_end, weekdays)
+    total_cal = calendar_duration(leave.start_date, leave.end_date, weekdays) or 1
     chargeable = int(leave.chargeable_days or total_cal)
     return int(round(chargeable * overlap_cal / total_cal))
 

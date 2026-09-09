@@ -3130,5 +3130,20 @@
   "Remaining leave": "Congé restant",
   "Tag a colleague": "Assigner un collègue",
   "They will see this record in Tagged for me, with your optional note.": "Ils verront cet enregistrement dans Assigné pour moi, avec votre note facultative.",
-  "Used when creating leaves. Extra days require confirmation.": "Utilisé à la création des congés. Les jours supplémentaires exigent une confirmation."
+  "Used when creating leaves. Extra days require confirmation.": "Utilisé à la création des congés. Les jours supplémentaires exigent une confirmation.",
+  "Mon": "Lun",
+  "Tue": "Mar",
+  "Wed": "Mer",
+  "Thu": "Jeu",
+  "Fri": "Ven",
+  "Sat": "Sam",
+  "Sun": "Dim",
+  "Working days": "Jours travaillés",
+  "Unselect days they do not work. Those days are not counted.": "Désélectionnez les jours non travaillés. Ils ne sont pas comptés.",
+  "Select the weekdays this person works.": "Sélectionnez les jours de la semaine travaillés par cette personne.",
+  "Select at least one working day.": "Sélectionnez au moins un jour travaillé.",
+  "end_date must be >= start_date.": "La date de retour doit être égale ou postérieure à la date de début.",
+  "Holiday days cannot exceed the leave duration.": "Les jours fériés ne peuvent pas dépasser la durée du congé.",
+  "Specify the leave type when Autre is selected.": "Précisez le type de congé lorsque Autre est sélectionné.",
+  "This personnel already has an official leave overlapping these dates.": "Cet employé a déjà un congé officiel qui chevauche ces dates."
 }

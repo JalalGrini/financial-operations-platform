@@ -3130,5 +3130,20 @@
   "Remaining leave": "الإجازة المتبقية",
   "Tag a colleague": "وسم زميل",
   "They will see this record in Tagged for me, with your optional note.": "سيظهر لهم هذا السجل في المعين لي، مع ملاحظتك الاختيارية.",
-  "Used when creating leaves. Extra days require confirmation.": "يُستخدم عند إنشاء الإجازات. الأيام الزائدة تتطلب تأكيدا."
+  "Used when creating leaves. Extra days require confirmation.": "يُستخدم عند إنشاء الإجازات. الأيام الزائدة تتطلب تأكيدا.",
+  "Mon": "الإثنين",
+  "Tue": "الثلاثاء",
+  "Wed": "الأربعاء",
+  "Thu": "الخميس",
+  "Fri": "الجمعة",
+  "Sat": "السبت",
+  "Sun": "الأحد",
+  "Working days": "أيام العمل",
+  "Unselect days they do not work. Those days are not counted.": "ألغِ تحديد الأيام غير المعمول بها حتى لا تُحتسب.",
+  "Select the weekdays this person works.": "حدد أيام الأسبوع التي يعمل فيها هذا الشخص.",
+  "Select at least one working day.": "حدد يوم عمل واحدا على الأقل.",
+  "end_date must be >= start_date.": "يجب أن يكون تاريخ العودة في يوم البداية أو بعده.",
+  "Holiday days cannot exceed the leave duration.": "لا يمكن أن تتجاوز أيام العطل مدة الإجازة.",
+  "Specify the leave type when Autre is selected.": "حدد نوع الإجازة عند اختيار أخرى.",
+  "This personnel already has an official leave overlapping these dates.": "لدى هذا الموظف إجازة رسمية تتداخل مع هذه التواريخ."
 }

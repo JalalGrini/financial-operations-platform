@@ -2539,6 +2539,8 @@
   "Select a version to inspect its figures. Versions are never overwritten.": "Select a version to inspect its figures. Versions are never overwritten.",
   "Select account": "Select account",
   "Select all": "Select all",
+  "Sun": "Sun",
+  "Sat": "Sat",
   "Select an option": "Select an option",
   "Select company": "Select company",
   "Select contract type": "Select contract type",
@@ -3130,5 +3132,18 @@
   "Remaining leave": "Remaining leave",
   "Tag a colleague": "Tag a colleague",
   "They will see this record in Tagged for me, with your optional note.": "They will see this record in Tagged for me, with your optional note.",
-  "Used when creating leaves. Extra days require confirmation.": "Used when creating leaves. Extra days require confirmation."
+  "Used when creating leaves. Extra days require confirmation.": "Used when creating leaves. Extra days require confirmation.",
+  "Mon": "Mon",
+  "Tue": "Tue",
+  "Wed": "Wed",
+  "Thu": "Thu",
+  "Fri": "Fri",
+  "Working days": "Working days",
+  "Unselect days they do not work. Those days are not counted.": "Unselect days they do not work. Those days are not counted.",
+  "Select the weekdays this person works.": "Select the weekdays this person works.",
+  "Select at least one working day.": "Select at least one working day.",
+  "end_date must be >= start_date.": "The return date must be on or after the start date.",
+  "Holiday days cannot exceed the leave duration.": "Holiday days cannot exceed the leave duration.",
+  "Specify the leave type when Autre is selected.": "Specify the leave type when Other is selected.",
+  "This personnel already has an official leave overlapping these dates.": "This employee already has an official leave overlapping these dates."
 }

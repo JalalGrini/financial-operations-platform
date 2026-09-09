@@ -35,6 +35,18 @@ import {
 } from "@/features/leaves/api";
 import { TICKET_ACCEPT, validateSingleUpload } from "@/lib/upload-limits";
 import { GROUP_COMPANY_VALUE } from "@/lib/company-scope";
+import { cn } from "@/lib/utils";
+
+const ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
+const WEEKDAY_LABELS = [
+  { value: 0, label: "Mon" },
+  { value: 1, label: "Tue" },
+  { value: 2, label: "Wed" },
+  { value: 3, label: "Thu" },
+  { value: 4, label: "Fri" },
+  { value: 5, label: "Sat" },
+  { value: 6, label: "Sun" },
+] as const;
 
 type LeaveFormValues = {
   company: string;
@@ -49,6 +61,7 @@ type LeaveFormValues = {
   national_holiday_days: string;
   international_holiday_days: string;
   reason: string;
+  working_weekdays: number[];
 };
 
 const emptyValues: LeaveFormValues = {
@@ -64,6 +77,7 @@ const emptyValues: LeaveFormValues = {
   national_holiday_days: "0",
   international_holiday_days: "0",
   reason: "",
+  working_weekdays: [0, 1, 2, 3, 4, 5, 6],
 };
 
 function leaveToValues(leave: Leave): LeaveFormValues {
@@ -80,6 +94,10 @@ function leaveToValues(leave: Leave): LeaveFormValues {
     national_holiday_days: String(leave.national_holiday_days ?? 0),
     international_holiday_days: String(leave.international_holiday_days ?? 0),
     reason: leave.reason || "",
+    working_weekdays:
+      Array.isArray(leave.working_weekdays) && leave.working_weekdays.length
+        ? leave.working_weekdays
+        : [0, 1, 2, 3, 4, 5, 6],
   };
 }
 
@@ -140,7 +158,7 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
     });
   }, [selectedEmployment]);
 
-  const duration = leaveDurationDays(values.start_date, values.end_date);
+  const duration = leaveDurationDays(values.start_date, values.end_date, values.working_weekdays);
   const national = Number(values.national_holiday_days || 0);
   const international = Number(values.international_holiday_days || 0);
   const chargeable = Math.max(0, duration - national - international);
@@ -165,7 +183,18 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
         setError("");
         return;
       }
-      setError(err?.message || sourceText("Failed to save leave."));
+      setError(
+        sourceText(
+          String(
+            (Array.isArray(payload.working_weekdays) && payload.working_weekdays[0]) ||
+              (Array.isArray(payload.national_holiday_days) && payload.national_holiday_days[0]) ||
+              (Array.isArray(payload.leave_type_other) && payload.leave_type_other[0]) ||
+              payload.detail ||
+              err?.message ||
+              "Failed to save leave.",
+          ),
+        ),
+      );
     },
   });
 
@@ -185,6 +214,7 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
     end_date: values.end_date,
     national_holiday_days: national,
     international_holiday_days: international,
+    working_weekdays: values.working_weekdays,
     confirm_over_quota: confirmOverQuota,
     reason: values.reason,
     signed_document: attachment,
@@ -378,6 +408,53 @@ export function LeaveForm({ leave }: { leave?: Leave }) {
                   />
                 </div>
               )}
+
+              <div className="space-y-2 min-w-0">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Label>
+                    <SourceText source="Working days" />
+                  </Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => setField("working_weekdays", [...ALL_WEEKDAYS])}
+                  >
+                    <SourceText source="Select all" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  <SourceText source="Unselect days they do not work. Those days are not counted." />
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {WEEKDAY_LABELS.map((day) => {
+                    const selected = values.working_weekdays.includes(day.value);
+                    return (
+                      <button
+                        key={day.value}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => {
+                          const next = selected
+                            ? values.working_weekdays.filter((value) => value !== day.value)
+                            : [...values.working_weekdays, day.value].sort((a, b) => a - b);
+                          if (next.length === 0) return;
+                          setField("working_weekdays", next);
+                        }}
+                        className={cn(
+                          "h-10 min-w-12 rounded-xl border px-3 text-sm font-medium transition-colors",
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-input bg-background text-muted-foreground hover:bg-muted/60",
+                        )}
+                      >
+                        {sourceText(day.label)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               <div className="grid gap-6 md:grid-cols-3">
                 <div className="space-y-2 min-w-0">
