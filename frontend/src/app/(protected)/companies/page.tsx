@@ -9,7 +9,6 @@ import Link from "next/link";
 import { SourceText } from "@/components/i18n/SourceText";
 import {
   Plus,
-  Search,
   Filter,
   Building2,
   Archive,
@@ -33,7 +32,7 @@ import {
 import { CompanyStatus } from "@/features/companies/types";
 import { Button } from "@/components/ui/button";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import {
   Select,
   SelectContent,
@@ -252,15 +251,12 @@ export default function CompaniesPage() {
             onSubmit={handleSearch}
             className="flex flex-wrap gap-4 items-center"
           >
-            <div className="relative flex-1">
-              <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder={sourceText("Search companies...")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="ps-10"
-              />
-            </div>
+            <SearchInput
+              placeholder={sourceText("Search companies...")}
+              value={search}
+              onChange={setSearch}
+              containerClassName="flex-1 min-w-[200px]"
+            />
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder={sourceText("All Status")} />

@@ -442,7 +442,7 @@ function CNSSEditForm({ cnssData }: { cnssData: CNSSDeclaration }) {
                 />
                 {errors.cnss_registration_number && (
                   <p className="text-sm text-red-600">
-                    {errors.cnss_registration_number.message}
+                    {sourceText(String(errors.cnss_registration_number.message))}
                   </p>
                 )}
               </div>
@@ -452,7 +452,7 @@ function CNSSEditForm({ cnssData }: { cnssData: CNSSDeclaration }) {
                   <SourceText source="Situation *" />
                 </Label>
                 <Select
-                  value={situation}
+                  value={situation ?? ""}
                   onValueChange={(value) => {
                     setValue("situation", value as CNSSSituation, {
                       shouldDirty: true,
@@ -474,7 +474,7 @@ function CNSSEditForm({ cnssData }: { cnssData: CNSSDeclaration }) {
                 </Select>
                 {errors.situation && (
                   <p className="text-sm text-red-600">
-                    {errors.situation.message}
+                    {sourceText(String(errors.situation.message))}
                   </p>
                 )}
               </div>
@@ -505,7 +505,7 @@ function CNSSEditForm({ cnssData }: { cnssData: CNSSDeclaration }) {
                 />
                 {errors.first_declaration_date && (
                   <p className="text-sm text-red-600">
-                    {errors.first_declaration_date.message}
+                    {sourceText(String(errors.first_declaration_date.message))}
                   </p>
                 )}
               </div>
@@ -526,7 +526,7 @@ function CNSSEditForm({ cnssData }: { cnssData: CNSSDeclaration }) {
                 />
                 {errors.declaration_start_date && (
                   <p className="text-sm text-red-600">
-                    {errors.declaration_start_date.message}
+                    {sourceText(String(errors.declaration_start_date.message))}
                   </p>
                 )}
               </div>
@@ -599,7 +599,7 @@ function CNSSEditForm({ cnssData }: { cnssData: CNSSDeclaration }) {
                       </Select>
                       {errors.stop_reason && (
                         <p className="text-sm text-red-600">
-                          {errors.stop_reason.message}
+                          {sourceText(String(errors.stop_reason.message))}
                         </p>
                       )}
                     </div>

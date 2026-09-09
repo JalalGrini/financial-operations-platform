@@ -692,8 +692,33 @@ export function SearchInput({
   placeholder = sourceText("Search..."),
   onSearch,
   className,
-  debounceMs: _debounceMs = 300,
+  debounceMs = 300,
 }: SearchInputProps) {
+  const [draft, setDraft] = useState(value);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (draft === value) return;
+    if (debounceMs <= 0) {
+      onChangeRef.current(draft);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      onChangeRef.current(draft);
+    }, debounceMs);
+    return () => window.clearTimeout(timer);
+  }, [draft, debounceMs, value]);
+
+  const commit = (next: string) => {
+    setDraft(next);
+    onChangeRef.current(next);
+  };
+
   return (
     <div className="relative min-w-[220px]">
       <svg
@@ -711,11 +736,14 @@ export function SearchInput({
       </svg>
       <input
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          if (draft !== value) onChangeRef.current(draft);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            onChange(value);
+            commit(draft);
             onSearch?.();
           }
         }}
@@ -782,19 +810,25 @@ export function FilterDropdown({
       setIsOpen(false);
     }
   };
+  const selectedOptionLabel = Array.isArray(value)
+    ? null
+    : options.find((o) => o.value === value)?.label;
   const displayValue = Array.isArray(value)
     ? value
-        .map((v) => options.find((o) => o.value === v)?.label)
+        .map((v) => {
+          const optionLabel = options.find((o) => o.value === v)?.label;
+          return optionLabel ? sourceText(optionLabel) : optionLabel;
+        })
         .filter(Boolean)
         .join(", ")
-    : options.find((o) => o.value === value)?.label ||
+    : (selectedOptionLabel ? sourceText(selectedOptionLabel) : undefined) ||
       placeholder ||
       sourceText("All");
   return (
     <div className={cn("relative", className)} data-filter-dropdown>
       <div className="mb-1 flex items-center justify-between gap-3">
         <label className="block text-sm font-medium text-foreground">
-          {label}
+          {sourceText(label)}
         </label>
         <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
           {selectedCount > 0
@@ -893,7 +927,7 @@ export function FilterDropdown({
                     />
                   </svg>
                 )}
-                {option.label}
+                {sourceText(option.label)}
               </span>
             </button>
               ))
@@ -961,7 +995,7 @@ export function ActionMenu({ items, trigger, className }: ActionMenuProps) {
               {item.icon && (
                 <span className="h-4 w-4 flex-shrink-0">{item.icon}</span>
               )}
-              {item.label}
+              {sourceText(item.label)}
             </button>
           ))}
         </div>

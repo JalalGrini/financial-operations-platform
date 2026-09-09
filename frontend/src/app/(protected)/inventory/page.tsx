@@ -15,7 +15,6 @@ import {
   Plus,
   RefreshCw,
   RotateCcw,
-  Search,
   Trash2,
 } from "lucide-react";
 import { FilterPopover } from "@/components/ui/filter-popover";
@@ -32,7 +31,7 @@ import { ViewToggle, useViewMode } from "@/components/ui/view-toggle";
 import { SourceText } from "@/components/i18n/SourceText";
 import { Button } from "@/components/ui/button";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
 import {
   Select,
   SelectContent,
@@ -210,15 +209,12 @@ export default function InventoryPage() {
         <CardHeader className="pb-4">
           {/* Row 1: search + company + type + archived toggle + refresh */}
           <form onSubmit={(e) => e.preventDefault()} className="flex flex-wrap gap-3 items-center">
-            <div className="relative flex-1 min-w-[180px]">
-              <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder={sourceText("Search name, reference, tag, location…")}
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                className="ps-10"
-              />
-            </div>
+            <SearchInput
+              placeholder={sourceText("Search name, reference, tag, location…")}
+              value={search}
+              onChange={(v) => { setSearch(v); setPage(1); }}
+              containerClassName="flex-1 min-w-[180px]"
+            />
             <Select value={company || "all"} onValueChange={(v) => { setCompany(v === "all" ? "" : v); setPage(1); }}>
               <SelectTrigger className="w-full sm:w-44">
                 <SelectValue placeholder={sourceText("All companies")} />

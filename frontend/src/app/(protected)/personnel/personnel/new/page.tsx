@@ -20,16 +20,23 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
-import { useCreatePersonnel } from "@/features/personnel/hooks";
+import { useCreatePersonnel, useCompanies } from "@/features/personnel/hooks";
 import { PersonnelStatus } from "@/features/personnel/types";
 import { toast } from "@/components/ui/toast";
+import { GROUP_COMPANY_VALUE, companyFieldToApi } from "@/lib/company-scope";
+import { SourceText } from "@/components/i18n/SourceText";
+import { ScheduleDate } from "@/components/ui/schedule-date";
 const createPersonnelSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
+  first_name: z.string().min(1, "First name is required."),
+  last_name: z.string().min(1, "Last name is required."),
   middle_name: z.string().optional(),
   cin: z.string().optional(),
   phone: z.string().optional(),
-  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  email: z
+    .string()
+    .email("Invalid email address.")
+    .optional()
+    .or(z.literal("")),
   address: z.string().optional(),
   city: z.string().optional(),
   province: z.string().optional(),
@@ -39,6 +46,7 @@ const createPersonnelSchema = z.object({
   status: z.nativeEnum(PersonnelStatus).default(PersonnelStatus.ACTIVE),
   notes: z.string().optional(),
   observations: z.string().optional(),
+  company: z.string().min(1, "Select a valid company"),
 });
 type CreatePersonnelForm = z.infer<typeof createPersonnelSchema>;
 const statusOptions = [
@@ -76,6 +84,7 @@ const statusOptions = [
 export default function CreatePersonnelPage() {
   const router = useRouter();
   const createMutation = useCreatePersonnel();
+  const { data: companies } = useCompanies();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     register,
@@ -89,13 +98,18 @@ export default function CreatePersonnelPage() {
     resolver: zodResolver(createPersonnelSchema),
     defaultValues: {
       status: PersonnelStatus.ACTIVE,
+      company: GROUP_COMPANY_VALUE,
     },
   });
   const statusValue = useWatch({ control, name: "status" });
+  const companyId = useWatch({ control, name: "company" });
   const onSubmit = async (data: CreatePersonnelForm) => {
     setIsSubmitting(true);
     try {
-      await createMutation.mutateAsync(data);
+      await createMutation.mutateAsync({
+        ...data,
+        company: companyFieldToApi(data.company),
+      });
       toast.success(sourceText("Personnel created successfully"));
       router.push("/personnel/personnel");
       router.refresh();
@@ -168,7 +182,7 @@ export default function CreatePersonnelPage() {
                 />
                 {errors.first_name && (
                   <p className="text-sm text-red-600">
-                    {errors.first_name.message}
+                    {sourceText(String(errors.first_name.message))}
                   </p>
                 )}
               </div>
@@ -185,7 +199,7 @@ export default function CreatePersonnelPage() {
                 />
                 {errors.last_name && (
                   <p className="text-sm text-red-600">
-                    {errors.last_name.message}
+                    {sourceText(String(errors.last_name.message))}
                   </p>
                 )}
               </div>
@@ -239,7 +253,7 @@ export default function CreatePersonnelPage() {
                   disabled={isSubmitting}
                 />
                 {errors.email && (
-                  <p className="text-sm text-red-600">{errors.email.message}</p>
+                  <p className="text-sm text-red-600">{sourceText(String(errors.email.message))}</p>
                 )}
               </div>
 
@@ -265,6 +279,41 @@ export default function CreatePersonnelPage() {
                   {...register("nationality")}
                   disabled={isSubmitting}
                 />
+              </div>
+
+              <div className="space-y-2 min-w-0 md:col-span-2">
+                <Label htmlFor="company">
+                  <SourceText source="Company affiliation" />
+                </Label>
+                <Select
+                  value={companyId ?? ""}
+                  onValueChange={(value) => {
+                    setValue("company", value, { shouldDirty: true, shouldValidate: true });
+                  }}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={sourceText("Select company")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={GROUP_COMPANY_VALUE}>
+                      {sourceText("Tout le groupe")}
+                    </SelectItem>
+                    {companies?.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name} ({company.reference})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  <SourceText source="Connect this person to a company, or to the whole group." />
+                </p>
+                {errors.company && (
+                  <p className="text-sm text-red-600">
+                    {sourceText(errors.company.message || "Select a valid company")}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2 min-w-0">
@@ -405,6 +454,3 @@ export default function CreatePersonnelPage() {
     </div>
   );
 }
-import { SourceText } from "@/components/i18n/SourceText";
-import { EmployeeAvatar } from "@/components/ui/employee-avatar";
-import { ScheduleDate } from "@/components/ui/schedule-date";

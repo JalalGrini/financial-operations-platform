@@ -15,8 +15,8 @@ export default function EditDeadlinePage() {
     <div className="space-y-6">
       <Breadcrumb
         items={[
-          { label: "Deadlines", href: "/deadlines" },
-          { label: "Edit deadline", isCurrent: true },
+          { label: sourceText("Deadlines"), href: "/deadlines" },
+          { label: sourceText("Edit deadline"), isCurrent: true },
         ]}
       />
       <PageHero

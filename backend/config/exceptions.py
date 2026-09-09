@@ -19,9 +19,6 @@ logger = logging.getLogger(__name__)
 UNIQUE_CONSTRAINT_FIELDS = {
     "unique_personnel_cin": "cin",
     "personnel_person_cin_key": "cin",
-    "unique_company_reg_number": "registration_number",
-    "unique_company_tax_id": "tax_id",
-    "unique_company_vat_number": "vat_number",
     "fdt_unique_type_version": "version",
     "fdt_one_default_published": "record_type",
     "fdtf_unique_template_key": "key",

@@ -34,10 +34,11 @@ class PersonnelPersonAdmin(admin.ModelAdmin):
         "email",
         "city",
         "status",
+        "company",
         "is_archived",
         "created_at",
     ]
-    list_filter = ["status", "is_archived", "city", "province", "region", "created_at"]
+    list_filter = ["status", "is_archived", "company", "city", "province", "region", "created_at"]
     search_fields = ["reference", "first_name", "last_name", "cin", "phone", "email"]
     readonly_fields = [
         "id",
@@ -54,7 +55,7 @@ class PersonnelPersonAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             _("Identification"),
-            {"fields": ("reference", "first_name", "last_name", "middle_name", "cin")},
+            {"fields": ("reference", "first_name", "last_name", "middle_name", "cin", "company")},
         ),
         (_("Contact"), {"fields": ("phone", "email", "address", "city", "province", "region")}),
         (_("Personal Info"), {"fields": ("date_of_birth", "nationality")}),
@@ -82,7 +83,9 @@ class PersonnelPersonAdmin(admin.ModelAdmin):
     get_full_name.short_description = _("Full Name")
 
     def get_queryset(self, request):
-        return PersonnelPerson.all_objects.select_related("created_by", "updated_by", "archived_by")
+        return PersonnelPerson.all_objects.select_related(
+            "created_by", "updated_by", "archived_by", "company"
+        )
 
 
 class EmploymentSalaryInline(admin.TabularInline):

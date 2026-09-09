@@ -57,6 +57,8 @@ class SelectEndpointContractTests(APITestCase):
             first_name="Out", last_name="Side", cin="CC000003", user=self.user
         )
         company = create_test_company(user=self.user)
+        person_in.company = company
+        person_in.save(update_fields=["company"])
         create_test_employment(person=person_in, company=company, user=self.user)
 
         resp = self.client.get(

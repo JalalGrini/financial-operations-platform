@@ -1,7 +1,7 @@
 "use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { SourceText } from "@/components/i18n/SourceText";
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useMemo } from "react";
 import { useFormDirty } from "@/hooks/useFormDirty";
 import { useRouter, useParams } from "next/navigation";
 import {
@@ -34,14 +34,16 @@ import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import {
   useUpdatePersonnel,
   usePersonnelDetail,
+  useCompanies,
 } from "@/features/personnel/hooks";
-import { PersonnelStatus } from "@/features/personnel/types";
+import { PersonnelStatus, type PersonnelPersonDetail } from "@/features/personnel/types";
 import { toast } from "@/components/ui/toast";
 import { EmployeeAvatar } from "@/components/ui/employee-avatar";
 import { WriteOnly } from "@/components/auth/WriteOnly";
 import { personnelApi } from "@/features/personnel/api";
 import { ScheduleDate } from "@/components/ui/schedule-date";
 import { GuidePanel } from "@/components/ui/guide-panel";
+import { GROUP_COMPANY_VALUE, companySelectValue, companyFieldToApi } from "@/lib/company-scope";
 
 function localeTag() {
   if (typeof document !== "undefined") {
@@ -72,6 +74,7 @@ const updatePersonnelSchema = z.object({
   status: z.nativeEnum(PersonnelStatus),
   notes: z.string().optional(),
   observations: z.string().optional(),
+  company: z.string().min(1, "Select a valid company"),
 });
 type UpdatePersonnelForm = z.infer<typeof updatePersonnelSchema>;
 const statusOptions = [
@@ -106,6 +109,30 @@ const statusOptions = [
     },
   },
 ];
+function toPersonnelFormValues(personnelData: PersonnelPersonDetail): UpdatePersonnelForm {
+  return {
+    first_name: personnelData.first_name,
+    last_name: personnelData.last_name,
+    middle_name: personnelData.middle_name || "",
+    cin: personnelData.cin || "",
+    phone: personnelData.phone || "",
+    email: personnelData.email || "",
+    address: personnelData.address || "",
+    city: personnelData.city || "",
+    province: personnelData.province || "",
+    region: personnelData.region || "",
+    date_of_birth: personnelData.date_of_birth
+      ? personnelData.date_of_birth.split("T")[0]
+      : "",
+    nationality: personnelData.nationality || "",
+    status: statusOptions.some((option) => option.value === personnelData.status)
+      ? personnelData.status
+      : PersonnelStatus.ACTIVE,
+    notes: personnelData.notes || "",
+    observations: personnelData.observations || "",
+    company: companySelectValue(personnelData.company),
+  };
+}
 function SummaryTile({
   title,
   value,
@@ -141,6 +168,41 @@ function SummaryTile({
 
 export default function EditPersonnelPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+  const { data: personnelData, isLoading, error } = usePersonnelDetail(id);
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+  if (error || !personnelData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center">
+        <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
+        <p className="text-red-600">
+          <SourceText source="Failed to load personnel data" />
+        </p>
+        <Button variant="outline" onClick={() => router.back()} className="mt-4">
+          <ArrowLeft className="me-2 h-4 w-4" />
+          <SourceText source="Back to List" leading trailing />
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <PersonnelEditForm key={personnelData.id} personnelData={personnelData} />
+  );
+}
+
+function PersonnelEditForm({
+  personnelData,
+}: {
+  personnelData: PersonnelPersonDetail;
+}) {
+  const router = useRouter();
   /**
    * Profile photo: add, change, remove.
    *
@@ -174,27 +236,23 @@ export default function EditPersonnelPage() {
     setPhotoRemoved(true);
   };
 
-  const params = useParams();
-  const id = params.id as string;
+  const id = personnelData.id;
   const updateMutation = useUpdatePersonnel();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: personnelData, isLoading, error } = usePersonnelDetail(id);
-  const hydratedIdRef = useRef<string | null>(null);
+  const { data: companies } = useCompanies();
   const {
     register,
     handleSubmit,
-    reset,
     control,
     setValue,
     watch,
     formState: { errors },
   } = useForm<UpdatePersonnelForm>({
     resolver: zodResolver(updatePersonnelSchema),
-    defaultValues: {
-      status: PersonnelStatus.ACTIVE,
-    },
+    defaultValues: toPersonnelFormValues(personnelData),
   });
   const statusValue = useWatch({ control, name: "status" });
+  const companyId = useWatch({ control, name: "company" });
   const statusLabelMap: Record<PersonnelStatus, string> = Object.fromEntries(
     statusOptions.map((option) => [option.value, option.label]),
   ) as Record<PersonnelStatus, string>;
@@ -210,61 +268,17 @@ export default function EditPersonnelPage() {
     }).format(parsed);
   };
 
-  // Hydrate once per person so dirty-save compares against loaded values,
-  // not the empty defaults from the first paint.
-  useEffect(() => {
-    if (!personnelData) return;
-    if (hydratedIdRef.current === personnelData.id) return;
-    hydratedIdRef.current = personnelData.id;
-    reset({
-      first_name: personnelData.first_name,
-      last_name: personnelData.last_name,
-      middle_name: personnelData.middle_name || "",
-      cin: personnelData.cin || "",
-      phone: personnelData.phone || "",
-      email: personnelData.email || "",
-      address: personnelData.address || "",
-      city: personnelData.city || "",
-      province: personnelData.province || "",
-      region: personnelData.region || "",
-      date_of_birth: personnelData.date_of_birth
-        ? personnelData.date_of_birth.split("T")[0]
-        : "",
-      nationality: personnelData.nationality || "",
-      status: statusOptions.some((option) => option.value === personnelData.status)
-        ? personnelData.status
-        : PersonnelStatus.ACTIVE,
-      notes: personnelData.notes || "",
-      observations: personnelData.observations || "",
-    });
-  }, [personnelData, reset]);
-  const originalValues = useMemo(() => {
-    if (!personnelData) return null;
-    return {
-      first_name: personnelData.first_name,
-      last_name: personnelData.last_name,
-      middle_name: personnelData.middle_name || "",
-      cin: personnelData.cin || "",
-      phone: personnelData.phone || "",
-      email: personnelData.email || "",
-      address: personnelData.address || "",
-      city: personnelData.city || "",
-      province: personnelData.province || "",
-      region: personnelData.region || "",
-      date_of_birth: personnelData.date_of_birth
-        ? personnelData.date_of_birth.split("T")[0]
-        : "",
-      nationality: personnelData.nationality || "",
-      status: statusOptions.some((option) => option.value === personnelData.status)
-        ? personnelData.status
-        : PersonnelStatus.ACTIVE,
-      notes: personnelData.notes || "",
-      observations: personnelData.observations || "",
-    };
-  }, [personnelData]);
+  const originalValues = useMemo(
+    () => toPersonnelFormValues(personnelData),
+    [personnelData],
+  );
   const formDirty = useFormDirty(originalValues, watch());
   const onSubmit = async (data: UpdatePersonnelForm) => {
     setIsSubmitting(true);
+    const payload = {
+      ...data,
+      company: companyFieldToApi(data.company),
+    };
     try {
       if (photoFile) {
         // A new image needs multipart. Every scalar field is appended too, so
@@ -293,6 +307,7 @@ export default function EditPersonnelPage() {
           if (value === undefined || value === null || value === "") continue;
           form.append(key, String(value));
         }
+        form.append("company", data.company || GROUP_COMPANY_VALUE);
         form.append("photo", photoFile, photoFile.name);
         await personnelApi.updateWithPhoto(id, form);
       } else if (photoRemoved) {
@@ -303,10 +318,10 @@ export default function EditPersonnelPage() {
         // EmployeeAvatar falls back to the initials tile.
         await updateMutation.mutateAsync({
           id,
-          data: { ...data, photo: null } as typeof data,
+          data: { ...payload, photo: null } as typeof payload,
         });
       } else {
-        await updateMutation.mutateAsync({ id, data });
+        await updateMutation.mutateAsync({ id, data: payload });
       }
       toast.success(sourceText("Personnel updated successfully"));
       router.push(`/personnel/personnel/${id}`);
@@ -320,27 +335,6 @@ export default function EditPersonnelPage() {
   const handleCancel = () => {
     router.back();
   };
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
-        <p className="text-red-600">
-          <SourceText source="Failed to load personnel data" />
-        </p>
-        <Button variant="outline" onClick={handleCancel} className="mt-4">
-          <ArrowLeft className="me-2 h-4 w-4" />
-          <SourceText source="Back to List" leading trailing />
-        </Button>
-      </div>
-    );
-  }
   return (
     <div className="space-y-6 min-w-0">
       {/* Breadcrumbs */}
@@ -535,7 +529,7 @@ export default function EditPersonnelPage() {
                   disabled={isSubmitting}
                 />
                 {errors.email && (
-                  <p className="text-sm text-red-600">{errors.email.message}</p>
+                  <p className="text-sm text-red-600">{sourceText(String(errors.email.message))}</p>
                 )}
               </div>
 
@@ -561,6 +555,41 @@ export default function EditPersonnelPage() {
                   {...register("nationality")}
                   disabled={isSubmitting}
                 />
+              </div>
+
+              <div className="space-y-2 min-w-0 md:col-span-2">
+                <Label htmlFor="company">
+                  <SourceText source="Company affiliation" />
+                </Label>
+                <Select
+                  value={companyId ?? ""}
+                  onValueChange={(value) => {
+                    setValue("company", value, { shouldDirty: true, shouldValidate: true });
+                  }}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={sourceText("Select company")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={GROUP_COMPANY_VALUE}>
+                      {sourceText("Tout le groupe")}
+                    </SelectItem>
+                    {companies?.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name} ({company.reference})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  <SourceText source="Connect this person to a company, or to the whole group." />
+                </p>
+                {errors.company && (
+                  <p className="text-sm text-red-600">
+                    {sourceText(errors.company.message || "Select a valid company")}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2 min-w-0">

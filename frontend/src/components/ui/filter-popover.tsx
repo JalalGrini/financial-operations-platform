@@ -139,7 +139,7 @@ export function FilterPopover({
         {groups.map((group) => (
           <div key={group.key} className="flex flex-col gap-1.5">
             <Label className="text-xs text-muted-foreground">
-              {group.label}
+              {sourceText(group.label)}
             </Label>
             {group.options.map((option) => {
               const id = `filter-${group.key}-${option.value}`;
@@ -158,7 +158,7 @@ export function FilterPopover({
                     checked={checked}
                     onChange={() => toggle(group.key, option.value)}
                   />
-                  {option.label}
+                  {sourceText(option.label)}
                 </Label>
               );
             })}
@@ -169,7 +169,7 @@ export function FilterPopover({
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs text-muted-foreground">
-                {range.label}
+              {sourceText(range.label)}
               </Label>
               <span className="text-xs font-bold tabular-nums text-brand-blue-600">
                 {range.format ? range.format(rangeValue) : rangeValue}
@@ -181,7 +181,7 @@ export function FilterPopover({
               max={range.max}
               step={range.step ?? 1}
               onChange={(event) => onRangeChange(Number(event.target.value))}
-              aria-label={range.label}
+                  aria-label={sourceText(range.label)}
             />
           </div>
         )}

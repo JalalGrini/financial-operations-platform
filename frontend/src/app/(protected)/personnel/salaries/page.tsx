@@ -329,7 +329,7 @@ export default function SalaryListPage() {
       className: "w-20 text-end",
     },
   ];
-  if (isLoading) {
+  if (isLoading && !salaryData) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
         <SkeletonHero />

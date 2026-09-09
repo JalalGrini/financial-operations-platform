@@ -387,6 +387,16 @@ export default function PersonnelListPage() {
         className: "w-48",
       },
       {
+        key: "company_name",
+        header: sourceText("Company"),
+        render: (_, row) => (
+          <span className="text-sm">
+            {row.company_name || sourceText("Tout le groupe")}
+          </span>
+        ),
+        className: "w-40",
+      },
+      {
         key: "status",
         header: sourceText("Status"),
         render: (_, row) => (
@@ -521,7 +531,7 @@ export default function PersonnelListPage() {
       .filter(Boolean);
     for (const id of ids) await restoreMutation.mutateAsync(id);
   };
-  if (isLoading) {
+  if (isLoading && !personnelData) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
         <SkeletonHero />
@@ -701,6 +711,9 @@ export default function PersonnelListPage() {
                         <StatusBadge status={row.is_on_leave ? "on_leave" : row.status} variant="personnel" />
                       </div>
                       <p className="text-xs text-muted-foreground font-mono">{row.reference}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {row.company_name || sourceText("Tout le groupe")}
+                      </p>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>{row.cin || sourceText("—")}</span>
                         <span className={row.completeness_percentage >= 80 ? "text-emerald-600" : row.completeness_percentage >= 50 ? "text-amber-600" : "text-rose-600"}>
@@ -732,6 +745,7 @@ export default function PersonnelListPage() {
                       <TableHead className="w-8"></TableHead>
                       <TableHead>{sourceText("Employee")}</TableHead>
                       <TableHead className="hidden md:table-cell">{sourceText("Reference")}</TableHead>
+                      <TableHead className="hidden lg:table-cell">{sourceText("Company")}</TableHead>
                       <TableHead className="hidden lg:table-cell">{sourceText("Status")}</TableHead>
                       <TableHead className="hidden xl:table-cell">{sourceText("CNSS")}</TableHead>
                       <TableHead className="hidden xl:table-cell">{sourceText("CIN")}</TableHead>
@@ -763,6 +777,9 @@ export default function PersonnelListPage() {
                           </TableCell>
                           <TableCell className="hidden font-mono text-xs text-muted-foreground md:table-cell">
                             {row.reference}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell text-sm">
+                            {row.company_name || sourceText("Tout le groupe")}
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
                             <StatusBadge status={row.is_on_leave ? "on_leave" : row.status} variant="personnel" />

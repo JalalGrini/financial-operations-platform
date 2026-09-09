@@ -160,14 +160,9 @@ class PersonnelPersonViewSet(
         )
 
         company_id = self.request.query_params.get("company")
-        if company_id == GROUP_COMPANY_TOKEN:
-            queryset = queryset.filter(
-                employments__company__isnull=True, employments__is_active=True
-            ).distinct()
-        elif company_id:
-            queryset = queryset.filter(
-                employments__company_id=company_id, employments__is_active=True
-            ).distinct()
+        queryset = filter_queryset_by_company(
+            queryset, field="company", raw=company_id
+        )
 
         statuses = split_query_values(self.request, "status")
         search = self.request.query_params.get("search")
@@ -178,10 +173,11 @@ class PersonnelPersonViewSet(
                 | Q(cin__icontains=search)
                 | Q(phone__icontains=search)
                 | Q(email__icontains=search)
+                | Q(company__name__icontains=search)
             )
 
         queryset = (
-            queryset.select_related("created_by", "updated_by", "archived_by")
+            queryset.select_related("created_by", "updated_by", "archived_by", "company")
             .annotate(
                 active_employments_count_annotated=Count(
                     "employments",
@@ -271,10 +267,10 @@ class PersonnelPersonViewSet(
         company_id = request.query_params.get("company", "")
 
         queryset = PersonnelPerson.objects.filter(is_archived=False)
-        if company_id:
-            queryset = queryset.filter(
-                employments__company_id=company_id, employments__is_active=True
-            ).distinct()
+        if company_id == GROUP_COMPANY_TOKEN:
+            queryset = queryset.filter(company__isnull=True)
+        elif company_id:
+            queryset = queryset.filter(company_id=company_id)
         if search:
             queryset = queryset.filter(
                 Q(first_name__icontains=search)
@@ -284,7 +280,7 @@ class PersonnelPersonViewSet(
                 | Q(email__icontains=search)
             )
 
-        persons = queryset.select_related("created_by")[:100]
+        persons = queryset.select_related("created_by", "company")[:100]
         results = []
         for person in persons:
             results.append(
@@ -293,7 +289,7 @@ class PersonnelPersonViewSet(
                     "reference": person.reference,
                     "name": person.get_full_name(),
                     "cin": person.cin or "",
-                    "current_company": "",
+                    "current_company": company_display_name(person.company),
                 }
             )
         return Response(results)

@@ -71,7 +71,7 @@ def _checked_private_upload(upload, *, max_bytes, allowed):
         raise serializers.ValidationError(list(exc.messages)) from exc
 
 
-class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
+class PersonnelPersonSerializer(GroupCompanyInputMixin, EmptyStringToNullMixin, serializers.ModelSerializer):
     """Serializer for PersonnelPerson list view."""
 
     full_name = serializers.CharField(source="get_full_name", read_only=True)
@@ -81,8 +81,14 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
     photo = serializers.ImageField(required=False, allow_null=True, write_only=True)
     is_on_leave = serializers.SerializerMethodField()
     display_status = serializers.SerializerMethodField()
+    company_name = serializers.SerializerMethodField()
+    company = serializers.PrimaryKeyRelatedField(
+        queryset=Company.objects.filter(status="active", is_archived=False),
+        required=False,
+        allow_null=True,
+    )
 
-    empty_to_null_fields = ("cin", "date_of_birth")
+    empty_to_null_fields = ("cin", "date_of_birth", "company")
 
     class Meta:
         model = PersonnelPerson
@@ -106,6 +112,8 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
             "notes",
             "observations",
             "status",
+            "company",
+            "company_name",
             "photo",
             "completeness_percentage",
             "active_employments_count",
@@ -126,6 +134,7 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
             "has_active_cnss",
             "is_on_leave",
             "display_status",
+            "company_name",
         ]
 
     def validate_photo(self, upload):
@@ -168,6 +177,9 @@ class PersonnelPersonSerializer(EmptyStringToNullMixin, serializers.ModelSeriali
             return "on_leave"
         return obj.status
 
+    def get_company_name(self, obj):
+        return company_display_name(obj.company)
+
 
 class PersonnelPersonDetailSerializer(PersonnelPersonSerializer):
     """Detailed serializer for PersonnelPerson with related data."""
@@ -203,11 +215,16 @@ class PersonnelPersonDetailSerializer(PersonnelPersonSerializer):
         return obj.get_missing_important_fields()
 
 
-class PersonnelPersonCreateSerializer(EmptyStringToNullMixin, serializers.ModelSerializer):
+class PersonnelPersonCreateSerializer(GroupCompanyInputMixin, EmptyStringToNullMixin, serializers.ModelSerializer):
     """Serializer for creating PersonnelPerson."""
 
-    empty_to_null_fields = ("cin", "date_of_birth")
+    empty_to_null_fields = ("cin", "date_of_birth", "company")
     photo = serializers.ImageField(required=False, allow_null=True, write_only=True)
+    company = serializers.PrimaryKeyRelatedField(
+        queryset=Company.objects.filter(status="active", is_archived=False),
+        required=False,
+        allow_null=True,
+    )
 
     class Meta:
         model = PersonnelPerson
@@ -228,6 +245,7 @@ class PersonnelPersonCreateSerializer(EmptyStringToNullMixin, serializers.ModelS
             "notes",
             "observations",
             "status",
+            "company",
             "photo",
         ]
         read_only_fields = ["id"]

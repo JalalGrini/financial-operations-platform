@@ -632,6 +632,19 @@
     .landing-topbar-over-media[data-lifted="false"] .landing-logo-wrap {
         filter: drop-shadow(0 2px 10px rgb(0 0 0 / 0.45));
     }
+    /* Language chip uses bg-background (white in light). The bar above sets
+     * --foreground to white for nav links on the hero photo, which made FR/EN/AR
+     * vanish as white-on-white. Pin the chip's own colours so the letters stay. */
+    .landing-topbar-over-media[data-lifted="false"] .language-switcher-trigger {
+        background-color: rgb(255 255 255);
+        color: rgb(15 23 42);
+        border-color: rgb(255 255 255 / 0.85);
+    }
+    .dark .landing-topbar-over-media[data-lifted="false"] .language-switcher-trigger {
+        background-color: rgb(15 23 42 / 0.88);
+        color: rgb(248 250 252);
+        border-color: rgb(255 255 255 / 0.28);
+    }
     .landing-grid {
         background-image: linear-gradient(
                 hsl(var(--border) / 0.45) 1px,

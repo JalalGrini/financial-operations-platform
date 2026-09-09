@@ -2,6 +2,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
+import { sourceText } from "@/lib/i18n/source-catalog";
 
 export default function GlobalError({
   error,
@@ -15,7 +16,7 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <h1>Une erreur est survenue.</h1>
+        <h1>{sourceText("Something went wrong")}</h1>
       </body>
     </html>
   );

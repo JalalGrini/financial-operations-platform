@@ -124,23 +124,6 @@ class CompanyCreateSerializer(EmptyStringToNullMixin, serializers.ModelSerialize
         ]
         read_only_fields = ["id", "reference"]
 
-    def validate_registration_number(self, value):
-        if value and Company.objects.filter(registration_number=value).exists():
-            raise serializers.ValidationError(
-                _("A company with this registration number already exists.")
-            )
-        return value
-
-    def validate_tax_id(self, value):
-        if value and Company.objects.filter(tax_id=value).exists():
-            raise serializers.ValidationError(_("A company with this tax ID already exists."))
-        return value
-
-    def validate_email(self, value):
-        if value and Company.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError(_("A company with this email already exists."))
-        return value
-
 
 class CompanySettingsSerializer(serializers.ModelSerializer):
     """Serializer for CompanySettings."""

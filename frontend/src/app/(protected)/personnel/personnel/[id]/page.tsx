@@ -214,7 +214,7 @@ export default function PersonnelProfilePage() {
             },
             href: "/personnel/personnel",
           },
-          { label: person?.full_name || "Loading...", isCurrent: true },
+          { label: person?.full_name || sourceText("Loading..."), isCurrent: true },
         ]}
       />
 
@@ -222,8 +222,8 @@ export default function PersonnelProfilePage() {
       <PageHero
         icon={User}
         eyebrow={sourceText("Personnel record")}
-        title={person?.full_name || "Personnel Profile"}
-        description={`Reference: ${person?.reference} • ${person?.cin || "No CIN"}`}
+        title={person?.full_name || sourceText("Personnel Profile")}
+        description={`${sourceText("Reference")}: ${person?.reference} • ${person?.cin || sourceText("No CIN")}`}
         action={
           <ExpandingActions actions={[{ permission: "write" as const, label: "Edit", icon: <Edit size={14} />, onClick: () => router.push(`/personnel/personnel/${id}/edit`) }, ...(!isArchived ? [{ permission: "write" as const, label: "Archive", icon: <Archive size={14} />, onClick: handleArchive, variant: "warning" as const }] : [{ permission: "write" as const, label: "Restore", icon: <RotateCcw size={14} />, onClick: handleRestore, variant: "success" as const }]), { permission: "delete" as const, label: "Delete", icon: <span>🗑</span>, onClick: handlePermanentDelete, variant: "danger" as const }]} />
         }
@@ -428,6 +428,19 @@ export default function PersonnelProfilePage() {
                         <SourceText source="Not provided" leading trailing />
                       </span>
                     )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-muted rounded-lg">
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    <SourceText source="Company" />
+                  </p>
+                  <p>
+                    {person?.company_name || sourceText("Tout le groupe")}
                   </p>
                 </div>
               </div>

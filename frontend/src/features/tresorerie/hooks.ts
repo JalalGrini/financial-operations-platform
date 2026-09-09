@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { tresorerieApi } from "./api";
 import type { BudgetRange, DailyBudgetCard } from "./types";
 
@@ -25,6 +25,17 @@ export function useDailyBudgetHistory(company: string, range: BudgetRange) {
     queryFn: () => tresorerieApi.history(company, range),
     enabled: Boolean(company),
     staleTime: 30_000,
+  });
+}
+
+export function useDailyBudgetSparklines(companyIds: string[]) {
+  return useQueries({
+    queries: companyIds.map((company) => ({
+      queryKey: tresorerieQueryKeys.history(company, "7d"),
+      queryFn: () => tresorerieApi.history(company, "7d"),
+      enabled: Boolean(company),
+      staleTime: 30_000,
+    })),
   });
 }
 

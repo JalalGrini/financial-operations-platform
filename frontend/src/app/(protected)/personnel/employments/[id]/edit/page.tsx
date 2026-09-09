@@ -1,6 +1,6 @@
 ﻿"use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useFormDirty } from "@/hooks/useFormDirty";
 import { useRouter, useParams } from "next/navigation";
 import {
@@ -12,6 +12,7 @@ import {
   Briefcase,
   CreditCard,
   FileText,
+  Building2,
 } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,10 +34,11 @@ import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import {
   useUpdateEmployment,
   useEmploymentDetail,
+  useCompanies,
 } from "@/features/personnel/hooks";
-import { useCompanies, usePersonnelSelect } from "@/features/personnel/hooks";
 import {
   ContractType,
+  Employment,
   EmploymentStatus,
   EmploymentDepartureReason,
 } from "@/features/personnel/types";
@@ -48,7 +50,7 @@ import {
   type EmploymentFormValues,
 } from "@/features/personnel/employment-contract";
 import { toast } from "@/components/ui/toast";
-import { GROUP_COMPANY_VALUE, companySelectValue } from "@/lib/company-scope";
+import { companySelectValue, companyDisplayName } from "@/lib/company-scope";
 import { EmploymentPayoutFields } from "@/features/personnel/components/EmploymentPayoutFields";
 import { ScheduleDate } from "@/components/ui/schedule-date";
 import { GuidePanel } from "@/components/ui/guide-panel";
@@ -214,6 +216,43 @@ const departureReasonOptions = [
     },
   },
 ];
+function toEmploymentFormValues(employmentData: Employment): EmploymentFormValues {
+  return {
+    person: employmentData.person,
+    company: companySelectValue(employmentData.company),
+    employee_reference: employmentData.employee_reference,
+    job_title: employmentData.job_title || "",
+    department: employmentData.department || "",
+    work_domain: employmentData.work_domain || "",
+    work_city: employmentData.work_city || "",
+    contract_type: employmentData.contract_type,
+    employment_status: employmentData.employment_status,
+    hire_date: employmentData.hire_date
+      ? employmentData.hire_date.split("T")[0]
+      : "",
+    employment_end_date: employmentData.employment_end_date
+      ? employmentData.employment_end_date.split("T")[0]
+      : "",
+    departure_reason: employmentData.departure_reason || undefined,
+    resignation_date: employmentData.resignation_date
+      ? employmentData.resignation_date.split("T")[0]
+      : "",
+    payment_method: employmentData.payment_method || "",
+    payout_method: employmentData.payout_method || "cash",
+    rib: employmentData.rib || "",
+    default_monthly_working_days:
+      employmentData.default_monthly_working_days || 26,
+    worked_day_rate:
+      employmentData.worked_day_rate != null
+        ? String(employmentData.worked_day_rate)
+        : "",
+    absence_day_rate:
+      employmentData.absence_day_rate != null
+        ? String(employmentData.absence_day_rate)
+        : "",
+    observations: employmentData.observations || "",
+  };
+}
 function SummaryTile({
   title,
   value,
@@ -251,16 +290,42 @@ export default function EditEmploymentPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const { data: employmentData, isLoading, error } = useEmploymentDetail(id);
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+  if (error || !employmentData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center">
+        <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
+        <p className="text-red-600">
+          <SourceText source="Failed to load employment data" />
+        </p>
+        <Button variant="outline" onClick={() => router.back()} className="mt-4">
+          <ArrowLeft className="me-2 h-4 w-4" />
+          <SourceText source="Back to List" leading trailing />
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <EmploymentEditForm key={employmentData.id} employmentData={employmentData} />
+  );
+}
+
+function EmploymentEditForm({ employmentData }: { employmentData: Employment }) {
+  const router = useRouter();
+  const id = employmentData.id;
   const updateMutation = useUpdateEmployment();
   const { data: companies } = useCompanies();
-  const { data: personnelOptions } = usePersonnelSelect();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: employmentData, isLoading, error } = useEmploymentDetail(id);
-  const hydratedIdRef = useRef<string | null>(null);
   const {
     register,
     handleSubmit,
-    reset,
     control,
     setValue,
     setError,
@@ -268,14 +333,10 @@ export default function EditEmploymentPage() {
     formState: { errors },
   } = useForm<EmploymentFormValues>({
     resolver: zodResolver(employmentFormSchema),
-    defaultValues: {
-      default_monthly_working_days: 26,
-      payout_method: "cash",
-    },
+    defaultValues: toEmploymentFormValues(employmentData),
   });
   const employmentStatus = useWatch({ control, name: "employment_status" });
   const contractType = useWatch({ control, name: "contract_type" });
-  const personId = useWatch({ control, name: "person" });
   const companyId = useWatch({ control, name: "company" });
   const departureReason = useWatch({ control, name: "departure_reason" });
   const payoutMethod = useWatch({ control, name: "payout_method" });
@@ -300,89 +361,10 @@ export default function EditEmploymentPage() {
       setValue("rib", selected.rib, { shouldDirty: true, shouldValidate: true });
     }
   }, [companies, companyId, payoutMethod, ribValue, setValue]);
-  // Hydrate once per employment so dirty-save is not blocked by the first
-  // paint of empty defaults (or by a Select writing "" into the form).
-  useEffect(() => {
-    if (!employmentData) return;
-    if (hydratedIdRef.current === employmentData.id) return;
-    hydratedIdRef.current = employmentData.id;
-    reset({
-      person: employmentData.person,
-      company: companySelectValue(employmentData.company),
-      employee_reference: employmentData.employee_reference,
-      job_title: employmentData.job_title || "",
-      department: employmentData.department || "",
-      work_domain: employmentData.work_domain || "",
-      work_city: employmentData.work_city || "",
-      contract_type: employmentData.contract_type,
-      employment_status: employmentData.employment_status,
-      hire_date: employmentData.hire_date
-        ? employmentData.hire_date.split("T")[0]
-        : "",
-      employment_end_date: employmentData.employment_end_date
-        ? employmentData.employment_end_date.split("T")[0]
-        : "",
-      departure_reason: employmentData.departure_reason || undefined,
-      resignation_date: employmentData.resignation_date
-        ? employmentData.resignation_date.split("T")[0]
-        : "",
-      payment_method: employmentData.payment_method || "",
-      payout_method: employmentData.payout_method || "cash",
-      rib: employmentData.rib || "",
-      default_monthly_working_days:
-        employmentData.default_monthly_working_days || 26,
-      // `?? ""` rather than `|| ""`: a saved rate of 0 is a real price and must
-      // stay in the field, where `||` would blank it and silently revert the
-      // employment to the derived default on the next save.
-      worked_day_rate:
-        employmentData.worked_day_rate != null
-          ? String(employmentData.worked_day_rate)
-          : "",
-      absence_day_rate:
-        employmentData.absence_day_rate != null
-          ? String(employmentData.absence_day_rate)
-          : "",
-      observations: employmentData.observations || "",
-    });
-  }, [employmentData, reset]);
-  const originalValues = useMemo(() => {
-    if (!employmentData) return null;
-    return {
-      person: employmentData.person,
-      company: companySelectValue(employmentData.company),
-      employee_reference: employmentData.employee_reference,
-      job_title: employmentData.job_title || "",
-      department: employmentData.department || "",
-      work_domain: employmentData.work_domain || "",
-      work_city: employmentData.work_city || "",
-      contract_type: employmentData.contract_type,
-      employment_status: employmentData.employment_status,
-      hire_date: employmentData.hire_date
-        ? employmentData.hire_date.split("T")[0]
-        : "",
-      employment_end_date: employmentData.employment_end_date
-        ? employmentData.employment_end_date.split("T")[0]
-        : "",
-      departure_reason: employmentData.departure_reason || undefined,
-      resignation_date: employmentData.resignation_date
-        ? employmentData.resignation_date.split("T")[0]
-        : "",
-      payment_method: employmentData.payment_method || "",
-      payout_method: employmentData.payout_method || "cash",
-      rib: employmentData.rib || "",
-      default_monthly_working_days:
-        employmentData.default_monthly_working_days || 26,
-      worked_day_rate:
-        employmentData.worked_day_rate != null
-          ? String(employmentData.worked_day_rate)
-          : "",
-      absence_day_rate:
-        employmentData.absence_day_rate != null
-          ? String(employmentData.absence_day_rate)
-          : "",
-      observations: employmentData.observations || "",
-    };
-  }, [employmentData]);
+  const originalValues = useMemo(
+    () => toEmploymentFormValues(employmentData),
+    [employmentData],
+  );
   const formDirty = useFormDirty(originalValues, watch());
   const onSubmit = async (data: EmploymentFormValues) => {
     setIsSubmitting(true);
@@ -410,27 +392,6 @@ export default function EditEmploymentPage() {
   const handleCancel = () => {
     router.back();
   };
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
-        <p className="text-red-600">
-          <SourceText source="Failed to load employment data" />
-        </p>
-        <Button variant="outline" onClick={handleCancel} className="mt-4">
-          <ArrowLeft className="me-2 h-4 w-4" />
-          <SourceText source="Back to List" leading trailing />
-        </Button>
-      </div>
-    );
-  }
   return (
     <div className="space-y-6">
       {/* Breadcrumbs */}
@@ -476,8 +437,8 @@ export default function EditEmploymentPage() {
       <section className="space-y-4">
         <div className={STAT_CARDS_GRID}>
           <StatCard icon={Briefcase} label={sourceText("Reference")} value={employmentData?.employee_reference || sourceText("Unavailable")} tone="primary" />
-          <StatCard icon={FileText} label={sourceText("Contract mode")} value={contractType ? sourceText(contractType) : sourceText("Unknown")} tone="indigo" />
-          <StatCard icon={AlertCircle} label={sourceText("Status")} value={employmentStatus ? sourceText(employmentStatus) : sourceText("Unknown")} tone="amber" />
+          <StatCard icon={FileText} label={sourceText("Contract mode")} value={contractTypeOptions.find((option) => option.value === contractType)?.label || sourceText("Unknown")} tone="indigo" />
+          <StatCard icon={AlertCircle} label={sourceText("Status")} value={employmentStatusOptions.find((option) => option.value === employmentStatus)?.label || sourceText("Unknown")} tone="amber" />
           <StatCard icon={CreditCard} label={sourceText("Payment method")} value={payoutMethod === "bank" ? sourceText("Virement bancaire") : sourceText("Espèces")} tone={payoutMethod === "bank" ? "emerald" : "indigo"} />
         </div>
 
@@ -503,68 +464,57 @@ export default function EditEmploymentPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Employee & Company Selection */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="person">
-                  <SourceText source="Employee *" />
-                </Label>
-                <Select
-                  value={personId ?? ""}
-                  onValueChange={(value) => {
-                    setValue("person", value, { shouldDirty: true, shouldValidate: true });
-                  }}
-                  disabled
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={sourceText("Select employee")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {personnelOptions?.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name} ({p.reference}){p.cin && ` - CIN: ${p.cin}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.person && (
-                  <p className="text-sm text-red-600">
-                    {errors.person.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="company">
-                  <SourceText source="Company *" />
-                </Label>
-                <Select
-                  value={companyId ?? ""}
-                  onValueChange={(value) => {
-                    setValue("company", value, { shouldDirty: true, shouldValidate: true });
-                  }}
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={sourceText("Select company")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={GROUP_COMPANY_VALUE}>
-                      {sourceText("Tout le groupe")}
-                    </SelectItem>
-                    {companies?.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name} ({c.reference})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.company && (
-                  <p className="text-sm text-red-600">
-                    {errors.company.message}
-                  </p>
-                )}
-              </div>
+            <div className="rounded-xl border border-border/70 bg-muted/30 p-4">
+              <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[.14em] text-muted-foreground">
+                <Briefcase className="h-3.5 w-3.5" />
+                <SourceText source="Identity (cannot be changed)" />
+              </p>
+              <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <dt className="text-xs text-muted-foreground">
+                    <SourceText source="Employee" />
+                  </dt>
+                  <dd className="mt-1 text-sm font-semibold">
+                    {employmentData.person_name || sourceText("—")}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">
+                    <SourceText source="Company" />
+                  </dt>
+                  <dd className="mt-1 flex items-center gap-2 text-sm font-semibold">
+                    <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    {companyDisplayName(
+                      employmentData.company_name,
+                      sourceText("Tout le groupe"),
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">
+                    <SourceText source="Employee Reference" />
+                  </dt>
+                  <dd className="mt-1 font-mono text-sm font-semibold">
+                    {employmentData.employee_reference || sourceText("—")}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">
+                    <SourceText source="Employment ID" />
+                  </dt>
+                  <dd className="mt-1 font-mono text-sm font-semibold">
+                    {employmentData.reference || sourceText("—")}
+                  </dd>
+                </div>
+              </dl>
+              <input type="hidden" {...register("person")} />
+              <input type="hidden" {...register("company")} />
+              <input type="hidden" {...register("employee_reference")} />
+              {(errors.person || errors.company || errors.employee_reference) && (
+                <p className="mt-3 text-sm text-red-600">
+                  <SourceText source="This employment is missing its employee or company link. Open it in the detail view and contact an administrator." />
+                </p>
+              )}
             </div>
 
             <p className="rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
@@ -575,24 +525,7 @@ export default function EditEmploymentPage() {
               />
             </p>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="employee_reference">
-                  <SourceText source="Employee Reference *" />
-                </Label>
-                <Input
-                  id="employee_reference"
-                  placeholder={sourceText("e.g., EMP-001")}
-                  {...register("employee_reference")}
-                  disabled
-                />
-                {errors.employee_reference && (
-                  <p className="text-sm text-red-600">
-                    {errors.employee_reference.message}
-                  </p>
-                )}
-              </div>
-
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="job_title">
                   <SourceText source="Job Title" />

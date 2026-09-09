@@ -502,7 +502,7 @@ export default function PayrollListPage() {
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
   }, []);
-  if (isLoading) {
+  if (isLoading && !payrollData) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
         <SkeletonHero />

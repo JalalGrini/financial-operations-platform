@@ -53,6 +53,7 @@ def create_test_person(
     nationality="Moroccan",
     notes="",
     observations="",
+    company=None,
     user=None,
 ):
     """Create a test personnel person."""
@@ -88,6 +89,7 @@ def create_test_person(
         nationality=nationality,
         notes=notes,
         observations=observations,
+        company=company,
         created_by=user,
         updated_by=user,
     )
@@ -110,7 +112,7 @@ def create_test_employment(
     if hire_date is None:
         hire_date = date.today() - timedelta(days=365)
 
-    return Employment.objects.create(
+    employment = Employment.objects.create(
         person=person,
         company=company,
         job_title=job_title,
@@ -124,6 +126,10 @@ def create_test_employment(
         created_by=user,
         updated_by=user,
     )
+    if person.company_id is None and company is not None:
+        person.company = company
+        person.save(update_fields=["company"])
+    return employment
 
 
 def create_test_salary(

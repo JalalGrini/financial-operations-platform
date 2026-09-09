@@ -146,6 +146,7 @@ export const PersonnelPersonCreateSchema = z.object({
   status: PersonnelStatusSchema.default("active"),
   notes: z.string().optional(),
   observations: z.string().optional(),
+  company: z.string().nullable().optional(),
 });
 
 export const PersonnelPersonUpdateSchema =

@@ -44,9 +44,24 @@ export interface CreateLeaveData {
 }
 
 export const LEAVE_TYPES = [
-  { value: "annual", label: "Congé annuel" },
-  { value: "exceptional", label: "Congé exceptionnel" },
-  { value: "other", label: "Autre" },
+  {
+    value: "annual",
+    get label() {
+      return sourceText("Annual Leave");
+    },
+  },
+  {
+    value: "exceptional",
+    get label() {
+      return sourceText("Exceptional leave");
+    },
+  },
+  {
+    value: "other",
+    get label() {
+      return sourceText("Other");
+    },
+  },
 ];
 
 export const LEAVE_STATUS_LABELS: Record<string, string> = {

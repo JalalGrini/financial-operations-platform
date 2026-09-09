@@ -70,7 +70,6 @@ class Company(ReferenceTrackedModel, CustomFieldsModel):
         max_length=100,
         blank=True,
         null=True,
-        unique=True,
         help_text=_("Official company registration number"),
     )
     tax_id = models.CharField(
@@ -78,7 +77,6 @@ class Company(ReferenceTrackedModel, CustomFieldsModel):
         max_length=100,
         blank=True,
         null=True,
-        unique=True,
         help_text=_("Tax identification number"),
     )
     vat_number = models.CharField(
@@ -86,7 +84,6 @@ class Company(ReferenceTrackedModel, CustomFieldsModel):
         max_length=100,
         blank=True,
         null=True,
-        unique=True,
         help_text=_("Identifiant Commun de l'Entreprise (ICE)"),
     )
     cnss_number = models.CharField(
@@ -196,21 +193,6 @@ class Company(ReferenceTrackedModel, CustomFieldsModel):
             models.UniqueConstraint(
                 fields=["reference"],
                 name="unique_company_reference",
-            ),
-            models.UniqueConstraint(
-                fields=["tax_id"],
-                condition=models.Q(tax_id__gt=""),
-                name="unique_company_tax_id",
-            ),
-            models.UniqueConstraint(
-                fields=["vat_number"],
-                condition=models.Q(vat_number__gt=""),
-                name="unique_company_vat_number",
-            ),
-            models.UniqueConstraint(
-                fields=["registration_number"],
-                condition=models.Q(registration_number__gt=""),
-                name="unique_company_reg_number",
             ),
         ]
 

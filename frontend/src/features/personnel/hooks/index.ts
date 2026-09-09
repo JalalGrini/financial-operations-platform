@@ -6,6 +6,7 @@
 
 import { sourceText } from "@/lib/i18n/source-catalog";
 import {
+  keepPreviousData,
   useQuery,
   useMutation,
   useQueryClient,
@@ -106,6 +107,7 @@ export function usePersonnelList(
     queryKey: personnelQueryKeys.list(params),
     queryFn: () => personnelApi.list(params),
     staleTime: 1000 * 60 * 5, // 5 minutes
+    placeholderData: keepPreviousData,
     ...options,
   });
 }
@@ -251,6 +253,7 @@ export function useEmploymentList(
     queryKey: employmentQueryKeys.list(params),
     queryFn: () => employmentApi.list(params),
     staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
     ...options,
   });
 }
@@ -402,6 +405,7 @@ export function useSalaryList(
     queryKey: ["salaries", "list", params],
     queryFn: () => salaryApi.list(params),
     staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
     ...options,
   });
 }
@@ -549,6 +553,7 @@ export function usePayrollList(
     queryKey: payrollQueryKeys.list(params),
     queryFn: () => payrollApi.list(params),
     staleTime: 1000 * 60 * 2,
+    placeholderData: keepPreviousData,
     ...options,
   });
 }
@@ -1045,6 +1050,7 @@ export function useCNSSDeclarationList(
     queryKey: cnssQueryKeys.declarationList(params),
     queryFn: () => cnssApi.list(params),
     staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
     ...options,
   });
 }
@@ -1208,6 +1214,7 @@ export function useCNSSMonthlyList(
     queryKey: cnssQueryKeys.monthlyList(params),
     queryFn: () => cnssMonthlyApi.list(params),
     staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
     ...options,
   });
 }

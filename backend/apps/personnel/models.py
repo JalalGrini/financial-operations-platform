@@ -310,6 +310,16 @@ class PersonnelPerson(ReferenceTrackedModel):
         help_text=_("Profile photo (optional)"),
     )
 
+    company = models.ForeignKey(
+        "companies.Company",
+        on_delete=models.SET_NULL,
+        related_name="personnel_people",
+        verbose_name=_("company"),
+        null=True,
+        blank=True,
+        help_text=_("Leave empty to connect this person to the whole group."),
+    )
+
     # Status
     status = models.CharField(
         _("status"),

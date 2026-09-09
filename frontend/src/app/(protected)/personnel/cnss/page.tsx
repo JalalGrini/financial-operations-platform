@@ -554,7 +554,7 @@ export default function CNSSListPage() {
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
   }, []);
-  if (isLoading) {
+  if (isLoading && !cnssData) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
         <SkeletonHero />

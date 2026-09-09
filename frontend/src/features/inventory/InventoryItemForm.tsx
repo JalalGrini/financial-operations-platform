@@ -286,15 +286,17 @@ export function InventoryItemForm({ item }: { item?: InventoryItem }) {
           {field("sku", sourceText("SKU / stock code"))}
         </CardContent>
       </Card>
-      <details className="rounded-lg border bg-card">
-        <summary className="cursor-pointer p-5 font-semibold">
-          <SourceText
-            source="Optional purchasing, condition, and notes"
-            leading
-            trailing
-          />
-        </summary>
-        <div className="grid gap-4 border-t p-5 md:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <SourceText
+              source="Optional purchasing, condition, and notes"
+              leading
+              trailing
+            />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
           {field("unit_cost", sourceText("Unit cost"), "number")}
           {field("currency", sourceText("Currency"))}
           {field("serial_number", sourceText("Serial number"))}
@@ -370,8 +372,8 @@ export function InventoryItemForm({ item }: { item?: InventoryItem }) {
               />
             </p>
           </div>
-        </div>
-      </details>
+        </CardContent>
+      </Card>
       <div className="flex justify-end gap-3">
         <Button type="button" variant="outline" onClick={() => router.back()}>
           <SourceText source="Cancel" leading trailing />

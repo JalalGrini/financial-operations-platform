@@ -38,7 +38,6 @@ import {
   CompanyStatus,
 } from "@/features/companies/types";
 import { toast } from "@/components/ui/toast";
-import { Separator } from "@/components/ui/separator";
 import { CompanyComplementaryFields } from "@/features/companies/components/CompanyComplementaryFields";
 import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Breadcrumb, PageHeader } from "@/components/ui/page-components";
@@ -333,10 +332,6 @@ function CompanyEditForm({ company }: { company: Company }) {
                 />
               </div>
 
-              <CompanyComplementaryFields values={formData} onChange={handleChange} />
-
-              <Separator className="my-4" />
-
               <div className="space-y-2 min-w-0">
                 <Label htmlFor="status">
                   <SourceText source="Status" />
@@ -445,6 +440,8 @@ function CompanyEditForm({ company }: { company: Company }) {
             </div>
           </CardContent>
         </Card>
+
+        <CompanyComplementaryFields values={formData} onChange={handleChange} />
 
         {/* Contact Information Section */}
         <Card>

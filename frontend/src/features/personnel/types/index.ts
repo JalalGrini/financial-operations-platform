@@ -170,6 +170,8 @@ export interface PersonnelPerson {
   is_on_leave?: boolean;
   display_status?: string;
   photo?: string | null;
+  company: string | null;
+  company_name?: string;
   created_at: string;
   updated_at: string;
   created_by?: string;
@@ -200,6 +202,7 @@ export interface PersonnelPersonCreate {
   status?: PersonnelStatus;
   notes?: string;
   observations?: string;
+  company?: string | null;
 }
 
 export interface PersonnelPersonUpdate extends Partial<PersonnelPersonCreate> {}

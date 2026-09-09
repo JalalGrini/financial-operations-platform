@@ -74,7 +74,7 @@ export function GuidePanel({
           aria-expanded={open}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/20 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
         >
-          {sourceText(open ? "Hide details" : "Show details")}
+          {open ? sourceText("Hide details") : sourceText("Show details")}
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 transition-transform duration-200",

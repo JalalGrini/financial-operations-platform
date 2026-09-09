@@ -144,6 +144,22 @@ class CompanyModelTests(TestCase):
         with self.assertRaises(ValidationError):
             company.full_clean()
 
+    def test_group_companies_may_share_contact_identifiers(self):
+        """Sibling companies may reuse email, phone, RC, IF, and ICE."""
+        shared = {
+            "email": "group@example.com",
+            "phone": "05055878966666",
+            "registration_number": "RC-SHARED",
+            "tax_id": "IF-SHARED",
+            "vat_number": "ICE-SHARED",
+        }
+        Company.objects.create(name="Alpha", created_by=self.user, **shared)
+        sibling = Company.objects.create(name="Beta", created_by=self.user, **shared)
+        self.assertEqual(sibling.email, shared["email"])
+        self.assertEqual(sibling.registration_number, shared["registration_number"])
+        self.assertEqual(sibling.tax_id, shared["tax_id"])
+        self.assertEqual(sibling.vat_number, shared["vat_number"])
+
 
 class CompanySettingsTests(TestCase):
     """Tests for CompanySettings model."""

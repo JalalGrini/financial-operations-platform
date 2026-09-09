@@ -390,7 +390,7 @@ export default function EmploymentsListPage() {
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
   }, []);
-  if (isLoading) {
+  if (isLoading && !employmentsData) {
     return (
       <div className="space-y-6 p-4 sm:p-6">
         <SkeletonHero />

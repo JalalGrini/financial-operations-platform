@@ -8,10 +8,6 @@ import {
   Loader2,
   Building2,
   MapPin,
-  Phone,
-  Mail,
-  Globe,
-  FileText,
   Save,
   ArrowLeft,
 } from "lucide-react";
@@ -35,7 +31,6 @@ import {
 import { useCreateCompany } from "@/features/companies/hooks";
 import { CompanyCreate } from "@/features/companies/types";
 import { toast } from "@/components/ui/toast";
-import { Separator } from "@/components/ui/separator";
 import { CompanyComplementaryFields } from "@/features/companies/components/CompanyComplementaryFields";
 const currencies = ["MAD", "USD", "EUR", "GBP"];
 const languages = ["fr", "en", "ar"];
@@ -240,10 +235,6 @@ export default function NewCompanyPage() {
                 />
               </div>
 
-              <CompanyComplementaryFields values={formData} onChange={handleChange} />
-
-              <Separator className="my-4" />
-
               <div className="space-y-2 min-w-0">
                 <Label htmlFor="default_currency">
                   <SourceText source="Default Currency" />
@@ -319,6 +310,8 @@ export default function NewCompanyPage() {
             </div>
           </CardContent>
         </Card>
+
+        <CompanyComplementaryFields values={formData} onChange={handleChange} />
 
         {/* Contact Information Section */}
         <Card>

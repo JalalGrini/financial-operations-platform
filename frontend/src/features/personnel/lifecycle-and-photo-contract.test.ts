@@ -175,7 +175,7 @@ describe("SearchableSelect is wired and dependency-free", () => {
       read("app/(protected)/personnel/cnss/new/page.tsx"),
     );
     expect(callSite).toContain("searchable-select");
-    expect(callSite).toContain("<SearchableSelect");
+    expect(callSite).toContain("<Combobox");
   });
 });
 

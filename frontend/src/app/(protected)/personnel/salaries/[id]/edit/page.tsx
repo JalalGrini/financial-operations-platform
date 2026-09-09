@@ -1,6 +1,6 @@
 ﻿"use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -26,13 +26,14 @@ import {
 } from "@/features/personnel/hooks";
 import { toast } from "@/components/ui/toast";
 import { ScheduleDate } from "@/components/ui/schedule-date";
+import type { EmploymentSalary } from "@/features/personnel/types";
 const updateSalarySchema = z.object({
-  person: z.string().min(1, "Le salarié est obligatoire"),
-  employment: z.string().min(1, "L'emploi est obligatoire"),
+  person: z.string().min(1, "Employee is required"),
+  employment: z.string().min(1, "Employment is required"),
   fixed_monthly_gross_salary: z.coerce
     .number()
-    .min(0, "Le salaire doit être supérieur ou égal à 0"),
-  effective_from: z.string().min(1, "La date d'effet est obligatoire"),
+    .min(0, "The salary must be greater than or equal to 0"),
+  effective_from: z.string().min(1, "Effective date is required"),
   effective_to: z.string().optional(),
   reason: z.string().optional(),
   notes: z.string().optional(),
@@ -46,45 +47,67 @@ const sanitizeSalaryPayload = (data: UpdateSalaryForm): UpdateSalaryForm => ({
   reason: data.reason?.trim() || undefined,
   notes: data.notes?.trim() || undefined,
 });
+
+function toSalaryFormValues(salaryData: EmploymentSalary): UpdateSalaryForm {
+  return {
+    person: String(salaryData.person ?? ""),
+    employment: String(salaryData.employment ?? ""),
+    fixed_monthly_gross_salary: Number(salaryData.fixed_monthly_gross_salary),
+    effective_from: salaryData.effective_from
+      ? salaryData.effective_from.split("T")[0]
+      : "",
+    effective_to: salaryData.effective_to
+      ? salaryData.effective_to.split("T")[0]
+      : "",
+    reason: salaryData.reason || "",
+    notes: salaryData.notes || "",
+  };
+}
+
 export default function EditSalaryPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const { data: salaryData, isLoading, error } = useSalaryDetail(id);
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+  if (error || !salaryData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center">
+        <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
+        <p className="text-red-600">
+          <SourceText source="Failed to load salary data" />
+        </p>
+        <Button variant="outline" onClick={() => router.back()} className="mt-4">
+          <ArrowLeft className="me-2 h-4 w-4" />
+          <SourceText source="Back to List" leading trailing />
+        </Button>
+      </div>
+    );
+  }
+  return <SalaryEditForm key={salaryData.id} salaryData={salaryData} />;
+}
+
+function SalaryEditForm({ salaryData }: { salaryData: EmploymentSalary }) {
+  const router = useRouter();
+  const id = salaryData.id;
   const updateMutation = useUpdateSalary();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: salaryData, isLoading, error } = useSalaryDetail(id);
   const {
     register,
     handleSubmit,
-    reset,
     setValue,
     watch,
     formState: { errors },
   } = useForm<UpdateSalaryForm>({
     resolver: zodResolver(updateSalarySchema),
-    defaultValues: {},
+    defaultValues: toSalaryFormValues(salaryData),
   });
-  // Populate form when data loads
-  useEffect(() => {
-    if (salaryData) {
-      reset({
-        person: String(salaryData.person ?? ""),
-        employment: String(salaryData.employment ?? ""),
-        fixed_monthly_gross_salary: Number(salaryData.fixed_monthly_gross_salary),
-        effective_from: salaryData.effective_from
-          ? salaryData.effective_from.split("T")[0]
-          : "",
-        effective_to: salaryData.effective_to
-          ? salaryData.effective_to.split("T")[0]
-          : "",
-        reason: salaryData.reason || "",
-        notes: salaryData.notes || "",
-      });
-    }
-  }, [salaryData, reset]);
-  // For now, we'll use a simpler approach - fetch employment details from the salary data
-  // The salary data has employment_reference but not the full employment object
-  // We'll need to handle this differently - for now let's use employment from the data
   const onSubmit = async (data: UpdateSalaryForm) => {
     setIsSubmitting(true);
     try {
@@ -112,27 +135,6 @@ export default function EditSalaryPage() {
   const handleCancel = () => {
     router.back();
   };
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <AlertCircle className="h-12 w-12 text-red-600 mb-4" />
-        <p className="text-red-600">
-          <SourceText source="Failed to load salary data" />
-        </p>
-        <Button variant="outline" onClick={handleCancel} className="mt-4">
-          <ArrowLeft className="me-2 h-4 w-4" />
-          <SourceText source="Back to List" leading trailing />
-        </Button>
-      </div>
-    );
-  }
   return (
     <div className="space-y-6">
       {/* Breadcrumbs */}
@@ -236,7 +238,7 @@ export default function EditSalaryPage() {
                 />
                 {errors.fixed_monthly_gross_salary && (
                   <p className="text-sm text-red-600">
-                    {errors.fixed_monthly_gross_salary.message}
+                    {sourceText(String(errors.fixed_monthly_gross_salary.message))}
                   </p>
                 )}
               </div>
@@ -253,7 +255,7 @@ export default function EditSalaryPage() {
                 />
                 {errors.effective_from && (
                   <p className="text-sm text-red-600">
-                    {errors.effective_from.message}
+                    {sourceText(String(errors.effective_from.message))}
                   </p>
                 )}
               </div>

@@ -19,6 +19,8 @@ export interface SearchInputProps
   resultCount?: number;
   className?: string;
   containerClassName?: string;
+  /** Delay before the parent query updates. The field itself stays live. */
+  debounceMs?: number;
 }
 
 export function SearchInput({
@@ -29,9 +31,34 @@ export function SearchInput({
   placeholder = "Search...",
   className,
   containerClassName,
+  debounceMs = 300,
   ...props
 }: SearchInputProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const [draft, setDraft] = React.useState(value);
+  const onChangeRef = React.useRef(onChange);
+  onChangeRef.current = onChange;
+
+  React.useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  React.useEffect(() => {
+    if (draft === value) return;
+    if (debounceMs <= 0) {
+      onChangeRef.current(draft);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      onChangeRef.current(draft);
+    }, debounceMs);
+    return () => window.clearTimeout(timer);
+  }, [draft, debounceMs, value]);
+
+  const commit = (next: string) => {
+    setDraft(next);
+    onChangeRef.current(next);
+  };
 
   return (
     <div className={cn("relative", containerClassName)}>
@@ -48,12 +75,19 @@ export function SearchInput({
       </span>
 
       <input
+        {...props}
         ref={inputRef}
         type="search"
-        value={value}
+        value={draft}
         placeholder={placeholder}
         aria-label={placeholder}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => {
+          if (draft !== value) onChangeRef.current(draft);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit(draft);
+        }}
         className={cn(
           "h-10 w-full rounded-lg border border-input bg-background",
           "ps-10 pe-10 text-sm",
@@ -64,16 +98,15 @@ export function SearchInput({
           "[&::-webkit-search-cancel-button]:appearance-none",
           className,
         )}
-        {...props}
       />
 
       {/* Clear button */}
-      {value.length > 0 && (
+      {draft.length > 0 && (
         <button
           type="button"
           aria-label={sourceText("Clear search")}
           onClick={() => {
-            onChange("");
+            commit("");
             inputRef.current?.focus();
           }}
           className={cn(
@@ -88,7 +121,7 @@ export function SearchInput({
       )}
 
       {/* Result count badge */}
-      {resultCount !== undefined && value.length > 0 && (
+      {resultCount !== undefined && draft.length > 0 && (
         <span
           className={cn(
             "absolute end-9 top-1/2 -translate-y-1/2",

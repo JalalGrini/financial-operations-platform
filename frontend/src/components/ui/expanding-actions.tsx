@@ -5,6 +5,7 @@ import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { MoreHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRole } from "@/hooks/useRole";
+import { sourceText } from "@/lib/i18n/source-catalog";
 
 export interface ActionItem {
   label: string;
@@ -87,7 +88,7 @@ export function ExpandingActions({
               className="flex h-8 w-8 items-center justify-center bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus:outline-none"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              title={triggerLabel ?? "Actions"}
+              title={sourceText(triggerLabel ?? "Actions")}
             >
               <motion.span layoutId="expanding-icon">
                 {triggerIcon ?? <MoreHorizontal size={16} />}
@@ -118,7 +119,7 @@ export function ExpandingActions({
                   whileTap={{ scale: 0.92 }}
                   onClick={() => { action.onClick(); setOpen(false); }}
                   disabled={action.disabled}
-                  title={action.label}
+                  title={sourceText(action.label)}
                   className={cn(
                     "flex h-7 items-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed",
                     variantClasses[action.variant ?? "default"],
@@ -127,7 +128,7 @@ export function ExpandingActions({
                   {action.icon && (
                     <span className="[&>svg]:h-3.5 [&>svg]:w-3.5">{action.icon}</span>
                   )}
-                  <span className="whitespace-nowrap">{action.label}</span>
+                  <span className="whitespace-nowrap">{sourceText(action.label)}</span>
                 </motion.button>
               ))}
               <motion.button
