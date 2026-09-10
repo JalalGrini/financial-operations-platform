@@ -1,21 +1,21 @@
 "use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
 /**
- * Parties hub — Clients, Suppliers, External Parties, Associated Persons and
- * their types (Cycle 29, M2). Reusable counterparty entities for future
- * Financial Documents.
+ * Parties hub — External Parties, Associated Persons and Person Types
+ * (Cycle 29, M2). Clients and Suppliers are sibling top-level modules.
  *
- * Backend: /api/v1/parties/<clients|suppliers|external-parties|
- * associated-persons|person-types>/ (uniform CRUD + archive/restore).
+ * Backend: /api/v1/parties/<external-parties|associated-persons|person-types>/
+ * (uniform CRUD + archive/restore).
  */
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { companyDisplayName, GROUP_COMPANY_VALUE } from "@/lib/company-scope";
-import { Building2, Landmark, Users2 } from "lucide-react";
+import { Landmark, Tag, Users2 } from "lucide-react";
 import { PageHero } from "@/components/ui/page-hero";
-import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
+import { StatCard } from "@/components/ui/stat-card";
 import { Breadcrumb } from "@/components/ui/page-components";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SourceText } from "@/components/i18n/SourceText";
 import {
   EntitySection,
@@ -773,14 +773,17 @@ function PersonTypesSection() {
     />
   );
 }
+function TabCount({ value }: { value: number }) {
+  return (
+    <Badge variant="secondary" className="ms-2 min-w-8 justify-center">
+      {value}
+    </Badge>
+  );
+}
+
 // ---------- Page ----------
 export default function PartiesPage() {
-  const suppliersQuery = useQuery({
-    queryKey: ["parties:suppliers", "summary"],
-    queryFn: () =>
-      partiesApi.suppliers.list({ page_size: 1, is_archived: false }),
-    staleTime: 1000 * 60 * 2,
-  });
+  const [section, setSection] = React.useState("external-parties");
   const externalPartiesQuery = useQuery({
     queryKey: ["parties:external-parties", "summary"],
     queryFn: () =>
@@ -816,15 +819,31 @@ export default function PartiesPage() {
         icon={Users2}
         eyebrow="Counterparty hub"
         title={sourceText("Parties")}
-        description={sourceText("Suppliers, external parties and associated persons — reusable counterparties for financial documents and treasury workflows.")}
+        description={sourceText(
+          "External parties, associated persons and person types — reusable counterparties for financial documents and treasury workflows.",
+        )}
       />
 
       <section className="space-y-4">
-        <div className={STAT_CARDS_GRID}>
-          <StatCard icon={Building2} label={sourceText("Suppliers")} value={suppliersQuery.data?.count ?? 0} tone="primary" />
-          <StatCard icon={Landmark} label={sourceText("External Parties")} value={externalPartiesQuery.data?.count ?? 0} tone="indigo" />
-          <StatCard icon={Users2} label={sourceText("Associated Persons")} value={associatedPeopleQuery.data?.count ?? 0} tone="emerald" />
-          <StatCard icon={Users2} label={sourceText("Person Types")} value={personTypesQuery.data?.count ?? 0} tone="amber" />
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+          <StatCard
+            icon={Landmark}
+            label={sourceText("External Parties")}
+            value={externalPartiesQuery.data?.count ?? 0}
+            tone="indigo"
+          />
+          <StatCard
+            icon={Users2}
+            label={sourceText("Associated Persons")}
+            value={associatedPeopleQuery.data?.count ?? 0}
+            tone="emerald"
+          />
+          <StatCard
+            icon={Tag}
+            label={sourceText("Person Types")}
+            value={personTypesQuery.data?.count ?? 0}
+            tone="amber"
+          />
         </div>
 
         <div className="rounded-2xl border border-primary/15 bg-primary/5 p-5">
@@ -838,7 +857,7 @@ export default function PartiesPage() {
           </h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             {sourceText(
-              "Use suppliers, external parties and associated persons as shared references across financial records, treasury and internal money-tracking workflows.",
+              "Use external parties, associated persons and person types as shared references across financial records, treasury and internal money-tracking workflows.",
             )}
           </p>
           <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
@@ -861,26 +880,33 @@ export default function PartiesPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-        <div className="space-y-3 min-w-0">
-          <h2 className="text-lg font-semibold">
-            <SourceText source="External Parties" />
-          </h2>
+      <Tabs value={section} onValueChange={setSection}>
+        <nav aria-label={sourceText("Parties")}>
+          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-2 rounded-2xl border border-border/70 bg-card/80 p-2">
+            <TabsTrigger value="external-parties">
+              <SourceText source="External Parties" />
+              <TabCount value={externalPartiesQuery.data?.count ?? 0} />
+            </TabsTrigger>
+            <TabsTrigger value="associated-persons">
+              <SourceText source="Associated Persons" leading trailing />
+              <TabCount value={associatedPeopleQuery.data?.count ?? 0} />
+            </TabsTrigger>
+            <TabsTrigger value="person-types">
+              <SourceText source="Person Types" />
+              <TabCount value={personTypesQuery.data?.count ?? 0} />
+            </TabsTrigger>
+          </TabsList>
+        </nav>
+        <TabsContent value="external-parties" className="pt-4">
           <ExternalPartiesSection />
-        </div>
-        <div className="space-y-3 min-w-0">
-          <h2 className="text-lg font-semibold">
-            <SourceText source="Associated Persons" leading trailing />
-          </h2>
+        </TabsContent>
+        <TabsContent value="associated-persons" className="pt-4">
           <AssociatedPersonsSection />
-        </div>
-        <div className="space-y-3 min-w-0 lg:col-span-2 xl:col-span-1">
-          <h2 className="text-lg font-semibold">
-            <SourceText source="Person Types" />
-          </h2>
+        </TabsContent>
+        <TabsContent value="person-types" className="pt-4">
           <PersonTypesSection />
-        </div>
-      </section>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

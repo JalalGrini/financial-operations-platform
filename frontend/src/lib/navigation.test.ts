@@ -64,6 +64,23 @@ describe("role-normalized navigation", () => {
     );
   });
 
+  it("orders Partners as Clients, then Suppliers, then Parties", () => {
+    const partners = NAVIGATION.filter((item) => item.section === "Partners");
+    expect(partners.map((item) => item.name)).toEqual([
+      "Clients",
+      "Suppliers",
+      "Parties",
+    ]);
+    expect(partners.map((item) => item.href)).toEqual([
+      "/clients",
+      "/suppliers",
+      "/parties",
+    ]);
+    for (const item of partners) {
+      expect(item.roles).toEqual(["Administrator", "Assistant", "Director"]);
+    }
+  });
+
   it("uses /reports for the registry", () => {
     expect(
       NAVIGATION.find((item) => item.name === "Reports Registry")?.href,
