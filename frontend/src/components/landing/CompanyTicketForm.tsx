@@ -455,11 +455,11 @@ export function CompanyTicketForm({
 
         {/* Sujet */}
         <div className={fw}>
-          <label htmlFor={id("subject")} className={lc}>
+          <label htmlFor={id("subject_key")} className={lc}>
             <SourceText source="Email subject" />
           </label>
           <select
-            id={id("subject")}
+            id={id("subject_key")}
             name="subject_key"
             value={values.subject_key}
             onChange={(e) => setField("subject_key", e.target.value)}
@@ -477,7 +477,7 @@ export function CompanyTicketForm({
             ))}
           </select>
           {errors.subject_key && (
-            <p id={`${id("subject")}-error`} className={ec}>
+            <p id={`${id("subject_key")}-error`} className={ec}>
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <SourceText source={errors.subject_key} />
             </p>
