@@ -2,6 +2,8 @@
 
 import { Check, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDate } from "@/lib/experience";
+import { sourceText } from "@/lib/i18n/source-catalog";
 import type { Deadline, DeadlineOccurrence } from "./types";
 
 /** How many period ticks to draw. A year of monthly fits comfortably inline. */
@@ -15,21 +17,31 @@ const PERIOD_NOUN: Record<Deadline["period_type"], string> = {
   custom: "cycle",
 };
 
-function formatDate(value: string): string {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
+function periodNoun(periodType: Deadline["period_type"], count: number): string {
+  const one = PERIOD_NOUN[periodType] ?? "period";
+  const key = count === 1 ? one : `${one}s`;
+  return sourceText(key);
+}
+
+function completedCountLabel(total: number, periodType: Deadline["period_type"]): string {
+  const one = PERIOD_NOUN[periodType] ?? "period";
+  const key =
+    total === 1 ? `{count} ${one} completed` : `{count} ${one}s completed`;
+  return sourceText(key).replace("{count}", String(total));
 }
 
 function PeriodTick({ occurrence }: { occurrence: DeadlineOccurrence }) {
   const done = occurrence.is_completed;
+  const due = formatDate(occurrence.due_at);
   return (
     <span
       // The label carries the period, its due date and its state, so the strip
       // is readable without colour alone (the tick/dash glyph differs too).
-      title={`${occurrence.period_label} · due ${formatDate(occurrence.due_at)} · ${
-        done ? "completed" : "not completed"
-      }`}
-      aria-label={`${occurrence.period_label}: ${done ? "completed" : "not completed"}`}
+      title={sourceText("{period} · due {date} · {state}")
+        .replace("{period}", occurrence.period_label)
+        .replace("{date}", due)
+        .replace("{state}", done ? sourceText("Completed") : sourceText("not completed"))}
+      aria-label={`${occurrence.period_label}: ${done ? sourceText("Completed") : sourceText("not completed")}`}
       className={cn(
         "inline-flex h-6 min-w-6 items-center justify-center gap-0.5 rounded-md border px-1 text-[10px] font-semibold",
         done
@@ -63,7 +75,7 @@ export function DeadlinePeriodTracker({
 }) {
   if (!deadline.is_recurring) return null;
 
-  const noun = PERIOD_NOUN[deadline.period_type] ?? "period";
+  const noun = periodNoun(deadline.period_type, 1);
   // The API sends newest first; render oldest-to-newest so the strip reads
   // left to right like a timeline.
   const ticks = [...deadline.occurrences].slice(0, VISIBLE_PERIODS).reverse();
@@ -81,17 +93,20 @@ export function DeadlinePeriodTracker({
           )}
         >
           {deadline.current_period_label}
-          {deadline.is_current_period_completed ? " done" : " pending"}
+          {deadline.is_current_period_completed
+            ? ` ${sourceText("done")}`
+            : ` ${sourceText("pending")}`}
         </span>
 
         <span className="text-muted-foreground">
-          {total} {noun}
-          {total === 1 ? "" : "s"} completed
+          {completedCountLabel(total, deadline.period_type)}
         </span>
 
         {deadline.is_current_period_completed && deadline.next_due_at && (
           <span className="text-muted-foreground">
-            · next {noun} due {formatDate(deadline.next_due_at)}
+            {sourceText("· next {period} due {date}")
+              .replace("{period}", noun)
+              .replace("{date}", formatDate(deadline.next_due_at))}
           </span>
         )}
       </div>

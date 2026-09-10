@@ -43,6 +43,22 @@ import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 
 
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { formatDate } from "@/lib/experience";
+
+function deadlinePriorityLabel(priority: string) {
+  switch (priority) {
+    case "low":
+      return sourceText("Low");
+    case "medium":
+      return sourceText("Medium");
+    case "high":
+      return sourceText("High");
+    case "critical":
+      return sourceText("Critical");
+    default:
+      return sourceText(priority);
+  }
+}
 // ── Status badge colour map ─────────────────────────────────────────────────
 function deadlineStatusLabel(status: string) {
   switch (status) {
@@ -158,7 +174,7 @@ export default function DeadlinesPage() {
       {/* ── Hero ── */}
       <PageHero
         icon={CalendarClock}
-        eyebrow="Persistent operations planner"
+        eyebrow={sourceText("Persistent operations planner")}
         title={sourceText("Deadlines that survive every session.")}
         description={sourceText("Create, search, complete and reopen checkpoints stored through the real Django API. Every entry persists in PostgreSQL — refreshing the page changes nothing.")}
         action={<div className="flex flex-wrap items-center gap-2">
@@ -325,7 +341,7 @@ export default function DeadlinesPage() {
                         </span>
                       </TableCell>
                       <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">
-                        {new Date(row.due_at).toLocaleString()}
+                        {formatDate(row.due_at)}
                       </TableCell>
                       <TableCell>
                         <div className="flex shrink-0 justify-end gap-2">
@@ -386,16 +402,16 @@ export default function DeadlinesPage() {
                             PRIORITY_DOT[row.priority] ?? "bg-slate-400",
                           )}
                         />
-                        {row.priority}
+                        {deadlinePriorityLabel(row.priority)}
                       </span>
                     </div>
 
                     <h3 className="font-semibold text-foreground">{row.title}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {row.company_name || "All companies"}
+                      {row.company_name || sourceText("All companies")}
                       {row.owner_name ? ` · ${row.owner_name}` : ""}
                       {" · "}
-                      {new Date(row.due_at).toLocaleString()}
+                      {formatDate(row.due_at)}
                     </p>
 
                     {/* Per-period history. `due_at` above stays on the period

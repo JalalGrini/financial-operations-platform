@@ -206,3 +206,32 @@ class RecurringPeriodTests(APITestCase):
         self._complete(deadline)
         body = self._complete(deadline)
         self.assertEqual(body["completed_periods_count"], 1)
+
+    def test_active_list_keeps_completed_future_period(self):
+        """Completing before due_at must remain listed as completed.
+
+        The default UI tab sends ``active=true``. That used to mean
+        ``status=upcoming``, which dropped the row the moment it was marked
+        done and made it look as if the period had already rolled.
+        """
+        due = timezone.now() + timedelta(days=10)
+        deadline = self._make("monthly", due)
+        self._complete(deadline)
+
+        active = self.client.get(
+            reverse("deadlines:deadline-list"), {"active": "true"}
+        )
+        self.assertEqual(active.status_code, 200)
+        active_row = next(
+            r for r in active.data["results"] if r["id"] == str(deadline.id)
+        )
+        self.assertEqual(active_row["status"], "completed")
+        self.assertEqual(active_row["computed_status"], "completed")
+        self.assertEqual(active_row["due_at"][:10], due.date().isoformat())
+
+        completed = self.client.get(
+            reverse("deadlines:deadline-list"), {"status": "completed"}
+        )
+        self.assertEqual(completed.status_code, 200)
+        ids = [r["id"] for r in completed.data["results"]]
+        self.assertIn(str(deadline.id), ids)

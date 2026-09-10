@@ -360,6 +360,8 @@ export function formatDate(
   try {
     // Date-only stays DD/MM/YYYY via fr-MA. Style-based calls keep the locale.
     const useStyle = Boolean(options?.dateStyle || options?.timeStyle);
+    // Numeric dates are always dd/mm/yyyy (fr-MA). Style-based calls keep the
+    // locale tag, which is still en-GB / fr-MA / ar-MA — never en-US.
     return new Intl.DateTimeFormat(useStyle ? tag : "fr-MA", formatOptions).format(
       date,
     );

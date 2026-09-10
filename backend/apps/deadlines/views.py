@@ -63,7 +63,11 @@ class DeadlineViewSet(
    Prefetch("occurrences",queryset=DeadlineOccurrence.objects.select_related("completed_by"))
   )
   if self.request.query_params.get("scope")=="mine":q=q.filter(owner=u)
-  if self.request.query_params.get("active") in("1","true","yes"):q=q.filter(status="upcoming")
+  # Active = still in the queue: upcoming plus current-period completed.
+  # Filtering to status=upcoming hid recurring rows marked complete before
+  # their due date, so they vanished from the default tab and from the
+  # "Done this period" tile instead of sitting in Completed until due_at.
+  if self.request.query_params.get("active") in("1","true","yes"):q=q.exclude(status="cancelled")
   q=apply_date_range(q,self.request,"due_at")
   return q.distinct()
  def list(self,request,*args,**kwargs):

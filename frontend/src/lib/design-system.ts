@@ -380,7 +380,7 @@ export const formatDate = (
         ...(options.timeStyle ? { timeStyle: options.timeStyle } : {}),
       });
     }
-    return d.toLocaleDateString(localeTag(), {
+    return d.toLocaleDateString("fr-MA", {
       year: "numeric",
       month: format === "short" ? "2-digit" : "long",
       day: "2-digit",
