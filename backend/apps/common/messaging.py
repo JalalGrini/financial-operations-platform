@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from django.conf import settings
-from django.core.mail import send_mail
+
+from apps.common.mailer import MailerError, send_platform_email
 
 
 class MessagingError(Exception):
@@ -34,13 +35,10 @@ def send_ticket_reply(
     if channel == "email":
         if not email:
             raise MessagingError("An email address is required.")
-        send_mail(
-            subject=subject or "EFOP",
-            message=body,
-            from_email=None,
-            recipient_list=[email],
-            fail_silently=False,
-        )
+        try:
+            send_platform_email(to=email, subject=subject or "3.R.B Extreme", body=body)
+        except MailerError as exc:
+            raise MessagingError(str(exc)) from exc
         return
 
     if channel not in {"sms", "whatsapp"}:

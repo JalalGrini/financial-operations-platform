@@ -23,6 +23,11 @@ import {
 import { Input, Textarea } from "@/components/ui/input";
 import { FOCUS_RING, RADIUS, TYPE } from "./design-system";
 import { MagneticButton } from "./interactive";
+import {
+  CLIENT_SUBJECT_KEYS,
+  CLIENT_SUBJECT_SOURCE,
+  uiLocale,
+} from "@/lib/ticket-mail";
 
 /* ------------------------------------------------------------------ types */
 
@@ -53,7 +58,9 @@ const schema = z.object({
     .min(6, "Please enter a reachable phone number.")
     .max(32, "That phone number is too long.")
     .regex(/^[+()\d\s.-]+$/, "Use digits, spaces, +, - or brackets only."),
-  subject: z.string().trim().min(3, "Please enter a subject.").max(160, "That subject is too long."),
+  subject_key: z.enum(CLIENT_SUBJECT_KEYS, {
+    errorMap: () => ({ message: "Please choose a subject." }),
+  }),
   message: z
     .string()
     .trim()
@@ -68,7 +75,7 @@ const EMPTY = {
   email: "",
   phone: "",
   contact: "",
-  subject: "",
+  subject_key: "",
   message: "",
 };
 
@@ -85,7 +92,6 @@ async function submitCompanyTicket(
   website = "",
 ): Promise<number | null> {
   const composedMessage = [
-    values.subject ? `Sujet: ${values.subject}` : "",
     values.contact ? `Contact: ${values.contact}` : "",
     values.message,
   ]
@@ -97,6 +103,8 @@ async function submitCompanyTicket(
   body.append("email", values.email);
   body.append("phone", values.phone);
   body.append("company", company);
+  body.append("subject_key", values.subject_key);
+  body.append("locale", uiLocale());
   body.append("message", composedMessage);
   body.append("website", website);
   files.forEach((file, index) => {
@@ -448,21 +456,30 @@ export function CompanyTicketForm({
         {/* Sujet */}
         <div className={fw}>
           <label htmlFor={id("subject")} className={lc}>
-            <SourceText source="Subject" />
+            <SourceText source="Email subject" />
           </label>
-          <Input
+          <select
             id={id("subject")}
-            name="subject"
-            value={values.subject}
-            onChange={(e) => setField("subject", e.target.value)}
-            aria-invalid={Boolean(errors.subject)}
-            aria-describedby={err("subject")}
-            placeholder={sourceText("Subject of your request")}
-          />
-          {errors.subject && (
+            name="subject_key"
+            value={values.subject_key}
+            onChange={(e) => setField("subject_key", e.target.value)}
+            aria-invalid={Boolean(errors.subject_key)}
+            aria-describedby={err("subject_key")}
+            className={`h-11 w-full appearance-none border border-[hsl(var(--primary)/0.16)] bg-background px-3 text-[0.9375rem] text-foreground ${RADIUS.control} ${FOCUS_RING}`}
+          >
+            <option value="" disabled>
+              {sourceText("Choose an email subject")}
+            </option>
+            {CLIENT_SUBJECT_KEYS.map((key) => (
+              <option key={key} value={key}>
+                {sourceText(CLIENT_SUBJECT_SOURCE[key])}
+              </option>
+            ))}
+          </select>
+          {errors.subject_key && (
             <p id={`${id("subject")}-error`} className={ec}>
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <SourceText source={errors.subject} />
+              <SourceText source={errors.subject_key} />
             </p>
           )}
         </div>

@@ -62,6 +62,7 @@ import {
 } from "@/components/ui/table";
 import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
+import { CLIENT_SUBJECT_SOURCE } from "@/lib/ticket-mail";
 import { useRole } from "@/hooks/useRole";
 import { apiClient } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -79,6 +80,8 @@ interface ClientTicket {
   phone: string;
   company: string;
   company_label: string;
+  subject_key?: string;
+  locale?: string;
   message: string;
   status: ClientTicketStatus;
   is_read: boolean;
@@ -205,6 +208,17 @@ function TicketDialog({
           </div>
 
           <div>
+            {ticket.subject_key ? (
+              <p className="mb-2 text-sm font-medium">
+                <SourceText source="Email subject" />
+                {": "}
+                {sourceText(
+                  CLIENT_SUBJECT_SOURCE[
+                    ticket.subject_key as keyof typeof CLIENT_SUBJECT_SOURCE
+                  ] ?? ticket.subject_key,
+                )}
+              </p>
+            ) : null}
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
               <SourceText source="Message from the client" />
             </Label>

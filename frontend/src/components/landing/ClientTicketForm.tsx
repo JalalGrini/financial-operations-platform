@@ -35,6 +35,11 @@ import {
 import { Input, Textarea } from "@/components/ui/input";
 import { FOCUS_RING, RADIUS, TYPE } from "./design-system";
 import { MagneticButton } from "./interactive";
+import {
+  CLIENT_SUBJECT_KEYS,
+  CLIENT_SUBJECT_SOURCE,
+  uiLocale,
+} from "@/lib/ticket-mail";
 
 /** The three companies of the group, plus an escape hatch. */
 /**
@@ -86,11 +91,9 @@ const schema = z.object({
   company: z.enum(COMPANIES, {
     errorMap: () => ({ message: "Please choose the company concerned." }),
   }),
-  subject: z
-    .string()
-    .trim()
-    .min(3, "Please enter a subject.")
-    .max(160, "That subject is too long."),
+  subject_key: z.enum(CLIENT_SUBJECT_KEYS, {
+    errorMap: () => ({ message: "Please choose a subject." }),
+  }),
   message: z
     .string()
     .trim()
@@ -107,7 +110,7 @@ const EMPTY: Record<FieldName, string> = {
   email: "",
   phone: "",
   company: "",
-  subject: "",
+  subject_key: "",
   message: "",
 };
 
@@ -124,18 +127,15 @@ async function submitClientTicket(
   files: File[],
   website = "",
 ): Promise<number | null> {
-  const composedMessage = [
-    values.subject ? `Sujet: ${values.subject}` : "",
-    values.message,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  const composedMessage = [values.message].filter(Boolean).join("\n\n");
 
   const body = new FormData();
   body.append("name", values.name);
   body.append("email", values.email);
   body.append("phone", values.phone);
   body.append("company", values.company);
+  body.append("subject_key", values.subject_key);
+  body.append("locale", uiLocale());
   body.append("message", composedMessage);
   body.append("website", website);
   files.forEach((file, index) => {
@@ -486,21 +486,30 @@ export function ClientTicketForm() {
 
         <div className={`${fieldWrap} sm:col-span-2`}>
           <label htmlFor="ticket-subject" className={labelClass}>
-            <SourceText source="Subject" />
+            <SourceText source="Email subject" />
           </label>
-          <Input
+          <select
             id="ticket-subject"
-            name="subject"
-            value={values.subject}
-            onChange={(event) => setField("subject", event.target.value)}
-            aria-invalid={Boolean(errors.subject)}
-            aria-describedby={describedBy("subject")}
-            placeholder={sourceText("Subject of your request")}
-          />
-          {errors.subject ? (
+            name="subject_key"
+            value={values.subject_key}
+            onChange={(event) => setField("subject_key", event.target.value)}
+            aria-invalid={Boolean(errors.subject_key)}
+            aria-describedby={describedBy("subject_key")}
+            className={`h-11 w-full appearance-none border border-[hsl(var(--primary)/0.16)] bg-background px-3 text-[0.9375rem] text-foreground transition-colors duration-150 hover:border-[hsl(var(--brand-blue-500)/0.45)] ${RADIUS.control} ${FOCUS_RING}`}
+          >
+            <option value="" disabled>
+              {sourceText("Choose an email subject")}
+            </option>
+            {CLIENT_SUBJECT_KEYS.map((key) => (
+              <option key={key} value={key}>
+                {sourceText(CLIENT_SUBJECT_SOURCE[key])}
+              </option>
+            ))}
+          </select>
+          {errors.subject_key ? (
             <p id="ticket-subject-error" className={errorClass}>
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              <SourceText source={errors.subject} />
+              <SourceText source={errors.subject_key} />
             </p>
           ) : null}
         </div>

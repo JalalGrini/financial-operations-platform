@@ -60,6 +60,7 @@ const AUTH_ENDPOINTS = [
   "/auth/logout/",
   "/auth/csrf/",
   "/auth/me/",
+  "/auth/password-reset/",
 ];
 
 function isPublicAuthLocation(pathname: string): boolean {

@@ -668,3 +668,25 @@ class FailedLoginAttempt(ArchiveModel):
                 name="unique_active_failed_login_per_email_ip",
             ),
         ]
+
+
+class PasswordResetCode(models.Model):
+    """Short-lived 6-digit reset code. The code itself is stored hashed."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="password_reset_codes",
+    )
+    code_hash = models.CharField(max_length=128)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "password_reset_codes"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "used_at"], name="password_re_user_id_used_idx"),
+        ]

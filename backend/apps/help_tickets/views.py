@@ -44,7 +44,16 @@ class HelpTicketCreateView(APIView):
             return Response(HONEYPOT_OK, status=status.HTTP_200_OK)
         serializer = HelpTicketCreateSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            ticket = serializer.save()
+            from apps.common.email_copy import help_subject, ticket_received_body
+            from apps.common.mailer import send_platform_email_quietly
+
+            subject = help_subject(ticket.subject_key, ticket.locale)
+            send_platform_email_quietly(
+                to=ticket.email,
+                subject=subject,
+                body=ticket_received_body(ticket.name, subject, ticket.locale),
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -218,6 +227,16 @@ class ClientTicketCreateView(generics.CreateAPIView):
                 )
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
         self.perform_create(serializer)
+        ticket = serializer.instance
+        from apps.common.email_copy import client_subject, ticket_received_body
+        from apps.common.mailer import send_platform_email_quietly
+
+        subject = client_subject(ticket.subject_key, ticket.locale)
+        send_platform_email_quietly(
+            to=ticket.email,
+            subject=subject,
+            body=ticket_received_body(ticket.name, subject, ticket.locale),
+        )
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -309,10 +328,12 @@ class ClientTicketReplyView(APIView):
         ticket.save()
 
         channel = data.get("channel") or "email"
+        from apps.common.email_copy import client_subject
+        reply_subject = client_subject(ticket.subject_key, ticket.locale)
         try:
             send_ticket_reply(
                 channel,
-                subject="EFOP — Reply to your enquiry",
+                subject=reply_subject,
                 body=data["reply_body"],
                 email=ticket.email,
                 phone=ticket.phone or None,

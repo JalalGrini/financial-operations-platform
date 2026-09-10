@@ -4,6 +4,11 @@ URL configuration for authentication endpoints.
 """
 from django.urls import path
 
+from .password_reset import (
+    PasswordResetConfirmView,
+    PasswordResetRequestView,
+    PasswordResetVerifyView,
+)
 from .views import (
     ChangePasswordView,
     CSRFView,
@@ -22,4 +27,19 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("me/", MeView.as_view(), name="me"),
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
+    path(
+        "password-reset/request/",
+        PasswordResetRequestView.as_view(),
+        name="password-reset-request",
+    ),
+    path(
+        "password-reset/verify/",
+        PasswordResetVerifyView.as_view(),
+        name="password-reset-verify",
+    ),
+    path(
+        "password-reset/confirm/",
+        PasswordResetConfirmView.as_view(),
+        name="password-reset-confirm",
+    ),
 ]

@@ -28,10 +28,12 @@ import {
   ReplyChannelToggle,
   type ReplyChannel,
 } from "@/components/ui/reply-channel-toggle";
+import { HELP_SUBJECT_SOURCE } from "@/lib/ticket-mail";
 
 interface Ticket {
   id: number;
   reason: string;
+  subject_key?: string;
   name: string;
   email: string;
   message: string;
@@ -46,25 +48,38 @@ interface Ticket {
 }
 
 const REASON_LABELS: Record<string, string> = {
-  forgot_password: "Forgot Password",
-  login_issue:     "Login Problem",
-  access_denied:   "Access Denied",
-  other:           "Other",
+  forgot_password: "Forgot password",
+  cannot_sign_in: "I cannot sign in",
+  login_issue: "Login problem",
+  access_denied: "Access denied",
+  page_not_loading: "A page does not load",
+  page_blocked: "A page is blocked or access is denied",
+  data_not_saving: "Data is not saving",
+  display_issue: "Display or language issue",
+  other_issue: "Other issue",
+  other: "Other",
 };
+
+function ticketIssueLabel(ticket: Ticket) {
+  if (ticket.subject_key && ticket.subject_key in HELP_SUBJECT_SOURCE) {
+    return HELP_SUBJECT_SOURCE[ticket.subject_key as keyof typeof HELP_SUBJECT_SOURCE];
+  }
+  return REASON_LABELS[ticket.reason] ?? ticket.reason;
+}
 
 const STATUS_COLORS: Record<string, string> = {
   open:   "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
   closed: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
 };
 
-function buildTemplate(reason: string, ticket: Ticket, extra: Record<string, string> = {}) {
+function buildTemplate(reason: string, ticket: Ticket) {
   const base   = `Dear ${ticket.name},\n\nThank you for contacting EFOP Support.\n\n`;
   const footer = `\n\nIf you have any further questions, please do not hesitate to reach out.\n\nBest regards,\nEFOP Support Team`;
   switch (reason) {
     case "forgot_password":
       return {
-        subject: "EFOP \u2014 Your Password Reset",
-        body: base + `Your password has been reset.\n\nYour new temporary password is: ${extra.newPassword ?? "[password]"}\n\nPlease log in and change it immediately at your first login.` + footer,
+        subject: sourceText("Reply to your ticket on 3.R.B Extreme"),
+        body: base + sourceText("Password resets are now sent as a 6-digit code from Forgot password on the sign-in page.") + footer,
       };
     case "login_issue":
       return {
@@ -86,17 +101,11 @@ function buildTemplate(reason: string, ticket: Ticket, extra: Record<string, str
 
 function ReplyDialog({ ticket, onClose }: { ticket: Ticket; onClose: () => void }) {
   const queryClient = useQueryClient();
-  const tmpl0 = buildTemplate(ticket.reason, ticket, { newPassword: "" });
-  const [newPassword, setNewPassword] = useState("");
+  const tmpl0 = buildTemplate(ticket.reason, ticket);
   const [subject, setSubject] = useState(tmpl0.subject);
   const [body, setBody] = useState(tmpl0.body);
   const [channel, setChannel] = useState<ReplyChannel>("email");
   const [phone, setPhone] = useState("");
-
-  const onPasswordChange = (pw: string) => {
-    setNewPassword(pw);
-    setBody(buildTemplate(ticket.reason, ticket, { newPassword: pw }).body);
-  };
 
   const replyMutation = useMutation({
     mutationFn: () =>
@@ -139,14 +148,6 @@ function ReplyDialog({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder={sourceText("+212 6 XX XX XX XX")}
               />
-            </div>
-          )}
-          {ticket.reason === "forgot_password" && (
-            <div className="space-y-1">
-              <Label><SourceText source="New Password" /></Label>
-              <Input type="text" placeholder={sourceText("Enter the new password...")} value={newPassword}
-                onChange={(e) => onPasswordChange(e.target.value)} className="font-mono" />
-              <p className="text-xs text-muted-foreground">{sourceText("This will be inserted into the email automatically.")}</p>
             </div>
           )}
           <div className="space-y-1">
@@ -216,7 +217,7 @@ export default function AdminTicketsPage() {
     return (
       t.name.toLowerCase().includes(q) ||
       t.email.toLowerCase().includes(q) ||
-      (REASON_LABELS[t.reason] ?? t.reason).toLowerCase().includes(q)
+      ticketIssueLabel(t).toLowerCase().includes(q)
     );
   });
 
@@ -316,7 +317,7 @@ export default function AdminTicketsPage() {
                         {t.status === "open" ? <SourceText source="Open" /> : <SourceText source="Closed" />}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">{REASON_LABELS[t.reason] ?? t.reason}</p>
+                    <p className="text-xs text-muted-foreground">{sourceText(ticketIssueLabel(t))}</p>
                     <p className="text-xs text-muted-foreground">{t.email}</p>
                     <div className="mt-auto flex flex-wrap items-center justify-end gap-1 pt-1">
                       {t.status === "open" && (
@@ -356,7 +357,7 @@ export default function AdminTicketsPage() {
                     {tickets.map((t) => (
                       <TableRow className="row-hover group" key={t.id}>
                         <TableCell className="font-medium text-sm">
-                          {REASON_LABELS[t.reason] ?? t.reason}
+                          {sourceText(ticketIssueLabel(t))}
                         </TableCell>
                         <TableCell className="text-sm">{t.name}</TableCell>
                         <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{t.email}</TableCell>

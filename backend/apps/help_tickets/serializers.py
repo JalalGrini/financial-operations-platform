@@ -8,14 +8,25 @@ from apps.common.security import (
 )
 
 from .models import ClientTicket, ClientTicketAttachment, HelpTicket
+from apps.common.email_copy import CLIENT_SUBJECTS, HELP_SUBJECTS, normalize_locale
 
 
 class HelpTicketCreateSerializer(serializers.ModelSerializer):
     website = serializers.CharField(required=False, allow_blank=True, write_only=True, default="")
+    subject_key = serializers.ChoiceField(choices=list(HELP_SUBJECTS.keys()))
+    reason = serializers.CharField(required=False, allow_blank=True, default="")
 
     class Meta:
         model = HelpTicket
-        fields = ["reason", "name", "email", "message", "website"]
+        fields = ["reason", "name", "email", "message", "website", "subject_key", "locale"]
+
+    def validate(self, attrs):
+        key = attrs.get("subject_key") or ""
+        allowed = dict(HelpTicket.REASON_CHOICES)
+        if attrs.get("reason") not in allowed:
+            attrs["reason"] = key if key in allowed else "other"
+        attrs["locale"] = normalize_locale(attrs.get("locale"))
+        return attrs
 
     def create(self, validated_data):
         validated_data.pop("website", None)
@@ -32,7 +43,7 @@ class HelpTicketSerializer(serializers.ModelSerializer):
             'id', 'reason', 'name', 'email', 'message', 'status',
             'created_at', 'updated_at', 'resolved_by', 'resolved_by_name',
             'reply_subject', 'reply_body', 'replied_at', 'reply_sent',
-            'replied_by', 'replied_by_name',
+            'replied_by', 'replied_by_name', 'subject_key', 'locale',
         ]
         read_only_fields = ['created_at', 'updated_at']
 
@@ -90,6 +101,8 @@ class ClientTicketCreateSerializer(serializers.ModelSerializer):
             "email",
             "phone",
             "company",
+            "subject_key",
+            "locale",
             "message",
             "file",
             "files",
@@ -109,13 +122,17 @@ class ClientTicketCreateSerializer(serializers.ModelSerializer):
             attrs["_uploads"] = validate_ticket_uploads(uploads)
         except DjangoValidationError as exc:
             raise serializers.ValidationError({"detail": TICKET_FILE_ERROR}) from exc
+        subject_key = (attrs.get("subject_key") or "").strip()
+        if subject_key not in CLIENT_SUBJECTS:
+            raise serializers.ValidationError({"subject_key": "Please choose a subject."})
+        attrs["subject_key"] = subject_key
         return attrs
 
     def create(self, validated_data):
         uploads = validated_data.pop("_uploads", [])
         validated_data.pop("files", None)
         validated_data.pop("file", None)
-        validated_data.pop("website", None)
+        validated_data["locale"] = normalize_locale(validated_data.get("locale"))
         ticket = ClientTicket.objects.create(**validated_data)
         for upload in uploads:
             mime = getattr(upload, "_detected_mime", "") or getattr(upload, "content_type", "") or ""
@@ -141,6 +158,7 @@ class ClientTicketSerializer(serializers.ModelSerializer):
         model = ClientTicket
         fields = [
             "id", "name", "email", "phone", "company", "company_label",
+            "subject_key", "locale",
             "message", "status", "is_read", "created_at", "updated_at",
             "reply_body", "replied_at", "replied_by", "replied_by_name",
             "resolved_at", "resolved_by", "resolved_by_name", "attachments",
@@ -148,7 +166,7 @@ class ClientTicketSerializer(serializers.ModelSerializer):
         # Visitor-supplied content is immutable for staff; they reply, they do
         # not rewrite the client's words.
         read_only_fields = [
-            "name", "email", "phone", "company", "message",
+            "name", "email", "phone", "company", "subject_key", "locale", "message",
             "created_at", "updated_at", "replied_at", "replied_by",
             "resolved_at", "resolved_by", "attachments",
         ]

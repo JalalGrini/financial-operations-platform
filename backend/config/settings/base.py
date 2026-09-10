@@ -404,6 +404,8 @@ EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="3RB Extreme <noreply@efop.local>")
+EMAIL_API_URL = env("EMAIL_API_URL", default="")
+EMAIL_API_KEY = env("EMAIL_API_KEY", default="")
 
 # Twilio (SMS + WhatsApp) — placeholders until deployment
 TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")
@@ -526,4 +528,5 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
     "health_db": env("THROTTLE_HEALTH_DB", default="30/min"),
     # Anonymous public intake (help tickets / client tickets).
     "anon": env("THROTTLE_ANON", default="10/hour"),
+    "password_reset": env("THROTTLE_PASSWORD_RESET", default="5/min"),
 }

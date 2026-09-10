@@ -179,6 +179,8 @@ EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)  # noqa: F405
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")  # noqa: F405
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")  # noqa: F405
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@example.com")  # noqa: F405
+EMAIL_API_URL = env("EMAIL_API_URL", default="")  # noqa: F405
+EMAIL_API_KEY = env("EMAIL_API_KEY", default="")  # noqa: F405
 
 # Static files: nginx in a VM deploy; WhiteNoise on Railway (no nginx).
 # STATIC_ROOT is already set in base.py

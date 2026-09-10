@@ -18,8 +18,14 @@ def client_ticket_attachment_upload_to(instance, filename):
 class HelpTicket(models.Model):
     REASON_CHOICES = [
         ('forgot_password', 'Forgot password'),
+        ('cannot_sign_in', 'Cannot sign in'),
         ('login_issue', 'Login problem'),
         ('access_denied', 'Access denied'),
+        ('page_not_loading', 'A page does not load'),
+        ('page_blocked', 'A page is blocked or access is denied'),
+        ('data_not_saving', 'Data is not saving'),
+        ('display_issue', 'Display or language issue'),
+        ('other_issue', 'Other issue'),
         ('other', 'Other'),
     ]
     STATUS_CHOICES = [
@@ -31,6 +37,8 @@ class HelpTicket(models.Model):
     name = models.CharField(max_length=200)
     email = models.EmailField()
     message = models.TextField(blank=True)
+    subject_key = models.CharField(max_length=40, blank=True, default="")
+    locale = models.CharField(max_length=8, blank=True, default="fr")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -84,6 +92,8 @@ class ClientTicket(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=40)
     company = models.CharField(max_length=32, choices=COMPANY_CHOICES)
+    subject_key = models.CharField(max_length=40, blank=True, default="")
+    locale = models.CharField(max_length=8, blank=True, default="fr")
     message = models.TextField()
 
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default="new")

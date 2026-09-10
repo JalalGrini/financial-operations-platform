@@ -57,9 +57,15 @@ import { Input } from "@/components/ui/input";
 import { ThemeSwitch } from "@/components/ui/theme-switch-button";
 import { GradientSpinner } from "@/components/ui/gradient-spinner";
 import { apiClient } from "@/lib/api";
+import { offerBrowserPasswordSave } from "@/lib/browser-password";
 import { useExperience } from "@/lib/experience";
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { cn } from "@/lib/utils";
+import {
+  HELP_SUBJECT_KEYS,
+  HELP_SUBJECT_SOURCE,
+  uiLocale,
+} from "@/lib/ticket-mail";
 
 /* ─────────────────────── validation ─────────────────────── */
 
@@ -253,7 +259,7 @@ function FloatInput({
         </label>
         <input
           id={id}
-          name={id}
+          name={id === "email" ? "username" : id}
           type={type}
           autoComplete={autoComplete}
           value={value}
@@ -295,7 +301,7 @@ export function LoginPage() {
 
   /* help dialog */
   const [helpOpen, setHelpOpen] = useState(false);
-  const [helpReason, setHelpReason] = useState("");
+  const [helpSubject, setHelpSubject] = useState("");
   const [helpName, setHelpName] = useState("");
   const [helpEmail, setHelpEmail] = useState("");
   const [helpMsg, setHelpMsg] = useState("");
@@ -347,6 +353,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       await apiClient.login(r.data.email, r.data.password, r.data.rememberMe);
+      await offerBrowserPasswordSave(r.data.email, r.data.password);
       window.location.href = safeNext();
     } catch (ex: any) {
       setError(
@@ -361,7 +368,7 @@ export function LoginPage() {
   /* help submit */
   const handleHelp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!helpReason || !helpName || !helpEmail) return;
+    if (!helpSubject || !helpName || !helpEmail) return;
     setHelpSending(true);
     setHelpErr("");
     const website =
@@ -372,7 +379,9 @@ export function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          reason: helpReason,
+          reason: helpSubject,
+          subject_key: helpSubject,
+          locale: uiLocale(),
           name: helpName,
           email: helpEmail,
           message: helpMsg,
@@ -389,7 +398,7 @@ export function LoginPage() {
 
   const resetHelp = () => {
     setHelpOpen(false);
-    setHelpReason("");
+    setHelpSubject("");
     setHelpName("");
     setHelpEmail("");
     setHelpMsg("");
@@ -461,14 +470,14 @@ export function LoginPage() {
               </p>
             </motion.div>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate>
+            <form method="post" action="/login" autoComplete="on" onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate>
               {/* email */}
               <motion.div variants={row}>
                 <FloatInput
                   id="email"
                   label={sourceText("Email")}
                   type="email"
-                  autoComplete="email"
+                  autoComplete="username"
                   value={email}
                   onChange={setEmail}
                 />
@@ -795,30 +804,19 @@ export function LoginPage() {
                 aria-hidden="true"
               />
               <div className="space-y-1.5">
-                <Label htmlFor="hr">
-                  <SourceText source="Reason *" />
+                <Label htmlFor="hs">
+                  <SourceText source="Email subject" />
                 </Label>
-                <Select
-                  value={helpReason}
-                  onValueChange={setHelpReason}
-                  required
-                >
-                  <SelectTrigger id="hr">
-                    <SelectValue placeholder={sourceText("Select a reason")} />
+                <Select value={helpSubject} onValueChange={setHelpSubject} required>
+                  <SelectTrigger id="hs">
+                    <SelectValue placeholder={sourceText("Choose an email subject")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="forgot_password">
-                      <SourceText source="Forgot password" />
-                    </SelectItem>
-                    <SelectItem value="login_issue">
-                      <SourceText source="Login problem" />
-                    </SelectItem>
-                    <SelectItem value="access_denied">
-                      <SourceText source="Access denied" />
-                    </SelectItem>
-                    <SelectItem value="other">
-                      <SourceText source="Other" />
-                    </SelectItem>
+                    {HELP_SUBJECT_KEYS.map((key) => (
+                      <SelectItem key={key} value={key}>
+                        <SourceText source={HELP_SUBJECT_SOURCE[key]} />
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -843,7 +841,7 @@ export function LoginPage() {
                   type="email"
                   value={helpEmail}
                   onChange={(e) => setHelpEmail(e.target.value)}
-                  placeholder="you@example.com"
+                    placeholder={sourceText("you@example.com")}
                   required
                 />
               </div>
@@ -870,7 +868,7 @@ export function LoginPage() {
                 <Button
                   type="submit"
                   disabled={
-                    helpSending || !helpReason || !helpName || !helpEmail
+                    helpSending || !helpSubject || !helpName || !helpEmail
                   }
                 >
                   {helpSending && (
