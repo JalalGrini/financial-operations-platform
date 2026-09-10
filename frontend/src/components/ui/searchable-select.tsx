@@ -235,7 +235,7 @@ export function SearchableSelect({
             ref={panelRef}
             data-efop-overlay=""
             onPointerDown={(event) => event.stopPropagation()}
-            className="fixed z-[100] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-xl"
+            className="fixed z-[110] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-xl"
             style={{
               top: position.top,
               left: position.left,
@@ -282,7 +282,17 @@ export function SearchableSelect({
                       aria-selected={isSelected}
                       disabled={option.disabled}
                       onMouseEnter={() => setActiveIndex(index)}
-                      onClick={() => commit(option)}
+                      onPointerDown={(event) => {
+                        if (event.button !== 0) return;
+                        event.preventDefault();
+                        event.stopPropagation();
+                        commit(option);
+                      }}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        commit(option);
+                      }}
                       className={cn(
                         "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-start text-sm transition-colors",
                         index === activeIndex && "bg-accent text-accent-foreground",

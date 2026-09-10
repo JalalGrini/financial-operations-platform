@@ -6,6 +6,12 @@ import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { SourceText } from "@/components/i18n/SourceText";
 import { offerBrowserPasswordSave } from "@/lib/browser-password";
@@ -139,20 +145,36 @@ export default function Page() {
                 <p className="text-sm text-muted-foreground">
                   <SourceText source="Enter the 6-digit code sent to your email. It is not a password." />
                 </p>
-                <div className="space-y-2">
-                  <Label htmlFor="reset-code">
-                    <SourceText source="Sign-in code" />
-                  </Label>
-                  <Input
+                <div className="max-w-md space-y-1">
+                  <div className="text-center">
+                    <Label htmlFor="reset-code" className="text-sm font-semibold whitespace-normal">
+                      <SourceText source="Enter 6 digit OTP" />
+                    </Label>
+                  </div>
+                  <InputOTP
                     id="reset-code"
-                    name="one-time-code"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
                     maxLength={6}
                     value={code}
-                    onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                    required
-                  />
+                    onChange={setCode}
+                    disabled={pending}
+                    autoFocus
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <InputOTPGroup className="flex gap-1.5">
+                        {[0, 1, 2].map((i) => (
+                          <InputOTPSlot key={i} index={i} />
+                        ))}
+                      </InputOTPGroup>
+                      <InputOTPSeparator className="text-muted-foreground text-lg">
+                        —
+                      </InputOTPSeparator>
+                      <InputOTPGroup className="flex gap-1.5">
+                        {[3, 4, 5].map((i) => (
+                          <InputOTPSlot key={i} index={i} />
+                        ))}
+                      </InputOTPGroup>
+                    </div>
+                  </InputOTP>
                 </div>
                 {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 <Button type="submit" className="w-full" disabled={pending || code.length !== 6}>

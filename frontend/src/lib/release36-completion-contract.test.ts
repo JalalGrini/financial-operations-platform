@@ -32,6 +32,10 @@ describe("release completion contracts", () => {
     expect(action).toContain("onPointerDown");
     expect(action).toContain("personLabel");
     expect(action).toContain("collaborationApi.tag");
+    expect(action).toContain('from "@/components/ui/searchable-select"');
+    expect(action).toContain("<Combobox");
+    expect(action).toContain("Optional context");
+    expect(action).toContain('source="Active tags"');
   });
   it("keeps API calls same-origin", () => {
     expect(read("lib/api.ts")).toMatch(/\|\|\s*["']\/api\/v1["']/);

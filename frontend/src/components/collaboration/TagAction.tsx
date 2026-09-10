@@ -2,23 +2,17 @@
 import { sourceText } from "@/lib/i18n/source-catalog";
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, UserPlus, X } from "lucide-react";
+import { UserPlus, X } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { SourceText } from "@/components/i18n/SourceText";
 import { Popover } from "@/components/ui/popover";
+import { Combobox } from "@/components/ui/searchable-select";
 import {
   collaborationApi,
   EligibleUser,
   Mention,
 } from "@/features/collaboration/api";
-
-function fold(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-}
 
 function asUserList(payload: unknown): EligibleUser[] {
   if (Array.isArray(payload)) return payload;
@@ -49,14 +43,6 @@ function personLabel(person: {
   return "";
 }
 
-function initialsFor(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-  }
-  return (parts[0]?.[0] ?? "?").toUpperCase();
-}
-
 export function TagAction({
   resourceType,
   targetId,
@@ -69,7 +55,6 @@ export function TagAction({
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState("");
-  const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
   const taggingRef = useRef(false);
 
@@ -85,16 +70,21 @@ export function TagAction({
   });
 
   const users = usersQuery.data ?? [];
-  const filtered = useMemo(() => {
-    const needle = fold(query.trim());
-    if (!needle) return users;
-    return users.filter((item) => {
-      const haystack = fold(
-        `${personLabel(item)} ${item.full_name} ${item.email} ${item.roles.join(" ")}`,
-      );
-      return needle.split(/\s+/).every((term) => haystack.includes(term));
-    });
-  }, [query, users]);
+  const options = useMemo(
+    () =>
+      users.map((item) => {
+        const name = personLabel(item) || sourceText("Unnamed user");
+        const roles = item.roles.join(", ");
+        const hintParts = [roles];
+        if (item.email && !looksLikeEmail(name)) hintParts.push(item.email);
+        return {
+          value: item.id,
+          label: name,
+          hint: hintParts.filter(Boolean).join(" · "),
+        };
+      }),
+    [users],
+  );
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["mentions"] });
@@ -105,7 +95,6 @@ export function TagAction({
     onSuccess: () => {
       refresh();
       setUser("");
-      setQuery("");
       setMessage("");
       toast.success(sourceText("User tagged"));
     },
@@ -123,7 +112,6 @@ export function TagAction({
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const rows = asMentionList(mentions.data);
   const apply = (userId: string) => {
     if (!userId || tag.isPending || taggingRef.current) return;
     taggingRef.current = true;
@@ -134,18 +122,8 @@ export function TagAction({
       message: message.trim(),
     });
   };
-  const chooseUser = (
-    event: { preventDefault: () => void; stopPropagation: () => void },
-    userId: string,
-  ) => {
-    // Parent Dialog/DismissableLayer preventDefault on pointerdown for
-    // [data-efop-overlay], which cancels the following click. Nested overflow
-    // containers also drop click on some browsers. Select and tag here.
-    event.preventDefault();
-    event.stopPropagation();
-    setUser(userId);
-    apply(userId);
-  };
+
+  const rows = asMentionList(mentions.data);
 
   return (
     <Popover
@@ -153,7 +131,8 @@ export function TagAction({
       onOpenChange={(next) => {
         setOpen(next);
         if (!next) {
-          setQuery("");
+          setUser("");
+          setMessage("");
         }
       }}
       width={384}
@@ -184,84 +163,21 @@ export function TagAction({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="space-y-1.5">
-          <div className="flex items-center gap-2 rounded-lg border bg-background px-2">
-            <Search
-              className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={sourceText("Choose a user")}
-              className="h-9 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-              aria-label={sourceText("Choose a user")}
-            />
-          </div>
-          <ul
-            role="listbox"
-            aria-label={sourceText("Choose a user")}
-            className="max-h-44 overflow-y-auto overscroll-contain rounded-lg border bg-background p-1"
-          >
-            {usersQuery.isLoading && (
-              <li className="px-2 py-4 text-center text-xs text-muted-foreground">
-                <SourceText source="Loading..." />
-              </li>
-            )}
-            {!usersQuery.isLoading && filtered.length === 0 && (
-              <li className="px-2 py-4 text-center text-xs text-muted-foreground">
-                {users.length === 0 ? (
-                  <SourceText source="No eligible users" />
-                ) : (
-                  <SourceText source="No match found" />
-                )}
-              </li>
-            )}
-            {filtered.map((item) => {
-              const selected = item.id === user;
-              const name = personLabel(item) || sourceText("Unnamed user");
-              const roleHint = item.roles.join(", ");
-              return (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={selected}
-                    aria-label={name}
-                    onPointerDown={(event) => {
-                      if (event.button !== 0) return;
-                      chooseUser(event, item.id);
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key !== "Enter" && event.key !== " ") return;
-                      chooseUser(event, item.id);
-                    }}
-                    className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-start transition-colors ${
-                      selected
-                        ? "bg-accent text-accent-foreground"
-                        : "hover:bg-muted"
-                    }`}
-                  >
-                    <span
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-semibold text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300"
-                      aria-hidden="true"
-                    >
-                      {initialsFor(name)}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">
-                        {name}
-                      </span>
-                      {roleHint ? (
-                        <span className="block truncate text-[11px] text-muted-foreground">
-                          {roleHint}
-                        </span>
-                      ) : null}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          <Combobox
+            value={user}
+            onChange={setUser}
+            placeholder={sourceText("Choose a user")}
+            searchPlaceholder={sourceText("Type to search")}
+            emptyMessage={
+              usersQuery.isLoading
+                ? sourceText("Loading...")
+                : users.length === 0
+                  ? sourceText("No eligible users")
+                  : sourceText("No match found")
+            }
+            options={options}
+            ariaLabel={sourceText("Choose a user")}
+          />
         </div>
 
         <textarea
@@ -314,15 +230,7 @@ export function TagAction({
                   key={row.id}
                   className="flex items-center justify-between gap-2 py-1 text-sm"
                 >
-                  <span className="flex min-w-0 items-center gap-2">
-                    <span
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold"
-                      aria-hidden="true"
-                    >
-                      {initialsFor(name)}
-                    </span>
-                    <span className="truncate font-medium">{name}</span>
-                  </span>
+                  <span className="truncate font-medium">{name}</span>
                   {row.can_untag && (
                     <Button
                       type="button"
