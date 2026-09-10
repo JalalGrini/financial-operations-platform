@@ -1,16 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ChevronDown, Calendar, X } from "lucide-react";
 import { format, setYear, setMonth, parse, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { sourceText } from "@/lib/i18n/source-catalog";
-
-const PANEL_GAP = 6;
-const PANEL_MIN_WIDTH = 280;
 
 interface ScheduleDateProps {
   value?: string;
@@ -200,13 +196,7 @@ export function ScheduleDate({
 }: ScheduleDateProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState(formatDisplay(fromISO(value)));
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState<{
-    top: number;
-    left: number;
-    width: number;
-  } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const selected = fromISO(value);
   const minDate = fromISO(min);
   const maxDate = fromISO(max);
@@ -226,67 +216,14 @@ export function ScheduleDate({
     }
   }
 
-  const reposition = useCallback(() => {
-    const trigger = triggerRef.current;
-    if (!trigger) return;
-    const rect = trigger.getBoundingClientRect();
-    if (
-      rect.bottom < 0 ||
-      rect.top > window.innerHeight ||
-      rect.right < 0 ||
-      rect.left > window.innerWidth
-    ) {
-      setOpen(false);
-      return;
-    }
-    const height = panelRef.current?.offsetHeight ?? 360;
-    const width = Math.max(rect.width, PANEL_MIN_WIDTH);
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const openUp =
-      spaceBelow < height + PANEL_GAP && rect.top > height + PANEL_GAP;
-    setPosition({
-      top: openUp ? rect.top - height - PANEL_GAP : rect.bottom + PANEL_GAP,
-      left: Math.min(
-        Math.max(PANEL_GAP, rect.left),
-        Math.max(PANEL_GAP, window.innerWidth - width - PANEL_GAP),
-      ),
-      width,
-    });
-  }, []);
-
-  useLayoutEffect(() => {
-    if (open) reposition();
-  }, [open, reposition, viewDate]);
-
   useEffect(() => {
     if (!open) return;
-    const onPointerDown = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (
-        !panelRef.current?.contains(target) &&
-        !triggerRef.current?.contains(target)
-      ) {
-        setOpen(false);
-      }
+    const h = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
     };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.stopPropagation();
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    };
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    window.addEventListener("scroll", reposition, true);
-    window.addEventListener("resize", reposition);
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("scroll", reposition, true);
-      window.removeEventListener("resize", reposition);
-    };
-  }, [open, reposition]);
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [open]);
 
   const applyTypedDate = (raw: string) => {
     setInputValue(raw);
@@ -297,68 +234,16 @@ export function ScheduleDate({
     }
   };
 
-  const calendar =
-    open && position
-      ? createPortal(
-          <AnimatePresence>
-            <motion.div
-              ref={panelRef}
-              initial={{ opacity: 0, y: 6, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 4, scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 500, damping: 35 }}
-              data-efop-overlay=""
-              className="fixed z-[100] overflow-hidden rounded-2xl border border-border bg-popover p-4 shadow-2xl"
-              style={{
-                top: position.top,
-                left: position.left,
-                width: position.width,
-                minWidth: PANEL_MIN_WIDTH,
-              }}
-            >
-              <Input
-                placeholder="JJ/MM/AAAA"
-                value={inputValue}
-                onChange={(e) => applyTypedDate(e.target.value)}
-                className="mb-3 h-8 text-xs"
-              />
-              <MonthGrid
-                viewDate={viewDate}
-                selected={selected}
-                onSelect={(d) => {
-                  onChange?.(toISO(d));
-                  setInputValue(formatDisplay(d));
-                  setOpen(false);
-                }}
-                onPrev={() =>
-                  setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))
-                }
-                onNext={() =>
-                  setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))
-                }
-                onGoToMonth={(d) => setViewDate(new Date(d.getFullYear(), d.getMonth(), 1))}
-                showPrev
-                showNext
-                min={minDate}
-                max={maxDate}
-              />
-            </motion.div>
-          </AnimatePresence>,
-          document.body,
-        )
-      : null;
-
   return (
-    <div className={cn("relative w-full min-w-0", className)}>
+    <div ref={containerRef} className={cn("relative w-full", className)}>
       {name && <input type="hidden" name={name} value={value ?? ""} required={required} />}
       <button
-        ref={triggerRef}
         type="button"
         id={id}
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors",
+          "flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors",
           "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
           !value && "text-muted-foreground",
@@ -387,7 +272,46 @@ export function ScheduleDate({
           />
         </div>
       </button>
-      {calendar}
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 500, damping: 35 }}
+            className="absolute z-50 mt-1.5 overflow-hidden rounded-2xl border border-border bg-popover p-4 shadow-2xl"
+            style={{ minWidth: 260 }}
+          >
+            <Input
+              placeholder="JJ/MM/AAAA"
+              value={inputValue}
+              onChange={(e) => applyTypedDate(e.target.value)}
+              className="mb-3 h-8 text-xs"
+            />
+            <MonthGrid
+              viewDate={viewDate}
+              selected={selected}
+              onSelect={(d) => {
+                onChange?.(toISO(d));
+                setInputValue(formatDisplay(d));
+                setOpen(false);
+              }}
+              onPrev={() =>
+                setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))
+              }
+              onNext={() =>
+                setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))
+              }
+              onGoToMonth={(d) => setViewDate(new Date(d.getFullYear(), d.getMonth(), 1))}
+              showPrev
+              showNext
+              min={minDate}
+              max={maxDate}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
