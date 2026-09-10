@@ -98,13 +98,14 @@ def create_mention(*, actor, tagged_user, resource_type, target_id, message=""):
         raise ValidationError(
             {"tagged_user": "This user already has an active tag for this record."}
         ) from exc
+    actor_name = f"{(actor.first_name or '').strip()} {(actor.last_name or '').strip()}".strip()
     Notification.objects.create(
         recipient=tagged_user,
         actor=actor,
         company=company,
         category=Notification.Category.MENTION,
         title="You were tagged on a record",
-        message=(message or f"{actor.get_full_name()} tagged you on {mention.target_label}")[:500],
+        message=(message or f"{actor_name or 'A colleague'} tagged you on {mention.target_label}")[:500],
         destination=destination,
         metadata={
             "mention_id": str(mention.id),

@@ -23,6 +23,15 @@ describe("release completion contracts", () => {
     const action = read("components/collaboration/TagAction.tsx");
     expect(invalidates(action, "mentions")).toBe(true);
     expect(invalidates(action, "notifications")).toBe(true);
+    expect(action).toContain('from "@/components/ui/popover"');
+    expect(action).not.toMatch(/from ["']@\/components\/ui\/dialog["']/);
+    expect(action).toContain('align="start"');
+    expect(action).toContain('side="bottom"');
+    expect(action).toContain("collisionPadding={8}");
+    expect(action).toContain('overflow="visible"');
+    expect(action).toContain("onPointerDown");
+    expect(action).toContain("personLabel");
+    expect(action).toContain("collaborationApi.tag");
   });
   it("keeps API calls same-origin", () => {
     expect(read("lib/api.ts")).toMatch(/\|\|\s*["']\/api\/v1["']/);

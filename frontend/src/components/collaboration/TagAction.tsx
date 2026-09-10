@@ -1,25 +1,53 @@
 "use client";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import { useEffect, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { UserPlus, X } from "lucide-react";
+import { Search, UserPlus, X } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { SourceText } from "@/components/i18n/SourceText";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Popover } from "@/components/ui/popover";
 import {
   collaborationApi,
   EligibleUser,
   Mention,
 } from "@/features/collaboration/api";
+
+function fold(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function asUserList(payload: unknown): EligibleUser[] {
+  if (Array.isArray(payload)) return payload;
+  const obj = (payload ?? {}) as { results?: EligibleUser[] };
+  return Array.isArray(obj.results) ? obj.results : [];
+}
+
+function asMentionList(payload: unknown): Mention[] {
+  if (Array.isArray(payload)) return payload;
+  const obj = (payload ?? {}) as { results?: Mention[] };
+  return Array.isArray(obj.results) ? obj.results : [];
+}
+
+function looksLikeEmail(value: string): boolean {
+  return value.includes("@");
+}
+
+/** First + last for the tag UI. Never promote an email to the primary label. */
+function personLabel(person: {
+  full_name?: string;
+  first_name?: string;
+  last_name?: string;
+}): string {
+  const composed = `${person.first_name ?? ""} ${person.last_name ?? ""}`.trim();
+  for (const candidate of [person.full_name?.trim() ?? "", composed]) {
+    if (candidate && !looksLikeEmail(candidate)) return candidate;
+  }
+  return "";
+}
 
 export function TagAction({
   resourceType,
@@ -32,34 +60,34 @@ export function TagAction({
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [users, setUsers] = useState<EligibleUser[]>([]);
   const [user, setUser] = useState("");
+  const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
-  useEffect(() => {
-    if (open)
-      collaborationApi
-        .users()
-        .then((payload) => {
-          if (Array.isArray(payload)) {
-            setUsers(payload);
-            return;
-          }
-          const obj = (payload ?? {}) as { results?: EligibleUser[] };
-          setUsers(Array.isArray(obj.results) ? obj.results : []);
-        })
-        .catch((error) =>
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : sourceText("Unable to load eligible users"),
-          ),
-        );
-  }, [open]);
+  const taggingRef = useRef(false);
+
+  const usersQuery = useQuery({
+    queryKey: ["collaboration", "eligible-users"],
+    queryFn: async () => asUserList(await collaborationApi.users()),
+    enabled: open,
+  });
   const mentions = useQuery({
     queryKey: ["mentions", "target", resourceType, targetId],
     queryFn: () => collaborationApi.targetMentions(resourceType, targetId),
     enabled: open,
   });
+
+  const users = usersQuery.data ?? [];
+  const filtered = useMemo(() => {
+    const needle = fold(query.trim());
+    if (!needle) return users;
+    return users.filter((item) => {
+      const haystack = fold(
+        `${personLabel(item)} ${item.full_name} ${item.email} ${item.roles.join(" ")}`,
+      );
+      return needle.split(/\s+/).every((term) => haystack.includes(term));
+    });
+  }, [query, users]);
+
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["mentions"] });
     queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -69,10 +97,14 @@ export function TagAction({
     onSuccess: () => {
       refresh();
       setUser("");
+      setQuery("");
       setMessage("");
       toast.success(sourceText("User tagged"));
     },
     onError: (error: Error) => toast.error(error.message),
+    onSettled: () => {
+      taggingRef.current = false;
+    },
   });
   const untag = useMutation({
     mutationFn: collaborationApi.untag,
@@ -82,100 +114,223 @@ export function TagAction({
     },
     onError: (error: Error) => toast.error(error.message),
   });
-  const rows: Mention[] = mentions.data?.results ?? mentions.data ?? [];
+
+  const rows = asMentionList(mentions.data);
+  const apply = (userId: string) => {
+    if (!userId || tag.isPending || taggingRef.current) return;
+    taggingRef.current = true;
+    tag.mutate({
+      resource_type: resourceType,
+      target_id: targetId,
+      tagged_user: userId,
+      message: message.trim(),
+    });
+  };
+  const chooseUser = (
+    event: { preventDefault: () => void; stopPropagation: () => void },
+    userId: string,
+  ) => {
+    // Parent Dialog/DismissableLayer preventDefault on pointerdown for
+    // [data-efop-overlay], which cancels the following click. Nested overflow
+    // containers also drop click on some browsers. Select and tag here.
+    event.preventDefault();
+    event.stopPropagation();
+    setUser(userId);
+    apply(userId);
+  };
+
   return (
-    <>
-      <Button
-        variant="outline"
-        size={compact ? "icon" : undefined}
-        title={compact ? sourceText("Tag user") : undefined}
-        aria-label={sourceText("Tag user")}
-        onClick={() => setOpen(true)}
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) {
+          setQuery("");
+        }
+      }}
+      width={300}
+      align="start"
+      side="bottom"
+      collisionPadding={8}
+      overflow="visible"
+      className="p-0"
+      trigger={
+        <Button
+          type="button"
+          variant="outline"
+          size={compact ? "icon" : undefined}
+          title={compact ? sourceText("Tag user") : undefined}
+          aria-label={sourceText("Tag user")}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <UserPlus className="h-4 w-4" />
+          {!compact && <SourceText source="Tag user" leading trailing />}
+        </Button>
+      }
+    >
+      <div
+        className="space-y-3 p-3"
+        onPointerDown={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
-        <UserPlus className="h-4 w-4" />
-        {!compact && <SourceText source="Tag user" leading trailing />}
-      </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent size="default">
-          <DialogHeader>
-            <DialogTitle>
-              <SourceText source="Tag a colleague" />
-            </DialogTitle>
-            <DialogDescription>
-              <SourceText source="They will see this record in Tagged for me, with your optional note." />
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <label className="block space-y-1.5 text-sm font-medium">
-              <SourceText source="Choose a user" />
-              <SearchableSelect
-                value={user}
-                onChange={setUser}
-                placeholder={sourceText("Choose a user")}
-                searchPlaceholder={sourceText("Search...")}
-                options={users.map((item) => ({
-                  value: item.id,
-                  label: item.full_name,
-                  hint: item.roles.join(", "),
-                }))}
-              />
-            </label>
-            <label className="block space-y-1 text-sm font-medium">
-              <SourceText source="Optional context" />
-              <textarea
-                value={message}
-                maxLength={500}
-                onChange={(event) => setMessage(event.target.value)}
-                placeholder={sourceText("Optional context")}
-                className="min-h-24 w-full rounded-lg border bg-background p-3 text-sm"
-              />
-            </label>
-            {rows.length > 0 && (
-              <div className="rounded-xl border bg-muted/40 p-3">
-                <p className="mb-2 text-sm font-medium">
-                  <SourceText source="Active tags" />
-                </p>
-                {rows.map((row) => (
-                  <div
-                    key={row.id}
-                    className="flex items-center justify-between gap-2 py-1 text-sm"
-                  >
-                    <span>{row.tagged_user_name}</span>
-                    {row.can_untag && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        aria-label={`Remove tag for ${row.tagged_user_name}`}
-                        onClick={() => untag.mutate(row.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+        <div className="space-y-1 pe-1">
+          <p className="text-sm font-semibold leading-tight">
+            <SourceText source="Tag a colleague" />
+          </p>
+          <p className="text-xs leading-snug text-muted-foreground">
+            <SourceText source="They will see this record in Tagged for me, with your optional note." />
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium">
+            <SourceText source="Choose a user" />
+          </p>
+          <div className="flex items-center gap-2 rounded-lg border bg-background px-2">
+            <Search
+              className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={sourceText("Search...")}
+              className="h-8 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              aria-label={sourceText("Choose a user")}
+            />
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
-              <SourceText source="Cancel" leading trailing />
-            </Button>
-            <Button
-              disabled={!user || tag.isPending}
-              onClick={() =>
-                tag.mutate({
-                  resource_type: resourceType,
-                  target_id: targetId,
-                  tagged_user: user,
-                  message,
-                })
-              }
-            >
-              <SourceText source="Tag" leading trailing />
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          <ul
+            role="listbox"
+            aria-label={sourceText("Choose a user")}
+            className="max-h-36 overflow-y-auto overscroll-contain rounded-lg border bg-background p-1"
+          >
+            {usersQuery.isLoading && (
+              <li className="px-2 py-4 text-center text-xs text-muted-foreground">
+                <SourceText source="Loading..." />
+              </li>
+            )}
+            {!usersQuery.isLoading && filtered.length === 0 && (
+              <li className="px-2 py-4 text-center text-xs text-muted-foreground">
+                {users.length === 0 ? (
+                  <SourceText source="No eligible users" />
+                ) : (
+                  <SourceText source="No match found" />
+                )}
+              </li>
+            )}
+            {filtered.map((item) => {
+              const selected = item.id === user;
+              const name = personLabel(item) || sourceText("Unnamed user");
+              return (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    aria-label={name}
+                    onPointerDown={(event) => {
+                      if (event.button !== 0) return;
+                      chooseUser(event, item.id);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" && event.key !== " ") return;
+                      chooseUser(event, item.id);
+                    }}
+                    className={`flex w-full flex-col rounded-md px-2 py-1.5 text-start text-sm transition-colors ${
+                      selected
+                        ? "bg-accent text-accent-foreground"
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    <span className="truncate font-medium">{name}</span>
+                    {item.email ? (
+                      <span className="truncate text-[11px] text-muted-foreground">
+                        {item.email}
+                      </span>
+                    ) : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <label className="block space-y-1 text-xs font-medium">
+          <SourceText source="Optional context" />
+          <textarea
+            value={message}
+            maxLength={500}
+            onChange={(event) => setMessage(event.target.value)}
+            placeholder={sourceText("Optional context")}
+            className="min-h-16 w-full rounded-lg border bg-background p-2 text-sm"
+          />
+        </label>
+
+        {rows.length > 0 && (
+          <div className="rounded-xl border bg-muted/40 p-2">
+            <p className="mb-1 text-xs font-medium">
+              <SourceText source="Active tags" />
+            </p>
+            {rows.map((row) => {
+              const name =
+                personLabel({ full_name: row.tagged_user_name }) ||
+                sourceText("Unnamed user");
+              return (
+                <div
+                  key={row.id}
+                  className="flex items-center justify-between gap-2 py-0.5 text-sm"
+                >
+                  <span className="truncate font-medium">{name}</span>
+                  {row.can_untag && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      aria-label={sourceText("Remove tag")}
+                      onPointerDown={(event) => {
+                        event.stopPropagation();
+                        untag.mutate(row.id);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onPointerDown={(event) => {
+              event.stopPropagation();
+              setOpen(false);
+            }}
+          >
+            <SourceText source="Cancel" leading trailing />
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            disabled={!user || tag.isPending}
+            loading={tag.isPending}
+            onPointerDown={(event) => {
+              if (event.button !== 0) return;
+              event.preventDefault();
+              event.stopPropagation();
+              apply(user);
+            }}
+          >
+            <SourceText source="Tag" leading trailing />
+          </Button>
+        </div>
+      </div>
+    </Popover>
   );
 }

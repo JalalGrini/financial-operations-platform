@@ -49,7 +49,7 @@ import { cn } from "@/lib/utils";
  * `react-hooks/set-state-in-effect`, which this codebase has had to remove twice.
  */
 
-const GAP = 6;
+const DEFAULT_GAP = 6;
 
 export interface PopoverProps {
   /** Rendered as the trigger. Receives ref, onClick and aria-expanded. */
@@ -58,6 +58,12 @@ export interface PopoverProps {
   /** Panel width in px. Needed up front so the panel can be clamped. */
   width?: number;
   align?: "start" | "end" | "center";
+  /** Preferred side; flips when there is not enough room. */
+  side?: "bottom" | "top";
+  /** Viewport padding used when clamping and flipping. */
+  collisionPadding?: number;
+  /** Tag’s inner list scrolls itself; forcing overflow here swallows option clicks. */
+  overflow?: "auto" | "visible";
   className?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -68,6 +74,9 @@ export function Popover({
   children,
   width = 320,
   align = "end",
+  side = "bottom",
+  collisionPadding = DEFAULT_GAP,
+  overflow = "auto",
   className,
   open: controlledOpen,
   onOpenChange,
@@ -108,15 +117,19 @@ export function Popover({
       return;
     }
 
-    const maxHeight = Math.max(120, window.innerHeight - GAP * 2);
+    const gap = collisionPadding;
+    const maxHeight = Math.max(120, window.innerHeight - gap * 2);
     // First open used to measure height as 0 because the portal was gated on
     // `position`, so the panel was always placed below the trigger and ran off
     // the page until a scroll pass measured it. The panel now mounts while
     // hidden, then we clamp it into the viewport.
     const height = Math.min(panelRef.current?.offsetHeight || 160, maxHeight);
-    const spaceBelow = window.innerHeight - rect.bottom - GAP;
-    const spaceAbove = rect.top - GAP;
-    const openUp = spaceBelow < height && spaceAbove > spaceBelow;
+    const spaceBelow = window.innerHeight - rect.bottom - gap;
+    const spaceAbove = rect.top - gap;
+    const openUp =
+      side === "top"
+        ? !(spaceAbove < height && spaceBelow > spaceAbove)
+        : spaceBelow < height && spaceAbove > spaceBelow;
 
     const isRtl =
       typeof document !== "undefined" &&
@@ -132,17 +145,17 @@ export function Popover({
       preferredLeft = isRtl ? rect.left : rect.right - width;
     }
 
-    const preferredTop = openUp ? rect.top - height - GAP : rect.bottom + GAP;
+    const preferredTop = openUp ? rect.top - height - gap : rect.bottom + gap;
 
     setPosition({
-      top: Math.min(Math.max(GAP, preferredTop), window.innerHeight - height - GAP),
+      top: Math.min(Math.max(gap, preferredTop), window.innerHeight - height - gap),
       left: Math.min(
-        Math.max(GAP, preferredLeft),
-        Math.max(GAP, window.innerWidth - width - GAP),
+        Math.max(gap, preferredLeft),
+        Math.max(gap, window.innerWidth - width - gap),
       ),
       maxHeight,
     });
-  }, [align, setOpen, width]);
+  }, [align, collisionPadding, setOpen, side, width]);
 
   // Before paint, so the panel never shows at 0,0 and then jumps.
   // A second frame remasures after children commit, which is what the first
@@ -208,6 +221,7 @@ export function Popover({
         "aria-expanded": open,
         "aria-haspopup": "dialog",
         onClick: (event: React.MouseEvent) => {
+          event.stopPropagation();
           (
             trigger.props as { onClick?: (e: React.MouseEvent) => void }
           ).onClick?.(event);
@@ -227,6 +241,9 @@ export function Popover({
               ref={panelRef}
               role="dialog"
               data-efop-overlay=""
+              onPointerDown={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
               className={cn(
                 "fixed z-[100] rounded-2xl border bg-popover text-popover-foreground shadow-xl",
                 "efop-popover-in",
@@ -236,8 +253,8 @@ export function Popover({
                 top: position?.top ?? 0,
                 left: position?.left ?? 0,
                 width,
-                maxHeight: position?.maxHeight ?? `calc(100vh - ${GAP * 2}px)`,
-                overflowY: "auto",
+                maxHeight: position?.maxHeight ?? `calc(100vh - ${collisionPadding * 2}px)`,
+                overflowY: overflow,
                 visibility: position ? "visible" : "hidden",
               }}
             >

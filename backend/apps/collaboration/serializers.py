@@ -6,6 +6,13 @@ from apps.collaboration.models import Mention, Notification
 from apps.collaboration.services import create_mention
 
 
+def person_full_name(user) -> str:
+    """First + last for tag UI. Never fall back to email as the primary label."""
+    if user is None:
+        return ""
+    return f"{(user.first_name or '').strip()} {(user.last_name or '').strip()}".strip()
+
+
 class NotificationSerializer(serializers.ModelSerializer):
     actor_name = serializers.CharField(source="actor.get_full_name", read_only=True)
     company_name = serializers.CharField(source="company.name", read_only=True)
@@ -28,8 +35,8 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 
 class MentionSerializer(serializers.ModelSerializer):
-    tagged_user_name = serializers.CharField(source="tagged_user.get_full_name", read_only=True)
-    tagged_by_name = serializers.CharField(source="tagged_by.get_full_name", read_only=True)
+    tagged_user_name = serializers.SerializerMethodField()
+    tagged_by_name = serializers.SerializerMethodField()
     resource_type = serializers.SerializerMethodField()
     can_untag = serializers.SerializerMethodField()
 
@@ -52,6 +59,12 @@ class MentionSerializer(serializers.ModelSerializer):
             "can_untag",
         )
         read_only_fields = fields
+
+    def get_tagged_user_name(self, obj):
+        return person_full_name(obj.tagged_user)
+
+    def get_tagged_by_name(self, obj):
+        return person_full_name(obj.tagged_by)
 
     def get_resource_type(self, obj):
         return f"{obj.content_type.app_label}.{obj.content_type.model}"
@@ -90,12 +103,15 @@ class MentionCreateSerializer(serializers.Serializer):
 
 
 class EligibleUserSerializer(serializers.ModelSerializer):
-    full_name = serializers.CharField(source="get_full_name", read_only=True)
+    full_name = serializers.SerializerMethodField()
     roles = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ("id", "full_name", "email", "roles")
+        fields = ("id", "first_name", "last_name", "full_name", "email", "roles")
+
+    def get_full_name(self, obj):
+        return person_full_name(obj)
 
     def get_roles(self, obj):
         return (

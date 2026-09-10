@@ -96,3 +96,20 @@ class UntaggingSecurityTests(APITestCase):
             self.client.post("/api/v1/collaboration/mentions/", payload, format="json").status_code,
             400,
         )
+
+    def test_eligible_users_and_mentions_use_first_and_last_name(self):
+        nameless = User.objects.create_user(
+            email="nameless@example.test", password="Pass123456!"
+        )
+        nameless.groups.add(Group.objects.get(name="Assistant"))
+        self.client.force_authenticate(self.admin)
+        people = self.client.get("/api/v1/collaboration/eligible-users/").json()
+        rows = people if isinstance(people, list) else people.get("results", [])
+        by_email = {row["email"]: row for row in rows}
+        self.assertEqual(by_email[self.recipient.email]["full_name"], "Recipient User")
+        self.assertNotIn("@", by_email[self.recipient.email]["full_name"])
+        self.assertEqual(by_email[nameless.email]["full_name"], "")
+        mention_id = self._create()
+        body = self.client.get(f"/api/v1/collaboration/mentions/{mention_id}/").json()
+        self.assertEqual(body["tagged_user_name"], "Recipient User")
+        self.assertEqual(body["tagged_by_name"], "Creator User")
