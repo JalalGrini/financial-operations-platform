@@ -7,7 +7,7 @@ import threading
 
 from django.conf import settings
 
-from apps.common.mailer import queue_platform_email
+from apps.common.mailer import MailerError, send_platform_email
 
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,12 @@ def send_ticket_reply(
     if channel == "email":
         if not email:
             raise MessagingError("An email address is required.")
-        queue_platform_email(to=email, subject=subject or "3.R.B Extreme", body=body)
+        try:
+            send_platform_email(
+                to=email, subject=subject or "3.R.B Extreme", body=body
+            )
+        except MailerError as exc:
+            raise MessagingError(str(exc)) from exc
         return
 
     if channel not in {"sms", "whatsapp"}:

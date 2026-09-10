@@ -24,13 +24,17 @@ from .serializers import (
 
 logger = logging.getLogger(__name__)
 HONEYPOT_OK = {"detail": "Votre message a été envoyé.", "id": "fake"}
+HONEYPOT_FIELDS = ("website", "hp_website")
 
 
 def _honeypot_filled(request) -> bool:
-    value = request.data.get("website", "")
-    if isinstance(value, (list, tuple)):
-        value = value[0] if value else ""
-    return bool(str(value).strip())
+    for key in HONEYPOT_FIELDS:
+        value = request.data.get(key, "")
+        if isinstance(value, (list, tuple)):
+            value = value[0] if value else ""
+        if str(value).strip():
+            return True
+    return False
 
 
 class HelpTicketCreateView(APIView):
@@ -137,7 +141,16 @@ class HelpTicketReplyView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
 
-        subject = serializer.validated_data['reply_subject']
+        subject = serializer.validated_data.get("reply_subject") or ""
+        key = serializer.validated_data.get("subject_key") or ticket.subject_key
+        if key:
+            from apps.common.email_copy import help_subject
+
+            subject = help_subject(key, ticket.locale)
+        elif not subject:
+            from apps.common.email_copy import help_subject
+
+            subject = help_subject("other_issue", ticket.locale)
         body = serializer.validated_data['reply_body']
         channel = serializer.validated_data.get('channel') or 'email'
         phone = serializer.validated_data.get('phone') or ''
@@ -171,10 +184,12 @@ class HelpTicketReplyView(APIView):
             )
             ticket.reply_sent = False
             ticket.save(update_fields=["reply_sent", "updated_at"])
-            detail = f"Reply saved but {channel} delivery failed: {e}"
             return Response(
-                {"detail": detail, "ticket": HelpTicketSerializer(ticket).data},
-                status=207,
+                {
+                    "detail": "The reply was saved but the email could not be sent.",
+                    "ticket": HelpTicketSerializer(ticket).data,
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
         return Response(HelpTicketSerializer(ticket).data)
 
@@ -326,7 +341,10 @@ class ClientTicketReplyView(APIView):
 
         channel = data.get("channel") or "email"
         from apps.common.email_copy import client_subject
-        reply_subject = client_subject(ticket.subject_key, ticket.locale)
+        from apps.common.mailer import MailerError
+
+        key = data.get("subject_key") or ticket.subject_key
+        reply_subject = client_subject(key, ticket.locale)
         try:
             send_ticket_reply(
                 channel,
@@ -335,8 +353,19 @@ class ClientTicketReplyView(APIView):
                 email=ticket.email,
                 phone=ticket.phone or None,
             )
-        except (MessagingError, Exception):
-            # Reply is stored even if the channel cannot deliver yet.
-            pass
+        except (MessagingError, MailerError) as exc:
+            logger.warning(
+                "ticket reply delivery failed ticket=%s channel=%s err=%s",
+                pk,
+                channel,
+                exc,
+            )
+            return Response(
+                {
+                    "detail": "The reply was saved but the email could not be sent.",
+                    "ticket": ClientTicketSerializer(ticket).data,
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
         return Response(ClientTicketSerializer(ticket).data)

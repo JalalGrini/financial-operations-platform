@@ -28,7 +28,17 @@ import {
   ReplyChannelToggle,
   type ReplyChannel,
 } from "@/components/ui/reply-channel-toggle";
-import { HELP_SUBJECT_SOURCE } from "@/lib/ticket-mail";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  HELP_SUBJECT_KEYS,
+  HELP_SUBJECT_SOURCE,
+} from "@/lib/ticket-mail";
 
 interface Ticket {
   id: number;
@@ -99,10 +109,25 @@ function buildTemplate(reason: string, ticket: Ticket) {
   }
 }
 
+function defaultHelpSubjectKey(ticket: Ticket): (typeof HELP_SUBJECT_KEYS)[number] {
+  if (
+    ticket.subject_key &&
+    (HELP_SUBJECT_KEYS as readonly string[]).includes(ticket.subject_key)
+  ) {
+    return ticket.subject_key as (typeof HELP_SUBJECT_KEYS)[number];
+  }
+  if ((HELP_SUBJECT_KEYS as readonly string[]).includes(ticket.reason)) {
+    return ticket.reason as (typeof HELP_SUBJECT_KEYS)[number];
+  }
+  return "other_issue";
+}
+
 function ReplyDialog({ ticket, onClose }: { ticket: Ticket; onClose: () => void }) {
   const queryClient = useQueryClient();
   const tmpl0 = buildTemplate(ticket.reason, ticket);
-  const [subject, setSubject] = useState(tmpl0.subject);
+  const [subjectKey, setSubjectKey] = useState<(typeof HELP_SUBJECT_KEYS)[number]>(
+    defaultHelpSubjectKey(ticket),
+  );
   const [body, setBody] = useState(tmpl0.body);
   const [channel, setChannel] = useState<ReplyChannel>("email");
   const [phone, setPhone] = useState("");
@@ -110,7 +135,7 @@ function ReplyDialog({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
   const replyMutation = useMutation({
     mutationFn: () =>
       apiClient.post(`/help/tickets/${ticket.id}/reply/`, {
-        reply_subject: subject,
+        subject_key: subjectKey,
         reply_body: body,
         channel,
         phone: phone || undefined,
@@ -151,8 +176,26 @@ function ReplyDialog({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
             </div>
           )}
           <div className="space-y-1">
-            <Label><SourceText source="Subject" /></Label>
-            <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
+            <Label htmlFor="help-reply-subject">
+              <SourceText source="Email subject" />
+            </Label>
+            <Select
+              value={subjectKey}
+              onValueChange={(value: string) =>
+                setSubjectKey(value as (typeof HELP_SUBJECT_KEYS)[number])
+              }
+            >
+              <SelectTrigger id="help-reply-subject">
+                <SelectValue placeholder={sourceText("Choose an email subject")} />
+              </SelectTrigger>
+              <SelectContent>
+                {HELP_SUBJECT_KEYS.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    <SourceText source={HELP_SUBJECT_SOURCE[key]} />
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1">
             <Label><SourceText source="Message" /></Label>
@@ -193,7 +236,9 @@ export default function AdminTicketsPage() {
   const { data: rawTickets = [], isLoading, refetch } = useQuery<Ticket[]>({
     queryKey: ["help-tickets", statusFilter],
     queryFn: async () => {
-      const url = statusFilter ? `/help/tickets/?status=${statusFilter}` : "/help/tickets/";
+      const url = statusFilter
+        ? `/help/tickets/list/?status=${statusFilter}`
+        : "/help/tickets/list/";
       const r = await apiClient.get<{ results?: Ticket[] } | Ticket[]>(url);
       if (Array.isArray(r)) return r;
       return r?.results ?? [];

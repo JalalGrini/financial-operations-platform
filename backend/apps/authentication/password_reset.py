@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import secrets
 from datetime import timedelta
 
@@ -21,11 +22,12 @@ from apps.authentication.models import PasswordResetCode
 from apps.authentication.views import _blacklist_all_outstanding_tokens_for_user
 from apps.common.email_copy import normalize_locale, reset_body, reset_subject
 from apps.common.http import client_ip
-from apps.common.mailer import queue_platform_email
+from apps.common.mailer import MailerError, send_platform_email
 
 User = get_user_model()
 CODE_TTL = timedelta(minutes=15)
 MAX_ATTEMPTS = 5
+logger = logging.getLogger(__name__)
 
 
 class PasswordResetThrottle(SimpleRateThrottle):
@@ -75,11 +77,22 @@ class PasswordResetRequestView(APIView):
             code_hash=make_password(code),
             expires_at=timezone.now() + CODE_TTL,
         )
-        queue_platform_email(
-            to=user.email,
-            subject=reset_subject(locale),
-            body=reset_body(code, locale),
-        )
+        try:
+            send_platform_email(
+                to=user.email,
+                subject=reset_subject(locale),
+                body=reset_body(code, locale),
+            )
+        except MailerError as exc:
+            logger.warning(
+                "email not sent to=%s subject=password-reset err=%s",
+                user.email,
+                exc,
+            )
+            return Response(
+                {"detail": "We could not send the email. Please try again."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
         return Response({"ok": True})
 
 

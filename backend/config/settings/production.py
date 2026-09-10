@@ -172,7 +172,7 @@ SPECTACULAR_SETTINGS = {
 
 
 # Email backend for production (configure as needed)
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = "apps.common.ipv4_smtp.EmailBackend"
 EMAIL_HOST = env("EMAIL_HOST", default="")  # noqa: F405
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)  # noqa: F405
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)  # noqa: F405

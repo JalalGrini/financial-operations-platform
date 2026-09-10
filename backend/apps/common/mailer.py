@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import json
 import logging
-import threading
 import urllib.error
 import urllib.request
 
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import get_connection, send_mail
 
 logger = logging.getLogger(__name__)
 SMTP_TIMEOUT = 8
+IPV4_SMTP_BACKEND = "apps.common.ipv4_smtp.EmailBackend"
 
 
 def _email_timeout() -> int:
@@ -35,14 +35,21 @@ def send_platform_email(*, to: str, subject: str, body: str) -> None:
     if api_url and api_key:
         _send_via_api(api_url, api_key, to, subject, body)
         return
-    try:
-        sent = send_mail(
-            subject=subject,
-            message=body,
-            from_email=None,
-            recipient_list=[to],
+    send_kwargs = {
+        "subject": subject,
+        "message": body,
+        "from_email": None,  # Django uses DEFAULT_FROM_EMAIL
+        "recipient_list": [to],
+        "fail_silently": False,
+    }
+    if not _inline_email_backend():
+        send_kwargs["connection"] = get_connection(
+            backend=IPV4_SMTP_BACKEND,
             fail_silently=False,
+            timeout=_email_timeout(),
         )
+    try:
+        sent = send_mail(**send_kwargs)
     except Exception as exc:
         raise MailerError(str(exc)) from exc
     if not sent:
@@ -94,30 +101,17 @@ def _inline_email_backend() -> bool:
     return "locmem" in backend or "console" in backend or "dummy" in backend
 
 
-def _run_queued_send(*, to: str, subject: str, body: str) -> None:
-    from django.db import close_old_connections
-
-    close_old_connections()
-    try:
-        send_platform_email_quietly(to=to, subject=subject, body=body)
-    finally:
-        close_old_connections()
-
-
 def queue_platform_email(*, to: str, subject: str, body: str) -> None:
-    """Return immediately. SMTP still sends in the background in production."""
+    """Send SMTP in this request (max EMAIL_TIMEOUT seconds).
+
+    Daemon threads on gunicorn sync workers are killed when the worker
+    returns to its accept loop / is recycled, so Gmail Sent stays empty.
+    There is no Celery worker in production. Save first, then call this.
+    """
     if not to:
         return
-    to = str(to)
-    subject = str(subject or "")
-    body = str(body or "")
-    if _inline_email_backend():
-        send_platform_email_quietly(to=to, subject=subject, body=body)
-        return
-    logger.info("queued email to=%s subject=%s", to, subject)
-    threading.Thread(
-        target=_run_queued_send,
-        kwargs={"to": to, "subject": subject, "body": body},
-        daemon=True,
-        name="platform-email",
-    ).start()
+    send_platform_email_quietly(
+        to=str(to),
+        subject=str(subject or ""),
+        body=str(body or ""),
+    )

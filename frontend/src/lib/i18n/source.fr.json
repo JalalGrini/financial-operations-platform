@@ -3188,5 +3188,7 @@
   "Display or language issue": "Problème d’affichage ou de langue",
   "Password resets are now sent as a 6-digit code from Forgot password on the sign-in page.": "La réinitialisation se fait maintenant par un code à 6 chiffres depuis Mot de passe oublié sur la page de connexion.",
   "Passwords do not match.": "Les mots de passe ne correspondent pas.",
-  "Continue": "Continuer"
+  "Continue": "Continuer",
+  "We could not send the email. Please try again.": "Nous n’avons pas pu envoyer l’e-mail. Veuillez réessayer.",
+  "The reply was saved but the email could not be sent.": "La réponse a été enregistrée mais l’e-mail n’a pas pu être envoyé."
 }

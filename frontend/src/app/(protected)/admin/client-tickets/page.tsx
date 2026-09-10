@@ -53,6 +53,13 @@ import { PageHero } from "@/components/ui/page-hero";
 import { SkeletonTable } from "@/components/ui/page-skeletons";
 import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -62,7 +69,7 @@ import {
 } from "@/components/ui/table";
 import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import { CLIENT_SUBJECT_SOURCE } from "@/lib/ticket-mail";
+import { CLIENT_SUBJECT_KEYS, CLIENT_SUBJECT_SOURCE } from "@/lib/ticket-mail";
 import { useRole } from "@/hooks/useRole";
 import { apiClient } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -139,6 +146,18 @@ function formatMoment(value: string | null): string {
   return Number.isNaN(parsed.getTime()) ? "—" : parsed.toLocaleString();
 }
 
+function defaultClientSubjectKey(
+  ticket: ClientTicket,
+): (typeof CLIENT_SUBJECT_KEYS)[number] {
+  if (
+    ticket.subject_key &&
+    (CLIENT_SUBJECT_KEYS as readonly string[]).includes(ticket.subject_key)
+  ) {
+    return ticket.subject_key as (typeof CLIENT_SUBJECT_KEYS)[number];
+  }
+  return "ticket_reply";
+}
+
 function TicketDialog({
   ticket,
   onClose,
@@ -148,6 +167,9 @@ function TicketDialog({
 }) {
   const queryClient = useQueryClient();
   const [body, setBody] = useState(ticket.reply_body ?? "");
+  const [subjectKey, setSubjectKey] = useState<(typeof CLIENT_SUBJECT_KEYS)[number]>(
+    defaultClientSubjectKey(ticket),
+  );
   const [failed, setFailed] = useState(false);
   const [channel, setChannel] = useState<ReplyChannel>("email");
 
@@ -158,6 +180,7 @@ function TicketDialog({
     mutationFn: (markSolved: boolean) =>
       apiClient.post(`/help/client-tickets/${ticket.id}/reply/`, {
         reply_body: body,
+        subject_key: subjectKey,
         mark_solved: markSolved,
         channel,
       }),
@@ -255,6 +278,29 @@ function TicketDialog({
           ) : null}
 
           <div>
+            <Label htmlFor="client-ticket-reply-subject">
+              <SourceText source="Email subject" />
+            </Label>
+            <Select
+              value={subjectKey}
+              onValueChange={(value: string) =>
+                setSubjectKey(value as (typeof CLIENT_SUBJECT_KEYS)[number])
+              }
+            >
+              <SelectTrigger id="client-ticket-reply-subject" className="mt-1">
+                <SelectValue placeholder={sourceText("Choose an email subject")} />
+              </SelectTrigger>
+              <SelectContent>
+                {CLIENT_SUBJECT_KEYS.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    <SourceText source={CLIENT_SUBJECT_SOURCE[key]} />
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
             <Label htmlFor="client-ticket-reply">
               <SourceText source="Your reply" />
             </Label>
@@ -280,7 +326,7 @@ function TicketDialog({
               className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
             >
               <AlertTriangle className="h-4 w-4" aria-hidden="true" />
-              <SourceText source="The reply could not be saved. Please try again." />
+              <SourceText source="Failed to send reply." />
             </p>
           ) : null}
 

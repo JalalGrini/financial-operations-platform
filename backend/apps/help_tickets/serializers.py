@@ -13,12 +13,13 @@ from apps.common.email_copy import CLIENT_SUBJECTS, HELP_SUBJECTS, normalize_loc
 
 class HelpTicketCreateSerializer(serializers.ModelSerializer):
     website = serializers.CharField(required=False, allow_blank=True, write_only=True, default="")
+    hp_website = serializers.CharField(required=False, allow_blank=True, write_only=True, default="")
     subject_key = serializers.ChoiceField(choices=list(HELP_SUBJECTS.keys()))
     reason = serializers.CharField(required=False, allow_blank=True, default="")
 
     class Meta:
         model = HelpTicket
-        fields = ["reason", "name", "email", "message", "website", "subject_key", "locale"]
+        fields = ["reason", "name", "email", "message", "website", "hp_website", "subject_key", "locale"]
 
     def validate(self, attrs):
         key = attrs.get("subject_key") or ""
@@ -30,6 +31,7 @@ class HelpTicketCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("website", None)
+        validated_data.pop("hp_website", None)
         return super().create(validated_data)
 
 
@@ -59,12 +61,20 @@ class HelpTicketSerializer(serializers.ModelSerializer):
 
 
 class HelpTicketReplySerializer(serializers.Serializer):
-    reply_subject = serializers.CharField(max_length=300)
+    subject_key = serializers.ChoiceField(
+        choices=list(HELP_SUBJECTS.keys()), required=False, allow_blank=True
+    )
+    reply_subject = serializers.CharField(max_length=300, required=False, allow_blank=True)
     reply_body = serializers.CharField()
     channel = serializers.ChoiceField(
         choices=("email", "sms", "whatsapp"), required=False, default="email"
     )
     phone = serializers.CharField(required=False, allow_blank=True, default="")
+
+    def validate(self, attrs):
+        if not (attrs.get("subject_key") or attrs.get("reply_subject")):
+            raise serializers.ValidationError({"subject_key": "Please choose a subject."})
+        return attrs
 
 
 class ClientTicketAttachmentSerializer(serializers.ModelSerializer):
@@ -91,6 +101,7 @@ class ClientTicketCreateSerializer(serializers.ModelSerializer):
         child=serializers.FileField(), required=False, write_only=True, allow_empty=True
     )
     website = serializers.CharField(required=False, allow_blank=True, write_only=True, default="")
+    hp_website = serializers.CharField(required=False, allow_blank=True, write_only=True, default="")
     attachments = ClientTicketAttachmentSerializer(many=True, read_only=True)
 
     class Meta:
@@ -107,12 +118,14 @@ class ClientTicketCreateSerializer(serializers.ModelSerializer):
             "file",
             "files",
             "website",
+            "hp_website",
             "attachments",
         ]
         read_only_fields = ["id", "attachments"]
 
     def validate(self, attrs):
         attrs.pop("website", None)
+        attrs.pop("hp_website", None)
         request = self.context.get("request")
         collected = collect_request_uploads(request, "files", "files[]", "file")
         listed = list(attrs.get("files") or [])
@@ -189,6 +202,9 @@ class ClientTicketSerializer(serializers.ModelSerializer):
 
 class ClientTicketReplySerializer(serializers.Serializer):
     reply_body = serializers.CharField()
+    subject_key = serializers.ChoiceField(
+        choices=list(CLIENT_SUBJECTS.keys()), required=False, allow_blank=True
+    )
     # Replying does not force resolution; staff decide explicitly.
     mark_solved = serializers.BooleanField(required=False, default=False)
     channel = serializers.ChoiceField(

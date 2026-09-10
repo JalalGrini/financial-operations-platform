@@ -372,10 +372,10 @@ export function LoginPage() {
     setHelpSending(true);
     setHelpErr("");
     const website =
-      (e.currentTarget.elements.namedItem("website") as HTMLInputElement | null)
+      (e.currentTarget.elements.namedItem("hp_website") as HTMLInputElement | null)
         ?.value ?? "";
     try {
-      await fetch("/api/v1/help/tickets/", {
+      const res = await fetch("/api/v1/help/tickets/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -385,9 +385,14 @@ export function LoginPage() {
           name: helpName,
           email: helpEmail,
           message: helpMsg,
-          website,
+          website: "",
+          hp_website: website,
         }),
       });
+      if (res.status !== 201) {
+        setHelpErr(sourceText("Failed to send. Please try again."));
+        return;
+      }
       setHelpSent(true);
     } catch {
       setHelpErr(sourceText("Failed to send. Please try again."));
@@ -794,11 +799,11 @@ export function LoginPage() {
               </Button>
             </div>
           ) : (
-            <form onSubmit={handleHelp} className="space-y-4">
+            <form onSubmit={handleHelp} className="relative space-y-4">
               <input
                 type="text"
-                name="website"
-                style={{ display: "none" }}
+                name="hp_website"
+                className="absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0"
                 tabIndex={-1}
                 autoComplete="off"
                 aria-hidden="true"

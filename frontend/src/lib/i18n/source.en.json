@@ -3188,5 +3188,7 @@
   "Display or language issue": "Display or language issue",
   "Password resets are now sent as a 6-digit code from Forgot password on the sign-in page.": "Password resets are now sent as a 6-digit code from Forgot password on the sign-in page.",
   "Passwords do not match.": "Passwords do not match.",
-  "Continue": "Continue"
+  "Continue": "Continue",
+  "We could not send the email. Please try again.": "We could not send the email. Please try again.",
+  "The reply was saved but the email could not be sent.": "The reply was saved but the email could not be sent."
 }

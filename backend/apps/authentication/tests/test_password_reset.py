@@ -59,3 +59,24 @@ class PasswordResetTests(APITestCase):
         self.assertEqual(confirm.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password("FreshPassphrase-2026!"))
+
+    def test_request_returns_503_when_smtp_fails(self):
+        from unittest.mock import patch
+
+        from apps.common.mailer import MailerError
+
+        with patch(
+            "apps.authentication.password_reset.send_platform_email",
+            side_effect=MailerError("Network is unreachable"),
+        ):
+            response = self.client.post(
+                "/api/v1/auth/password-reset/request/",
+                {"email": "reset@example.com", "locale": "fr"},
+                format="json",
+            )
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(
+            response.json()["detail"],
+            "We could not send the email. Please try again.",
+        )
+        self.assertEqual(len(mail.outbox), 0)

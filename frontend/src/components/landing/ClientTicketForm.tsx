@@ -137,7 +137,8 @@ async function submitClientTicket(
   body.append("subject_key", values.subject_key);
   body.append("locale", uiLocale());
   body.append("message", composedMessage);
-  body.append("website", website);
+  body.append("website", "");
+  body.append("hp_website", website);
   files.forEach((file, index) => {
     body.append("files", file);
     if (index === 0) body.append("file", file);
@@ -149,9 +150,7 @@ async function submitClientTicket(
     body,
   });
 
-  if (!response.ok) {
-    // Surface field-level validation coming back from the serializer, but
-    // never dump a raw payload into the UI.
+  if (response.status !== 201) {
     let detail = `Ticket submission failed (${response.status}).`;
     try {
       const body = (await response.json()) as Record<string, unknown>;
@@ -360,8 +359,8 @@ export function ClientTicketForm() {
       <input
         ref={honeypotRef}
         type="text"
-        name="website"
-        style={{ display: "none" }}
+        name="hp_website"
+        className="absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0"
         tabIndex={-1}
         autoComplete="off"
         aria-hidden="true"
