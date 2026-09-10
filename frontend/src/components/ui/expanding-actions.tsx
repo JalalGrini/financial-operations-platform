@@ -77,7 +77,7 @@ export function ExpandingActions({
   if (visibleActions.length === 0) return null;
 
   return (
-    <div ref={ref} className={cn("relative inline-flex", className)}>
+    <div ref={ref} className={cn("relative inline-flex justify-end", className)}>
       <MotionConfig transition={{ type: "spring", bounce: 0.2, duration: 0.35 }}>
         <AnimatePresence mode="popLayout" initial={false}>
           {!open ? (

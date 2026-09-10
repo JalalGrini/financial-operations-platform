@@ -552,20 +552,6 @@ export default function FinancialRecordsPage() {
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
                       <TagAction resourceType="financial_records.financialrecord" targetId={record.id} compact />
-                      {record.is_archived && (
-                        <WriteOnly>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-emerald-600" title={sourceText("Restore")} onClick={() => restoreMutation.mutate(record.id)}>
-                            <RotateCcw size={14} />
-                          </Button>
-                        </WriteOnly>
-                      )}
-                      {!record.is_archived && record.status !== "posted" && (
-                        <WriteOnly>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-amber-600" title={sourceText("Archive")} onClick={() => archiveMutation.mutate(record.id)}>
-                            <Archive size={14} />
-                          </Button>
-                        </WriteOnly>
-                      )}
                       <ExpandingActions
                         actions={[
                           { label: sourceText("View"), icon: <Eye size={14} />, onClick: () => router.push(`/financial-records/${record.id}`) },

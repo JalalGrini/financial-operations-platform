@@ -381,23 +381,13 @@ export default function InventoryPage() {
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
                       <TagAction resourceType="inventory.inventoryitem" targetId={item.id} compact />
-                      {item.is_archived ? (
-                        <WriteOnly>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-emerald-600" title={sourceText("Restore")} onClick={() => restore.mutate(item.id)}>
-                            <RotateCcw size={14} />
-                          </Button>
-                        </WriteOnly>
-                      ) : (
-                        <WriteOnly>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 text-amber-600" title={sourceText("Archive")} onClick={() => archive.mutate(item.id)}>
-                            <Archive size={14} />
-                          </Button>
-                        </WriteOnly>
-                      )}
                       <ExpandingActions
                         actions={[
                           { label: sourceText("View"), icon: <Eye size={14} />, onClick: () => router.push(`/inventory/${item.id}`) },
                           ...(!item.is_archived ? [{ label: sourceText("Edit"), icon: <Edit size={14} />, onClick: () => router.push(`/inventory/${item.id}/edit`), permission: "write" as const }] : []),
+                          ...(!item.is_archived
+                            ? [{ label: sourceText("Archive"), icon: <Archive size={14} />, onClick: () => archive.mutate(item.id), variant: "warning" as const, permission: "write" as const }]
+                            : [{ label: sourceText("Restore"), icon: <RotateCcw size={14} />, onClick: () => restore.mutate(item.id), variant: "success" as const, permission: "write" as const }]),
                           ...(item.is_archived && isAdmin && [{ label: sourceText("Delete Permanently"), icon: <Trash2 size={14} />, onClick: () => purge.mutate(item.id), variant: "danger" as const, permission: "delete" as const }] || []),
                         ]}
                       />

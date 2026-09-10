@@ -474,6 +474,20 @@ export default function ReportsRegistryPage() {
                     <ExpandingActions
                       actions={[
                         { label: sourceText("View"), icon: <Eye size={14} />, onClick: () => router.push(`/reports/${row.id}`) },
+                        ...(row.current_version
+                          ? [{
+                              label: sourceText("Download"),
+                              icon: <Download size={14} />,
+                              onClick: () => {
+                                void reportsApi.versions.exportXlsx(
+                                  row.current_version!,
+                                  row.reference,
+                                );
+                              },
+                            }]
+                          : []),
+                        { label: sourceText("Versions"), icon: <FileCheck size={14} />, onClick: () => setManageTarget(row) },
+                        { label: sourceText("Regenerate"), icon: <RotateCcw size={14} />, onClick: () => setRegenerateTarget(row), permission: "write" as const },
                       ]}
                     />
                   </div>

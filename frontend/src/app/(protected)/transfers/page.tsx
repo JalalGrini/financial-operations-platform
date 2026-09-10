@@ -50,7 +50,26 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function TransferActions({ t: _t }: { t: CashTransfer }) { return null; }
+function TransferActions({
+  t,
+  onArchive,
+}: {
+  t: CashTransfer;
+  onArchive: (id: string) => void;
+}) {
+  const router = useRouter();
+  return (
+    <ExpandingActions
+      actions={[
+        { label: sourceText("View"), icon: <Eye size={14} />, onClick: () => router.push(`/transfers/${t.id}`) },
+        ...(!t.is_archived
+          ? [{ label: sourceText("Edit"), icon: <Pencil size={14} />, onClick: () => router.push(`/transfers/${t.id}/edit`), permission: "write" as const }]
+          : []),
+        { label: sourceText("Archive"), icon: <Archive size={14} />, onClick: () => onArchive(t.id), variant: "warning" as const, permission: "write" as const },
+      ]}
+    />
+  );
+}
 
 export default function TransfersPage() {
   const qc = useQueryClient();
@@ -199,8 +218,7 @@ export default function TransfersPage() {
                         <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => revertMutation.mutate(t.id)} disabled={revertMutation.isPending}><RotateCcw className="h-3 w-3" /> {sourceText("Revert")}</Button>
                       )}
                       </>)}
-                      <Button size="sm" variant="ghost" className="gap-1.5 h-7 text-xs" onClick={() => router.push(`/transfers/${t.id}`)}><Eye size={14} /> {sourceText("View")}</Button>
-                      {canWrite && (<>{!t.is_archived && <Link href={`/transfers/${t.id}/edit`}><span className="sr-only">{sourceText("Edit")}</span></Link>}<ExpandingActions actions={[{ label: sourceText("Edit"), icon: <Pencil size={14} />, onClick: () => router.push(`/transfers/${t.id}/edit`), permission: "write" as const }, { label: sourceText("Archive"), icon: <Archive size={14} />, onClick: () => setArchiveTarget(t.id), variant: "warning" as const, permission: "write" as const }]} /></>)}
+                      <TransferActions t={t} onArchive={setArchiveTarget} />
                     </div>
                   </CardContent>
                 </Card>
@@ -237,7 +255,7 @@ export default function TransfersPage() {
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <TagAction resourceType="transfers.cashtransfer" targetId={t.id} compact />
-                        <TransferActions t={t} />
+                        <TransferActions t={t} onArchive={setArchiveTarget} />
                       </div>
                     </TableCell>
                   </TableRow>

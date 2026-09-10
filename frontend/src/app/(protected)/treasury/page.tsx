@@ -28,7 +28,8 @@ import {
   ReceiptText,
   Scale,
   WalletCards,
-  RefreshCw
+  RefreshCw,
+  Archive,
 } from "lucide-react";
 import { PageHeader, Breadcrumb } from "@/components/ui/page-components";
 import { PageHero } from "@/components/ui/page-hero";
@@ -36,6 +37,7 @@ import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ExpandingActions } from "@/components/ui/expanding-actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -504,6 +506,14 @@ function TransactionsSection() {
       toast.error(message);
     },
   });
+  const archiveMutation = useMutation({
+    mutationFn: (id: string) => treasuryApi.transactions.archive(id),
+    onSuccess: () => {
+      invalidate();
+      toast.success(sourceText("Transaction archived"));
+    },
+    onError: (e: any) => toast.error(e?.message || sourceText("Archive failed")),
+  });
   const openCreate = () => {
     setForm({
       direction: "inbound",
@@ -898,7 +908,11 @@ function TransactionsSection() {
                 <TableCell>
                   <div className="flex items-center justify-end gap-1">
                     <TagAction resourceType="treasury.transaction" targetId={row.id} compact />
-                                  
+                    <ExpandingActions
+                      actions={[
+                        { label: sourceText("Archive"), icon: <Archive size={14} />, onClick: () => archiveMutation.mutate(row.id), variant: "warning" as const, permission: "write" as const },
+                      ]}
+                    />
                   </div>
                 </TableCell>
               </TableRow>
