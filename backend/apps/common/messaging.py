@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import logging
+import threading
+
 from django.conf import settings
 
 from apps.common.mailer import queue_platform_email
+
+
+logger = logging.getLogger(__name__)
 
 
 class MessagingError(Exception):
@@ -21,6 +27,10 @@ def _twilio_client():
     except ImportError as exc:
         raise MessagingError("Twilio is not installed.") from exc
     return Client(account_sid, auth_token)
+
+
+def _deliver_in_background(fn, *, name: str) -> None:
+    threading.Thread(target=fn, daemon=True, name=name).start()
 
 
 def send_ticket_reply(
@@ -48,9 +58,23 @@ def send_ticket_reply(
         from_number = getattr(settings, "TWILIO_PHONE_NUMBER", "") or ""
         if not from_number:
             raise MessagingError("TWILIO_PHONE_NUMBER is not configured.")
-        client.messages.create(body=body, from_=from_number, to=phone)
+
+        def _send_sms() -> None:
+            try:
+                client.messages.create(body=body, from_=from_number, to=phone)
+            except Exception as exc:
+                logger.warning("sms reply not sent err=%s", exc)
+
+        _deliver_in_background(_send_sms, name="ticket-sms")
         return
 
     from_whatsapp = getattr(settings, "TWILIO_WHATSAPP_NUMBER", "") or "whatsapp:+14155238886"
     to_whatsapp = phone if str(phone).startswith("whatsapp:") else f"whatsapp:{phone}"
-    client.messages.create(body=body, from_=from_whatsapp, to=to_whatsapp)
+
+    def _send_whatsapp() -> None:
+        try:
+            client.messages.create(body=body, from_=from_whatsapp, to=to_whatsapp)
+        except Exception as exc:
+            logger.warning("whatsapp reply not sent err=%s", exc)
+
+    _deliver_in_background(_send_whatsapp, name="ticket-whatsapp")

@@ -82,6 +82,7 @@ def _send_via_api(url: str, api_key: str, to: str, subject: str, body: str) -> N
 def send_platform_email_quietly(*, to: str, subject: str, body: str) -> bool:
     try:
         send_platform_email(to=to, subject=subject, body=body)
+        logger.info("sent email to=%s subject=%s", to, subject)
         return True
     except MailerError as exc:
         logger.warning("email not sent to=%s subject=%s err=%s", to, subject, exc)
@@ -93,15 +94,29 @@ def _inline_email_backend() -> bool:
     return "locmem" in backend or "console" in backend or "dummy" in backend
 
 
+def _run_queued_send(*, to: str, subject: str, body: str) -> None:
+    from django.db import close_old_connections
+
+    close_old_connections()
+    try:
+        send_platform_email_quietly(to=to, subject=subject, body=body)
+    finally:
+        close_old_connections()
+
+
 def queue_platform_email(*, to: str, subject: str, body: str) -> None:
-    """Return immediately. SMTP runs after the HTTP response in production."""
+    """Return immediately. SMTP still sends in the background in production."""
     if not to:
         return
+    to = str(to)
+    subject = str(subject or "")
+    body = str(body or "")
     if _inline_email_backend():
         send_platform_email_quietly(to=to, subject=subject, body=body)
         return
+    logger.info("queued email to=%s subject=%s", to, subject)
     threading.Thread(
-        target=send_platform_email_quietly,
+        target=_run_queued_send,
         kwargs={"to": to, "subject": subject, "body": body},
         daemon=True,
         name="platform-email",

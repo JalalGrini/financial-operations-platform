@@ -142,7 +142,17 @@ class HelpTicketReplyView(APIView):
         channel = serializer.validated_data.get('channel') or 'email'
         phone = serializer.validated_data.get('phone') or ''
 
-        from apps.common.messaging import MessagingError, send_ticket_reply
+        from apps.common.messaging import send_ticket_reply
+
+        with transaction.atomic():
+            ticket.reply_subject = subject
+            ticket.reply_body = body
+            ticket.replied_at = timezone.now()
+            ticket.replied_by = request.user
+            ticket.reply_sent = True
+            ticket.status = 'closed'
+            ticket.resolved_by = request.user
+            ticket.save()
 
         try:
             send_ticket_reply(
@@ -152,34 +162,21 @@ class HelpTicketReplyView(APIView):
                 email=ticket.email,
                 phone=phone or None,
             )
-            with transaction.atomic():
-                ticket.reply_subject = subject
-                ticket.reply_body = body
-                ticket.replied_at = timezone.now()
-                ticket.replied_by = request.user
-                ticket.reply_sent = True
-                ticket.status = 'closed'
-                ticket.resolved_by = request.user
-                ticket.save()
-            return Response(HelpTicketSerializer(ticket).data)
         except Exception as e:
-            # Save the reply even if delivery fails (admin can retry)
-            with transaction.atomic():
-                ticket.reply_subject = subject
-                ticket.reply_body = body
-                ticket.replied_at = timezone.now()
-                ticket.replied_by = request.user
-                ticket.reply_sent = False
-                ticket.save()
-            detail = (
-                f'Reply saved but {channel} delivery failed: {e}'
-                if not isinstance(e, MessagingError)
-                else f'Reply saved but {channel} delivery failed: {e}'
+            logger.warning(
+                "ticket reply delivery failed ticket=%s channel=%s err=%s",
+                pk,
+                channel,
+                e,
             )
+            ticket.reply_sent = False
+            ticket.save(update_fields=["reply_sent", "updated_at"])
+            detail = f"Reply saved but {channel} delivery failed: {e}"
             return Response(
-                {'detail': detail, 'ticket': HelpTicketSerializer(ticket).data},
-                status=207
+                {"detail": detail, "ticket": HelpTicketSerializer(ticket).data},
+                status=207,
             )
+        return Response(HelpTicketSerializer(ticket).data)
 
 
 # --------------------------------------------------------- client tickets
