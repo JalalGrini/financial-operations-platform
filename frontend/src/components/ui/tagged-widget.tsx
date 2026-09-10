@@ -50,7 +50,7 @@ export function TaggedWidget() {
   const resolvedPreview = resolved.slice(0, 4);
   const badgeCount = unresolved.length;
 
-  if (rows.length === 0 && !isOpen) return null;
+  if (badgeCount === 0) return null;
 
   return (
     <div className="fixed top-20 end-4 z-40 sm:end-6">
