@@ -220,6 +220,11 @@ class EntityOpeningBalanceWriteSerializer(serializers.ModelSerializer):
             # A starting position of "today" is the overwhelmingly common case
             # and making the user pick a date to express it is friction.
             "as_of_date": {"required": False},
+            # Only one of these FKs is set. The unused side must be omittable
+            # (and nullable) so an associated-person opening balance is not
+            # rejected for `company: null`.
+            "company": {"required": False, "allow_null": True},
+            "associated_person": {"required": False, "allow_null": True},
         }
 
     def validate_as_of_date(self, value):

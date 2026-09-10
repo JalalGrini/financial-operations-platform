@@ -238,16 +238,23 @@ export function EntityBalances() {
       toast.error(sourceText("Enter a starting amount"));
       return;
     }
-    saveMutation.mutate({
+    const payload: EntityOpeningBalanceWriteInput = {
       entity_type: form.entity_type,
-      company: form.entity_type === "company" ? form.entityId : null,
-      associated_person: form.entity_type === "associated_person" ? form.entityId : null,
       // Comma decimal separators are normal on a fr-MA keyboard.
       amount: form.amount.replace(",", "."),
       currency,
       as_of_date: form.as_of_date,
       note: form.note,
-    });
+    };
+    // Send only the FK that matches entity_type. Posting `company: null` with
+    // an associated person was rejected as "this field may not be null", so a
+    // person starting balance could not be created the way a company one can.
+    if (form.entity_type === "company") {
+      payload.company = form.entityId;
+    } else {
+      payload.associated_person = form.entityId;
+    }
+    saveMutation.mutate(payload);
   }
 
   const rows = report?.entities ?? [];
@@ -258,13 +265,24 @@ export function EntityBalances() {
     return Array.from(set);
   }, [currency, report?.other_currencies]);
 
+  const companyRows = companies?.results ?? [];
+  const personRows = Array.isArray(persons)
+    ? persons
+    : (persons?.results ?? []);
   const entityOptions =
     form.entity_type === "company"
-      ? (companies?.results ?? []).map((c) => ({ id: c.id, label: c.name }))
-      : (persons?.results ?? []).map((p) => ({
-          id: p.id,
-          label: p.full_name ?? `${p.first_name} ${p.last_name}`,
-        }));
+      ? companyRows
+          .map((c) => ({ id: String(c.id), label: c.name }))
+          .filter((o) => o.id)
+      : personRows
+          .map((p) => ({
+            id: String(p.id ?? ""),
+            label:
+              (p.full_name && p.full_name.trim()) ||
+              [p.first_name, p.last_name].filter(Boolean).join(" ").trim() ||
+              String(p.id ?? ""),
+          }))
+          .filter((o) => o.id);
 
   return (
     <Card>
@@ -372,7 +390,8 @@ export function EntityBalances() {
                       {form.entity_type === "company" ? "Company" : "Associated person"}
                     </Label>
                     <Select
-                      value={form.entityId ?? ""}
+                      key={form.entity_type}
+                      value={form.entityId || undefined}
                       onValueChange={(value) => setForm((f) => ({ ...f, entityId: value }))}
                     >
                       <SelectTrigger id="ob-entity" data-reveal-focus>

@@ -313,6 +313,20 @@ class OpeningBalanceApiTests(BalanceTestData):
         self.assertEqual(response.status_code, 201, response.data)
         self.assertEqual(response.data["entity_label"], "Karim Director")
 
+    def test_person_opening_balance_omits_company_key(self):
+        """The UI sends only the person FK; `company` is absent, not null."""
+        payload = {
+            "entity_type": "associated_person",
+            "associated_person": str(self.karim.pk),
+            "amount": "2500.00",
+            "currency": "MAD",
+        }
+        response = self.client.post(OPENING, payload, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertIsNone(response.data["company"])
+        self.assertEqual(response.data["associated_person"], str(self.karim.pk))
+        self.assertEqual(response.data["entity_label"], "Karim Director")
+
     def test_switching_entity_type_clears_the_unused_side(self):
         created = self.client.post(OPENING, self._payload(), format="json")
         response = self.client.patch(
