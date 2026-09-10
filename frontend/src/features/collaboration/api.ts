@@ -58,7 +58,7 @@ export const collaborationApi = {
   mentions: async () =>
     unwrap<any>(
       await apiClient.get(
-        "/collaboration/mentions/?assigned_to_me=true&active=true",
+        "/collaboration/mentions/?assigned_to_me=true&page_size=200",
       ),
     ),
   targetMentions: async (resourceType: string, targetId: string) =>

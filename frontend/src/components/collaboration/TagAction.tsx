@@ -49,6 +49,14 @@ function personLabel(person: {
   return "";
 }
 
+function initialsFor(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  }
+  return (parts[0]?.[0] ?? "?").toUpperCase();
+}
+
 export function TagAction({
   resourceType,
   targetId,
@@ -148,7 +156,7 @@ export function TagAction({
           setQuery("");
         }
       }}
-      width={300}
+      width={384}
       align="start"
       side="bottom"
       collisionPadding={8}
@@ -170,24 +178,12 @@ export function TagAction({
       }
     >
       <div
-        className="space-y-3 p-3"
+        className="space-y-3 p-4"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="space-y-1 pe-1">
-          <p className="text-sm font-semibold leading-tight">
-            <SourceText source="Tag a colleague" />
-          </p>
-          <p className="text-xs leading-snug text-muted-foreground">
-            <SourceText source="They will see this record in Tagged for me, with your optional note." />
-          </p>
-        </div>
-
         <div className="space-y-1.5">
-          <p className="text-xs font-medium">
-            <SourceText source="Choose a user" />
-          </p>
           <div className="flex items-center gap-2 rounded-lg border bg-background px-2">
             <Search
               className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
@@ -196,15 +192,15 @@ export function TagAction({
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder={sourceText("Search...")}
-              className="h-8 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              placeholder={sourceText("Choose a user")}
+              className="h-9 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               aria-label={sourceText("Choose a user")}
             />
           </div>
           <ul
             role="listbox"
             aria-label={sourceText("Choose a user")}
-            className="max-h-36 overflow-y-auto overscroll-contain rounded-lg border bg-background p-1"
+            className="max-h-44 overflow-y-auto overscroll-contain rounded-lg border bg-background p-1"
           >
             {usersQuery.isLoading && (
               <li className="px-2 py-4 text-center text-xs text-muted-foreground">
@@ -223,6 +219,7 @@ export function TagAction({
             {filtered.map((item) => {
               const selected = item.id === user;
               const name = personLabel(item) || sourceText("Unnamed user");
+              const roleHint = item.roles.join(", ");
               return (
                 <li key={item.id}>
                   <button
@@ -238,18 +235,28 @@ export function TagAction({
                       if (event.key !== "Enter" && event.key !== " ") return;
                       chooseUser(event, item.id);
                     }}
-                    className={`flex w-full flex-col rounded-md px-2 py-1.5 text-start text-sm transition-colors ${
+                    className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-start transition-colors ${
                       selected
                         ? "bg-accent text-accent-foreground"
                         : "hover:bg-muted"
                     }`}
                   >
-                    <span className="truncate font-medium">{name}</span>
-                    {item.email ? (
-                      <span className="truncate text-[11px] text-muted-foreground">
-                        {item.email}
+                    <span
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-semibold text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300"
+                      aria-hidden="true"
+                    >
+                      {initialsFor(name)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">
+                        {name}
                       </span>
-                    ) : null}
+                      {roleHint ? (
+                        <span className="block truncate text-[11px] text-muted-foreground">
+                          {roleHint}
+                        </span>
+                      ) : null}
+                    </span>
                   </button>
                 </li>
               );
@@ -257,53 +264,15 @@ export function TagAction({
           </ul>
         </div>
 
-        <label className="block space-y-1 text-xs font-medium">
-          <SourceText source="Optional context" />
-          <textarea
-            value={message}
-            maxLength={500}
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder={sourceText("Optional context")}
-            className="min-h-16 w-full rounded-lg border bg-background p-2 text-sm"
-          />
-        </label>
+        <textarea
+          value={message}
+          maxLength={500}
+          onChange={(event) => setMessage(event.target.value)}
+          placeholder={sourceText("Optional context")}
+          className="min-h-16 w-full rounded-lg border bg-background p-2 text-sm"
+        />
 
-        {rows.length > 0 && (
-          <div className="rounded-xl border bg-muted/40 p-2">
-            <p className="mb-1 text-xs font-medium">
-              <SourceText source="Active tags" />
-            </p>
-            {rows.map((row) => {
-              const name =
-                personLabel({ full_name: row.tagged_user_name }) ||
-                sourceText("Unnamed user");
-              return (
-                <div
-                  key={row.id}
-                  className="flex items-center justify-between gap-2 py-0.5 text-sm"
-                >
-                  <span className="truncate font-medium">{name}</span>
-                  {row.can_untag && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      aria-label={sourceText("Remove tag")}
-                      onPointerDown={(event) => {
-                        event.stopPropagation();
-                        untag.mutate(row.id);
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex justify-end gap-2">
           <Button
             type="button"
             variant="ghost"
@@ -330,6 +299,49 @@ export function TagAction({
             <SourceText source="Tag" leading trailing />
           </Button>
         </div>
+
+        {rows.length > 0 && (
+          <div className="border-t pt-3">
+            <p className="mb-2 text-sm font-medium">
+              <SourceText source="Active tags" />
+            </p>
+            {rows.map((row) => {
+              const name =
+                personLabel({ full_name: row.tagged_user_name }) ||
+                sourceText("Unnamed user");
+              return (
+                <div
+                  key={row.id}
+                  className="flex items-center justify-between gap-2 py-1 text-sm"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold"
+                      aria-hidden="true"
+                    >
+                      {initialsFor(name)}
+                    </span>
+                    <span className="truncate font-medium">{name}</span>
+                  </span>
+                  {row.can_untag && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      aria-label={sourceText("Remove tag")}
+                      onPointerDown={(event) => {
+                        event.stopPropagation();
+                        untag.mutate(row.id);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </Popover>
   );

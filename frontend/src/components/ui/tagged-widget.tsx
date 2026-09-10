@@ -15,6 +15,10 @@ import { sourceText } from "@/lib/i18n/source-catalog";
 const springIn: any = { type: "spring", stiffness: 600, damping: 60, mass: 3 };
 const springOut: any = { type: "spring", stiffness: 600, damping: 60, mass: 2 };
 
+function isResolved(row: Mention): boolean {
+  return Boolean(row.resolved_at || row.read_at);
+}
+
 export function TaggedWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const qc = useQueryClient();
@@ -33,18 +37,20 @@ export function TaggedWidget() {
   const resolveAll = useMutation({
     mutationFn: async () => {
       const rows: Mention[] = query.data?.results ?? query.data ?? [];
-      const unresolved = rows.filter((r) => !r.resolved_at);
+      const unresolved = rows.filter((r) => !isResolved(r));
       await Promise.all(unresolved.map((r) => collaborationApi.resolve(r.id)));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["mentions"] }),
   });
 
   const rows: Mention[] = query.data?.results ?? query.data ?? [];
-  const unresolved = rows.filter((r) => !r.resolved_at);
+  const unresolved = rows.filter((r) => !isResolved(r));
+  const resolved = rows.filter((r) => isResolved(r));
   const preview = unresolved.slice(0, 4);
+  const resolvedPreview = resolved.slice(0, 4);
   const badgeCount = unresolved.length;
 
-  if (badgeCount === 0 && !isOpen) return null;
+  if (rows.length === 0 && !isOpen) return null;
 
   return (
     <div className="fixed top-20 end-4 z-40 sm:end-6">
@@ -72,12 +78,14 @@ export function TaggedWidget() {
               >
                 {sourceText("Tagged")}
               </motion.span>
-              <motion.div
-                layoutId="tagged-badge"
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[12px] font-bold text-indigo-700"
-              >
-                {badgeCount > 9 ? "9+" : badgeCount}
-              </motion.div>
+              {badgeCount > 0 && (
+                <motion.div
+                  layoutId="tagged-badge"
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[12px] font-bold text-indigo-700"
+                >
+                  {badgeCount > 9 ? "9+" : badgeCount}
+                </motion.div>
+              )}
             </motion.button>
           ) : (
             <motion.div
@@ -97,9 +105,11 @@ export function TaggedWidget() {
                   </motion.h2>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <motion.div layoutId="tagged-badge" className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-[12px] font-bold text-indigo-700 dark:text-indigo-300">
-                    {badgeCount > 9 ? "9+" : badgeCount}
-                  </motion.div>
+                  {badgeCount > 0 && (
+                    <motion.div layoutId="tagged-badge" className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-[12px] font-bold text-indigo-700 dark:text-indigo-300">
+                      {badgeCount > 9 ? "9+" : badgeCount}
+                    </motion.div>
+                  )}
                   <motion.button
                     onClick={() => setIsOpen(false)}
                     className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
@@ -128,7 +138,7 @@ export function TaggedWidget() {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="py-6 text-center text-sm text-neutral-400 dark:text-neutral-500"
+                    className="py-4 text-center text-sm text-neutral-400 dark:text-neutral-500"
                   >
                     {sourceText("All caught up!")} ✨
                   </motion.div>
@@ -168,6 +178,31 @@ export function TaggedWidget() {
                       </button>
                     </motion.div>
                   ))
+                )}
+
+                {resolvedPreview.length > 0 && (
+                  <div className="pt-1">
+                    <p className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+                      {sourceText("Resolved")} · {sourceText("Read")}
+                    </p>
+                    {resolvedPreview.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={item.destination || "/tagged"}
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-start gap-3 rounded-2xl px-3 py-2 text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13px] font-medium line-through decoration-neutral-300">
+                            {item.target_label}
+                          </p>
+                          <p className="truncate text-[11px]">
+                            {item.tagged_by_name}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 )}
               </div>
 
