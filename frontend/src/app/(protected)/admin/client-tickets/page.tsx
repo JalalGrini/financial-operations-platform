@@ -53,13 +53,6 @@ import { PageHero } from "@/components/ui/page-hero";
 import { SkeletonTable } from "@/components/ui/page-skeletons";
 import { StatCard, STAT_CARDS_GRID } from "@/components/ui/stat-card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -69,7 +62,11 @@ import {
 } from "@/components/ui/table";
 import { SourceText } from "@/components/i18n/SourceText";
 import { sourceText } from "@/lib/i18n/source-catalog";
-import { CLIENT_SUBJECT_KEYS, CLIENT_SUBJECT_SOURCE } from "@/lib/ticket-mail";
+import {
+  CLIENT_SUBJECT_KEYS,
+  CLIENT_SUBJECT_SOURCE,
+  TICKET_SUBJECT_SELECT_CLASS,
+} from "@/lib/ticket-mail";
 import { useRole } from "@/hooks/useRole";
 import { apiClient } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -281,23 +278,24 @@ function TicketDialog({
             <Label htmlFor="client-ticket-reply-subject">
               <SourceText source="Email subject" />
             </Label>
-            <Select
+            <select
+              id="client-ticket-reply-subject"
+              className={`${TICKET_SUBJECT_SELECT_CLASS} mt-1`}
               value={subjectKey}
-              onValueChange={(value: string) =>
-                setSubjectKey(value as (typeof CLIENT_SUBJECT_KEYS)[number])
+              onChange={(event) =>
+                setSubjectKey(event.target.value as (typeof CLIENT_SUBJECT_KEYS)[number])
               }
+              required
             >
-              <SelectTrigger id="client-ticket-reply-subject" className="mt-1">
-                <SelectValue placeholder={sourceText("Choose an email subject")} />
-              </SelectTrigger>
-              <SelectContent>
-                {CLIENT_SUBJECT_KEYS.map((key) => (
-                  <SelectItem key={key} value={key}>
-                    <SourceText source={CLIENT_SUBJECT_SOURCE[key]} />
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {CLIENT_SUBJECT_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {sourceText(CLIENT_SUBJECT_SOURCE[key])}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              <SourceText source="This subject will be used on the email we send." />
+            </p>
           </div>
 
           <div>

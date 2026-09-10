@@ -29,15 +29,9 @@ import {
   type ReplyChannel,
 } from "@/components/ui/reply-channel-toggle";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   HELP_SUBJECT_KEYS,
   HELP_SUBJECT_SOURCE,
+  TICKET_SUBJECT_SELECT_CLASS,
 } from "@/lib/ticket-mail";
 
 interface Ticket {
@@ -179,23 +173,24 @@ function ReplyDialog({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
             <Label htmlFor="help-reply-subject">
               <SourceText source="Email subject" />
             </Label>
-            <Select
+            <select
+              id="help-reply-subject"
+              className={TICKET_SUBJECT_SELECT_CLASS}
               value={subjectKey}
-              onValueChange={(value: string) =>
-                setSubjectKey(value as (typeof HELP_SUBJECT_KEYS)[number])
+              onChange={(event) =>
+                setSubjectKey(event.target.value as (typeof HELP_SUBJECT_KEYS)[number])
               }
+              required
             >
-              <SelectTrigger id="help-reply-subject">
-                <SelectValue placeholder={sourceText("Choose an email subject")} />
-              </SelectTrigger>
-              <SelectContent>
-                {HELP_SUBJECT_KEYS.map((key) => (
-                  <SelectItem key={key} value={key}>
-                    <SourceText source={HELP_SUBJECT_SOURCE[key]} />
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {HELP_SUBJECT_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {sourceText(HELP_SUBJECT_SOURCE[key])}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              <SourceText source="This subject will be used on the email we send." />
+            </p>
           </div>
           <div className="space-y-1">
             <Label><SourceText source="Message" /></Label>

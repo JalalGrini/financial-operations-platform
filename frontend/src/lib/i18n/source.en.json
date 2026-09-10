@@ -3190,5 +3190,6 @@
   "Passwords do not match.": "Passwords do not match.",
   "Continue": "Continue",
   "We could not send the email. Please try again.": "We could not send the email. Please try again.",
-  "The reply was saved but the email could not be sent.": "The reply was saved but the email could not be sent."
+  "The reply was saved but the email could not be sent.": "The reply was saved but the email could not be sent.",
+  "This subject will be used on the email we send.": "This subject will be used on the email we send."
 }

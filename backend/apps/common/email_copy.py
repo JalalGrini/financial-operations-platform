@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html as html_lib
+
 LOCALES = ("fr", "en", "ar")
 DEFAULT_LOCALE = "fr"
 
@@ -91,31 +93,34 @@ TICKET_RECEIVED = {
 }
 
 RESET_SUBJECT = {
-    "en": "Your 3.R.B Extreme sign-in code",
-    "fr": "Votre code de connexion 3.R.B Extreme",
-    "ar": "رمز الدخول إلى 3.R.B Extreme",
+    "en": "Your 3.R.B Extreme code",
+    "fr": "Votre code 3.R.B Extreme",
+    "ar": "رمز 3.R.B Extreme",
 }
 
 RESET_BODY = {
     "en": (
         "Hello,\n\n"
-        "Your 6-digit code to reset your password is: {code}\n"
-        "It expires in 15 minutes. It is not a password.\n\n"
-        "If you did not ask for this, ignore this email.\n\n"
+        "Your 3.R.B Extreme code:\n\n"
+        "{code}\n\n"
+        "This code expires in 15 minutes. It is not a password.\n\n"
+        "If you did not request this code, ignore this email.\n\n"
         "3.R.B Extreme"
     ),
     "fr": (
         "Bonjour,\n\n"
-        "Votre code à 6 chiffres pour réinitialiser le mot de passe est : {code}\n"
-        "Il expire dans 15 minutes. Ce n’est pas un mot de passe.\n\n"
-        "Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail.\n\n"
+        "Votre code 3.R.B Extreme :\n\n"
+        "{code}\n\n"
+        "Ce code expire dans 15 minutes. Ce n’est pas un mot de passe.\n\n"
+        "Si vous n’avez pas demandé ce code, ignorez cet e-mail.\n\n"
         "3.R.B Extreme"
     ),
     "ar": (
         "مرحباً،\n\n"
-        "رمزك المكوّن من 6 أرقام لإعادة تعيين كلمة المرور: {code}\n"
-        "ينتهي خلال 15 دقيقة. هذا ليس كلمة مرور.\n\n"
-        "إذا لم تطلب ذلك، تجاهل هذا البريد.\n\n"
+        "رمز 3.R.B Extreme:\n\n"
+        "{code}\n\n"
+        "ينتهي هذا الرمز خلال 15 دقيقة. هذا ليس كلمة مرور.\n\n"
+        "إذا لم تطلب هذا الرمز، تجاهل هذا البريد.\n\n"
         "3.R.B Extreme"
     ),
 }
@@ -153,3 +158,45 @@ def reset_body(code: str, locale: str | None) -> str:
     loc = normalize_locale(locale)
     template = RESET_BODY.get(loc) or RESET_BODY[DEFAULT_LOCALE]
     return template.format(code=code)
+
+
+def reset_html(code: str, locale: str | None) -> str:
+    loc = normalize_locale(locale)
+    safe_code = html_lib.escape(str(code))
+    copy = {
+        "en": (
+            "Hello,",
+            "Your 3.R.B Extreme code:",
+            "This code expires in 15 minutes. It is not a password.",
+            "If you did not request this code, ignore this email.",
+        ),
+        "fr": (
+            "Bonjour,",
+            "Votre code 3.R.B Extreme :",
+            "Ce code expire dans 15 minutes. Ce n’est pas un mot de passe.",
+            "Si vous n’avez pas demandé ce code, ignorez cet e-mail.",
+        ),
+        "ar": (
+            "مرحباً،",
+            "رمز 3.R.B Extreme:",
+            "ينتهي هذا الرمز خلال 15 دقيقة. هذا ليس كلمة مرور.",
+            "إذا لم تطلب هذا الرمز، تجاهل هذا البريد.",
+        ),
+    }
+    hello, intro, expiry, ignore = copy.get(loc) or copy[DEFAULT_LOCALE]
+    direction = "rtl" if loc == "ar" else "ltr"
+    return (
+        f'<!DOCTYPE html><html lang="{loc}" dir="{direction}"><body '
+        'style="margin:0;padding:0;background:#ffffff">'
+        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
+        'style="max-width:560px;margin:0 auto;padding:24px;'
+        "font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;"
+        'color:#1a1a1a">'
+        f"<tr><td><p>{html_lib.escape(hello)}</p>"
+        f"<p>{html_lib.escape(intro)}</p>"
+        '<p style="font-size:28px;letter-spacing:6px;font-family:Consolas,Monaco,'
+        f'monospace;font-weight:bold">{safe_code}</p>'
+        f"<p>{html_lib.escape(expiry)}</p>"
+        f"<p>{html_lib.escape(ignore)}</p>"
+        "<p>3.R.B Extreme</p></td></tr></table></body></html>"
+    )

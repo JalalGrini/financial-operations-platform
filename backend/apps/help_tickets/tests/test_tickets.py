@@ -97,6 +97,24 @@ class TicketReplySubjectTests(APITestCase):
         )
         self.assertIn("Merci", mail.outbox[0].body)
 
+    def test_client_reply_requires_subject_key(self):
+        ticket = ClientTicket.objects.create(
+            name="Golnar",
+            email="golnar@example.com",
+            phone="0612345678",
+            company="other",
+            subject_key="quote_request",
+            locale="fr",
+            message="Need a quote",
+        )
+        response = self.client.post(
+            f"/api/v1/help/client-tickets/{ticket.pk}/reply/",
+            {"reply_body": "Merci."},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_help_reply_sends_staff_subject_in_ticket_locale(self):
         ticket = HelpTicket.objects.create(
             reason="cannot_sign_in",

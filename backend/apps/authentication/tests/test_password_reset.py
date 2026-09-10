@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.cache import cache
@@ -35,11 +37,19 @@ class PasswordResetTests(APITestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(mail.outbox), 1)
-        import re
+        self.assertEqual(mail.outbox[0].subject, "Votre code 3.R.B Extreme")
+        self.assertIn("pas un mot de passe", mail.outbox[0].body)
+        self.assertNotIn("http://", mail.outbox[0].body)
+        self.assertTrue(mail.outbox[0].alternatives)
+        html = mail.outbox[0].alternatives[0][0]
+        self.assertIn("<html", html)
+        self.assertNotIn("http://", html)
+        self.assertNotIn("https://", html)
 
         match = re.search(r"\b(\d{6})\b", mail.outbox[0].body)
         self.assertIsNotNone(match)
         code = match.group(1)
+        self.assertIn(code, html)
         verify = self.client.post(
             "/api/v1/auth/password-reset/verify/",
             {"email": "reset@example.com", "code": code},

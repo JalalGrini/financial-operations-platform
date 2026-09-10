@@ -3190,5 +3190,6 @@
   "Passwords do not match.": "كلمتا المرور غير متطابقتين.",
   "Continue": "متابعة",
   "We could not send the email. Please try again.": "تعذر إرسال البريد الإلكتروني. يرجى المحاولة مرة أخرى.",
-  "The reply was saved but the email could not be sent.": "تم حفظ الرد لكن تعذر إرسال البريد الإلكتروني."
+  "The reply was saved but the email could not be sent.": "تم حفظ الرد لكن تعذر إرسال البريد الإلكتروني.",
+  "This subject will be used on the email we send.": "سيُستخدم هذا الموضوع في البريد المُرسَل."
 }

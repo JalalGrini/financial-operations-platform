@@ -210,3 +210,8 @@ class ClientTicketReplySerializer(serializers.Serializer):
     channel = serializers.ChoiceField(
         choices=("email", "sms", "whatsapp"), required=False, default="email"
     )
+
+    def validate(self, attrs):
+        if not attrs.get("subject_key"):
+            raise serializers.ValidationError({"subject_key": "Please choose a subject."})
+        return attrs

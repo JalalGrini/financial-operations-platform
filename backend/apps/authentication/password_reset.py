@@ -20,7 +20,12 @@ from rest_framework.views import APIView
 from apps.authentication.cookies import clear_auth_cookies
 from apps.authentication.models import PasswordResetCode
 from apps.authentication.views import _blacklist_all_outstanding_tokens_for_user
-from apps.common.email_copy import normalize_locale, reset_body, reset_subject
+from apps.common.email_copy import (
+    normalize_locale,
+    reset_body,
+    reset_html,
+    reset_subject,
+)
 from apps.common.http import client_ip
 from apps.common.mailer import MailerError, send_platform_email
 
@@ -82,6 +87,7 @@ class PasswordResetRequestView(APIView):
                 to=user.email,
                 subject=reset_subject(locale),
                 body=reset_body(code, locale),
+                html_body=reset_html(code, locale),
             )
         except MailerError as exc:
             logger.warning(
