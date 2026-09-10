@@ -21,7 +21,7 @@ from apps.authentication.models import PasswordResetCode
 from apps.authentication.views import _blacklist_all_outstanding_tokens_for_user
 from apps.common.email_copy import normalize_locale, reset_body, reset_subject
 from apps.common.http import client_ip
-from apps.common.mailer import send_platform_email_quietly
+from apps.common.mailer import queue_platform_email
 
 User = get_user_model()
 CODE_TTL = timedelta(minutes=15)
@@ -75,7 +75,7 @@ class PasswordResetRequestView(APIView):
             code_hash=make_password(code),
             expires_at=timezone.now() + CODE_TTL,
         )
-        send_platform_email_quietly(
+        queue_platform_email(
             to=user.email,
             subject=reset_subject(locale),
             body=reset_body(code, locale),

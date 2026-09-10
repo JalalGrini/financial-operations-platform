@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 import urllib.error
 import urllib.request
 
@@ -11,6 +12,15 @@ from django.conf import settings
 from django.core.mail import send_mail
 
 logger = logging.getLogger(__name__)
+SMTP_TIMEOUT = 8
+
+
+def _email_timeout() -> int:
+    timeout = getattr(settings, "EMAIL_TIMEOUT", SMTP_TIMEOUT)
+    try:
+        return int(timeout) if timeout else SMTP_TIMEOUT
+    except (TypeError, ValueError):
+        return SMTP_TIMEOUT
 
 
 class MailerError(Exception):
@@ -58,7 +68,7 @@ def _send_via_api(url: str, api_key: str, to: str, subject: str, body: str) -> N
         },
     )
     try:
-        with urllib.request.urlopen(request, timeout=15) as response:
+        with urllib.request.urlopen(request, timeout=_email_timeout()) as response:
             if response.status >= 400:
                 raise MailerError(f"Email API returned {response.status}.")
     except MailerError:
@@ -76,3 +86,23 @@ def send_platform_email_quietly(*, to: str, subject: str, body: str) -> bool:
     except MailerError as exc:
         logger.warning("email not sent to=%s subject=%s err=%s", to, subject, exc)
         return False
+
+
+def _inline_email_backend() -> bool:
+    backend = (getattr(settings, "EMAIL_BACKEND", "") or "").lower()
+    return "locmem" in backend or "console" in backend or "dummy" in backend
+
+
+def queue_platform_email(*, to: str, subject: str, body: str) -> None:
+    """Return immediately. SMTP runs after the HTTP response in production."""
+    if not to:
+        return
+    if _inline_email_backend():
+        send_platform_email_quietly(to=to, subject=subject, body=body)
+        return
+    threading.Thread(
+        target=send_platform_email_quietly,
+        kwargs={"to": to, "subject": subject, "body": body},
+        daemon=True,
+        name="platform-email",
+    ).start()

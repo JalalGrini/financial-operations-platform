@@ -46,10 +46,10 @@ class HelpTicketCreateView(APIView):
         if serializer.is_valid():
             ticket = serializer.save()
             from apps.common.email_copy import help_subject, ticket_received_body
-            from apps.common.mailer import send_platform_email_quietly
+            from apps.common.mailer import queue_platform_email
 
             subject = help_subject(ticket.subject_key, ticket.locale)
-            send_platform_email_quietly(
+            queue_platform_email(
                 to=ticket.email,
                 subject=subject,
                 body=ticket_received_body(ticket.name, subject, ticket.locale),
@@ -229,10 +229,10 @@ class ClientTicketCreateView(generics.CreateAPIView):
         self.perform_create(serializer)
         ticket = serializer.instance
         from apps.common.email_copy import client_subject, ticket_received_body
-        from apps.common.mailer import send_platform_email_quietly
+        from apps.common.mailer import queue_platform_email
 
         subject = client_subject(ticket.subject_key, ticket.locale)
-        send_platform_email_quietly(
+        queue_platform_email(
             to=ticket.email,
             subject=subject,
             body=ticket_received_body(ticket.name, subject, ticket.locale),
