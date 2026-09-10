@@ -212,7 +212,9 @@ const PRIORITY_OPTIONS = [
 ];
 const statusColumn = {
   key: "status",
-  header: sourceText("Status"),
+  get header() {
+    return sourceText("Status");
+  },
   className: "w-24",
   render: (v: unknown) => {
     const status = String(v ?? "");
@@ -230,7 +232,9 @@ const statusColumn = {
 };
 const refColumn = {
   key: "reference",
-  header: sourceText("Reference"),
+  get header() {
+    return sourceText("Reference");
+  },
   className: "w-28",
   render: (
     _v: unknown,
@@ -239,7 +243,12 @@ const refColumn = {
     },
   ) => <span className="font-mono text-xs">{row.reference}</span>,
 };
-const nameColumn = { key: "name", header: sourceText("Name") };
+const nameColumn = {
+  key: "name",
+  get header() {
+    return sourceText("Name");
+  },
+};
 
 function titleCaseEnum(value: string) {
   return value
@@ -252,7 +261,9 @@ function titleCaseEnum(value: string) {
 
 const boolBadge = (key: string, label?: string) => ({
   key,
-  header: sourceText(label || titleCaseEnum(key)),
+  get header() {
+    return sourceText(label || titleCaseEnum(key));
+  },
   className: "w-28",
   render: (v: unknown) => (
     <Badge variant={v ? "default" : "outline"}>
@@ -262,46 +273,96 @@ const boolBadge = (key: string, label?: string) => ({
 });
 
 const paymentMethodKindLabels: Record<string, string> = {
-  cash: sourceText("Cash"),
-  bank_transfer: sourceText("Bank Transfer"),
-  cheque: sourceText("Cheque"),
-  card: sourceText("Card"),
-  deposit: sourceText("Deposit"),
-  direct_debit: sourceText("Direct Debit"),
-  other: sourceText("Other"),
+  get cash() {
+    return sourceText("Cash");
+  },
+  get bank_transfer() {
+    return sourceText("Bank Transfer");
+  },
+  get cheque() {
+    return sourceText("Cheque");
+  },
+  get card() {
+    return sourceText("Card");
+  },
+  get deposit() {
+    return sourceText("Deposit");
+  },
+  get direct_debit() {
+    return sourceText("Direct Debit");
+  },
+  get other() {
+    return sourceText("Other");
+  },
 };
 
 const recordNatureLabels: Record<string, string> = {
-  income: sourceText("Income"),
-  expense: sourceText("Expense"),
-  transfer: sourceText("Transfer"),
-  adjustment: sourceText("Adjustment"),
+  get income() {
+    return sourceText("Income");
+  },
+  get expense() {
+    return sourceText("Expense");
+  },
+  get transfer() {
+    return sourceText("Transfer");
+  },
+  get adjustment() {
+    return sourceText("Adjustment");
+  },
 };
 
 const transactionNatureLabels: Record<string, string> = {
-  credit: sourceText("Credit"),
-  debit: sourceText("Debit"),
-  both: sourceText("Both (Transfer)"),
+  get credit() {
+    return sourceText("Credit");
+  },
+  get debit() {
+    return sourceText("Debit");
+  },
+  get both() {
+    return sourceText("Both (Transfer)");
+  },
 };
 
 const directionLabels: Record<string, string> = {
-  inbound: sourceText("Inbound"),
-  outbound: sourceText("Outbound"),
-  internal: sourceText("Internal"),
+  get inbound() {
+    return sourceText("Inbound");
+  },
+  get outbound() {
+    return sourceText("Outbound");
+  },
+  get internal() {
+    return sourceText("Internal");
+  },
 };
 
 const frequencyLabels: Record<string, string> = {
-  monthly: sourceText("Monthly"),
-  quarterly: sourceText("Quarterly"),
-  annual: sourceText("Annual"),
-  on_demand: sourceText("On Demand"),
+  get monthly() {
+    return sourceText("Monthly");
+  },
+  get quarterly() {
+    return sourceText("Quarterly");
+  },
+  get annual() {
+    return sourceText("Annual");
+  },
+  get on_demand() {
+    return sourceText("On Demand");
+  },
 };
 
 const priorityLabels: Record<string, string> = {
-  low: sourceText("Low"),
-  normal: sourceText("Normal"),
-  high: sourceText("High"),
-  urgent: sourceText("Urgent"),
+  get low() {
+    return sourceText("Low");
+  },
+  get normal() {
+    return sourceText("Normal");
+  },
+  get high() {
+    return sourceText("High");
+  },
+  get urgent() {
+    return sourceText("Urgent");
+  },
 };
 
 function SummaryTile({
@@ -1063,6 +1124,7 @@ function NotificationTypesSection() {
 }
 // ---------- Page ----------
 export default function ConfigurationPage() {
+  const { isAdmin } = useRole();
   const paymentMethodsQuery = useQuery({
     queryKey: ["configuration:payment-methods", "summary"],
     queryFn: () =>
@@ -1136,7 +1198,7 @@ export default function ConfigurationPage() {
       )}
       <PageHero
         icon={FileCog}
-        eyebrow="Administrator workspace"
+        eyebrow={isAdmin ? sourceText("Administrator workspace") : sourceText("Business configuration")}
         title={sourceText("Configuration")}
         description={sourceText("Administrator-managed business configuration: payment methods, categories, record types, transaction types, report types and notification types.")}
       />
@@ -1153,7 +1215,7 @@ export default function ConfigurationPage() {
 
         <div className="rounded-2xl border border-primary/15 bg-primary/5 p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-            {sourceText("Administrator guidance")}
+            {sourceText("Configuration guidance")}
           </p>
           <h2 className="mt-2 text-lg font-semibold text-foreground">
             {sourceText("Configuration changes shape downstream workflows")}

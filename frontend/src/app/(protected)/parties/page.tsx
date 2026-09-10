@@ -75,7 +75,9 @@ const PERSON_TYPE_STATUS_OPTIONS = [
 ];
 const refColumn = {
   key: "reference",
-  header: sourceText("Reference"),
+  get header() {
+    return sourceText("Reference");
+  },
   className: "w-28",
   render: (
     _v: unknown,
@@ -86,7 +88,9 @@ const refColumn = {
 };
 const statusColumn = {
   key: "status",
-  header: sourceText("Status"),
+  get header() {
+    return sourceText("Status");
+  },
   className: "w-24",
   render: (v: unknown) => {
     const status = String(v ?? "");
@@ -857,20 +861,20 @@ export default function PartiesPage() {
         </div>
       </section>
 
-      <section className="space-y-8">
-        <div className="space-y-3">
+      <section className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="space-y-3 min-w-0">
           <h2 className="text-lg font-semibold">
             <SourceText source="External Parties" />
           </h2>
           <ExternalPartiesSection />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-3 min-w-0">
           <h2 className="text-lg font-semibold">
             <SourceText source="Associated Persons" leading trailing />
           </h2>
           <AssociatedPersonsSection />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-3 min-w-0 lg:col-span-2 xl:col-span-1">
           <h2 className="text-lg font-semibold">
             <SourceText source="Person Types" />
           </h2>

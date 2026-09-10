@@ -10,14 +10,12 @@ from apps.common.permissions import RoleBasedAccessPermission
 
 
 class CanManageConfiguration(RoleBasedAccessPermission):
-    """Configuration workspace is Administrator-only for writes.
+    """Configuration catalogs follow the shared role matrix.
 
-    Assistants and Directors may still GET catalogs (record types, categories,
-    payment methods) because operational forms — financial records, parties,
-    employments — load those lists. Creating or editing configuration itself
-    stays on the Administration screens, which are also URL-gated.
+    Assistants may read and write payment methods, categories, record types,
+    transaction types, report types and notification types. Directors remain
+    read-only. Destruction stays Administrator-only. Document templates,
+    users, and the audit log are gated separately and stay Administrator-only.
     """
 
-    WRITE_ROLES = ("Administrator",)
-    DELETE_ROLES = ("Administrator",)
     message = _("Insufficient permissions to manage configuration.")

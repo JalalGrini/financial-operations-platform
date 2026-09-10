@@ -44,6 +44,23 @@ import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 
 import { sourceText } from "@/lib/i18n/source-catalog";
 // ── Status badge colour map ─────────────────────────────────────────────────
+function deadlineStatusLabel(status: string) {
+  switch (status) {
+    case "upcoming":
+      return sourceText("Upcoming");
+    case "due_soon":
+      return sourceText("Due soon");
+    case "overdue":
+      return sourceText("Overdue");
+    case "completed":
+      return sourceText("Completed");
+    case "cancelled":
+      return sourceText("Cancelled");
+    default:
+      return sourceText(status.replaceAll("_", " "));
+  }
+}
+
 const STATUS_BADGE: Record<string, string> = {
   upcoming:
     "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60",
@@ -126,10 +143,10 @@ export default function DeadlinesPage() {
 
   // Filter tabs
   const FILTER_TABS = [
-    { value: "active", label: "Active" },
-    { value: "all", label: "All" },
-    { value: "completed", label: "Completed" },
-    { value: "cancelled", label: "Cancelled" },
+    { value: "active", label: sourceText("Active") },
+    { value: "all", label: sourceText("All") },
+    { value: "completed", label: sourceText("Completed") },
+    { value: "cancelled", label: sourceText("Cancelled") },
   ];
 
 
@@ -304,7 +321,7 @@ export default function DeadlinesPage() {
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold", STATUS_BADGE[row.computed_status] ?? STATUS_BADGE.upcoming)}>
-                          {row.computed_status.replace("_", " ")}
+                          {deadlineStatusLabel(row.computed_status)}
                         </span>
                       </TableCell>
                       <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">
@@ -358,7 +375,7 @@ export default function DeadlinesPage() {
                             STATUS_BADGE.upcoming,
                         )}
                       >
-                        {row.computed_status.replace("_", " ")}
+                        {deadlineStatusLabel(row.computed_status)}
                       </span>
 
                       {/* Priority dot + label */}

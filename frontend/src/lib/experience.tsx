@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  Fragment,
   useCallback,
   useContext,
   useEffect,
@@ -293,7 +294,13 @@ export function ExperienceProvider({
 
   return (
     <ExperienceContext.Provider value={value}>
-      {children}
+      {/*
+        sourceText() reads document.documentElement.lang during render and is
+        not a hook, so pages that use it would otherwise keep the previous
+        language until navigation. Keying the tree forces those strings to
+        recompute when the locale changes.
+      */}
+      <Fragment key={locale}>{children}</Fragment>
     </ExperienceContext.Provider>
   );
 }

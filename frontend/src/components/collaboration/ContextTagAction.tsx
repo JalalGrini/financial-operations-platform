@@ -11,6 +11,8 @@ const patterns: Array<[RegExp, string]> = [
   [/^\/financial-records\/([0-9a-f-]+)$/i, "financial_records.financialrecord"],
   [/^\/reports\/([0-9a-f-]+)$/i, "reports.generatedreport"],
   [/^\/inventory\/([0-9a-f-]+)$/i, "inventory.inventoryitem"],
+  [/^\/deadlines\/([0-9a-f-]+)$/i, "deadlines.deadline"],
+  [/^\/transfers\/([0-9a-f-]+)$/i, "transfers.cashtransfer"],
 ];
 export function ContextTagAction() {
   const path = usePathname();

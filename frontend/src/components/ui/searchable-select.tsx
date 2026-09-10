@@ -234,6 +234,7 @@ export function SearchableSelect({
           <div
             ref={panelRef}
             data-efop-overlay=""
+            onPointerDown={(event) => event.stopPropagation()}
             className="fixed z-[100] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-xl"
             style={{
               top: position.top,

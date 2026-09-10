@@ -65,7 +65,7 @@ export default function TransferDetailPage() {
         icon={<ArrowLeftRight className="h-6 w-6" />}
         action={
           <div className="flex flex-wrap items-center gap-2">
-            <TagAction resourceType="transfers.transfer" targetId={id} compact />
+            <TagAction resourceType="transfers.cashtransfer" targetId={id} compact />
             {transfer.status === "draft" ? (
               <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700"
                 onClick={() => confirmMutation.mutate()} disabled={confirmMutation.isPending}>

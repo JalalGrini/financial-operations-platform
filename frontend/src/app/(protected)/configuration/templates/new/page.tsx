@@ -11,9 +11,9 @@ export default function NewDocumentTemplatePage() {
     <div className="space-y-6">
       <Breadcrumb
         items={[
-          { label: "Configuration", href: "/configuration" },
-          { label: "Document templates", href: "/configuration/templates" },
-          { label: "New template draft", isCurrent: true },
+          { label: sourceText("Configuration"), href: "/configuration" },
+          { label: sourceText("Document templates"), href: "/configuration/templates" },
+          { label: sourceText("New template draft"), isCurrent: true },
         ]}
       />
       <PageHero

@@ -60,11 +60,32 @@ const sizeStyles: Record<NonNullable<DialogContentProps["size"]>, string> = {
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   DialogContentProps
->(({ className, children, size = "default", hideCloseButton = false, ...props }, ref) => (
+>(({ className, children, size = "default", hideCloseButton = false, onPointerDownOutside, onInteractOutside, onFocusOutside, ...props }, ref) => {
+  const ignorePortaledOverlay = (event: { target: EventTarget | null; preventDefault: () => void }) => {
+    const target = event.target;
+    if (target instanceof Element && target.closest("[data-efop-overlay]")) {
+      event.preventDefault();
+      return true;
+    }
+    return false;
+  };
+  return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
+      onPointerDownOutside={(event) => {
+        if (ignorePortaledOverlay(event)) return;
+        onPointerDownOutside?.(event);
+      }}
+      onInteractOutside={(event) => {
+        if (ignorePortaledOverlay(event)) return;
+        onInteractOutside?.(event);
+      }}
+      onFocusOutside={(event) => {
+        if (ignorePortaledOverlay(event)) return;
+        onFocusOutside?.(event);
+      }}
       className={cn(
         // Center with inset + margin, not transform — zoom/slide animations
         // overwrite `transform` and were leaving dialogs in the bottom-right.
@@ -95,7 +116,8 @@ const DialogContent = React.forwardRef<
       )}
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 // ---------------------------------------------------------------------------

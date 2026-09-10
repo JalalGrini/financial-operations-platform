@@ -2,9 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Archive, RotateCcw, Edit, Loader2,
-  RefreshCw
-} from "lucide-react";
+import { Plus, Archive, RotateCcw, Edit, Loader2 } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import {
   Dialog,
@@ -20,7 +18,8 @@ import { SourceText } from "@/components/i18n/SourceText";
 import { WriteOnly } from "@/components/auth/WriteOnly";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { FormField } from "@/components/ui/form-section";
 import {
   Select,
   SelectContent,
@@ -332,6 +331,8 @@ export function EntitySection<
   );
   return (
     <div className="space-y-4">
+      <Card className="border-border/70 shadow-sm">
+      <CardHeader className="space-y-4 pb-4">
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">{title}</h2>
@@ -377,7 +378,8 @@ export function EntitySection<
           <ViewToggle mode={viewMode} onChange={setViewMode} />
         </div>
       </div>
-
+      </CardHeader>
+      <CardContent className="p-0 pb-4">
       <DataTable<T>
         data={data?.results || []}
         columns={allColumns}
@@ -389,6 +391,7 @@ export function EntitySection<
         viewMode={viewMode}
       />
       {data && data.count > 25 && (
+        <div className="px-4 pb-2">
         <Pagination
           currentPage={page}
           totalPages={Math.ceil((data?.count || 0) / 25)}
@@ -396,7 +399,10 @@ export function EntitySection<
           pageSize={25}
           onPageChange={setPage}
         />
+        </div>
       )}
+      </CardContent>
+      </Card>
 
       <Dialog
         open={dialogOpen}
@@ -422,18 +428,17 @@ export function EntitySection<
               {formError}
             </p>
           )}
-          <div className="grid min-w-0 gap-4 md:grid-cols-2">
+          <div className="grid min-w-0 gap-6 md:grid-cols-2">
             {fields.filter(isFieldVisible).map((field) => (
-              <div
+              <FormField
                 key={field.name}
-                className={
-                  field.type === "textarea"
-                    ? "min-w-0 space-y-1.5 md:col-span-2"
-                    : "min-w-0 space-y-1.5"
-                }
+                label={field.type === "checkbox" ? undefined : field.label}
+                required={field.required}
+                hint={field.help}
+                colSpan={field.type === "textarea" ? "full" : 1}
               >
                 {field.type === "checkbox" ? (
-                  <label className="flex items-center gap-2 rounded-xl border bg-muted/30 px-3 py-3 text-sm">
+                  <label className="flex min-h-10 items-center gap-3 rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium">
                     <input
                       type="checkbox"
                       checked={Boolean(formData[field.name])}
@@ -442,20 +447,12 @@ export function EntitySection<
                     />
                     {field.label}
                   </label>
-                ) : (
-                  <>
-                    <Label htmlFor={`f_${field.name}`}>
-                      {field.label}{" "}
-                      {field.required && (
-                        <span className="text-red-600">*</span>
-                      )}
-                    </Label>
-                    {(field.lockedInEdit && editingRow) ? (
-                      <div className="flex items-center gap-2 rounded-xl border bg-muted/50 px-3 py-2 text-sm text-foreground/80">
-                        <span className="text-xs opacity-50">locked</span>
+                ) : field.lockedInEdit && editingRow ? (
+                      <div className="flex h-10 items-center gap-2 rounded-lg border bg-muted/50 px-3 text-sm text-foreground/80">
+                        <span className="text-xs text-muted-foreground">{sourceText("locked")}</span>
                         <span>
                           {field.type === "select"
-                            ? (field.options?.find((o) => o.value === String(formData[field.name] ?? ""))?.label ?? String(formData[field.name] ?? "—"))
+                            ? sourceText(field.options?.find((o) => o.value === String(formData[field.name] ?? ""))?.label ?? String(formData[field.name] ?? "—"))
                             : String(formData[field.name] ?? "—")}
                         </span>
                       </div>
@@ -464,7 +461,7 @@ export function EntitySection<
                         value={String(formData[field.name] ?? "")}
                         onValueChange={(v) => setField(field.name, v)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue
                             placeholder={
                               field.placeholder || sourceText("Select…")
@@ -474,7 +471,7 @@ export function EntitySection<
                         <SelectContent>
                           {(field.options || []).map((o) => (
                             <SelectItem key={o.value} value={o.value}>
-                              {o.label}
+                              {sourceText(o.label)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -483,7 +480,7 @@ export function EntitySection<
                       <textarea
                         id={`f_${field.name}`}
                         rows={4}
-                        className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder={field.placeholder}
                         value={String(formData[field.name] ?? "")}
                         onChange={(e) => setField(field.name, e.target.value)}
@@ -497,6 +494,7 @@ export function EntitySection<
                     ) : (
                       <Input
                         id={`f_${field.name}`}
+                        className="w-full"
                         type={field.type === "number" ? "number" : "text"}
                         step={field.step}
                         placeholder={field.placeholder}
@@ -504,14 +502,7 @@ export function EntitySection<
                         onChange={(e) => setField(field.name, e.target.value)}
                       />
                     )}
-                    {field.help && (
-                      <p className="text-xs text-muted-foreground">
-                        {field.help}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
+              </FormField>
             ))}
           </div>
           <DialogFooter>

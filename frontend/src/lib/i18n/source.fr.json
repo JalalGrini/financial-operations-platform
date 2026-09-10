@@ -3191,5 +3191,9 @@
   "Continue": "Continuer",
   "We could not send the email. Please try again.": "Nous n’avons pas pu envoyer l’e-mail. Veuillez réessayer.",
   "The reply was saved but the email could not be sent.": "La réponse a été enregistrée mais l’e-mail n’a pas pu être envoyé.",
-  "This subject will be used on the email we send.": "Cet objet sera utilisé sur l’e-mail envoyé."
+  "This subject will be used on the email we send.": "Cet objet sera utilisé sur l’e-mail envoyé.",
+  "locked": "verrouillé",
+  "Unable to load eligible users": "Impossible de charger les utilisateurs éligibles",
+  "Business configuration": "Configuration métier",
+  "Configuration guidance": "Conseils de configuration"
 }

@@ -157,10 +157,11 @@ export function useCreatePersonnel(
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: personnelApi.create,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: personnelQueryKeys.lists() });
-    },
     ...options,
+    onSuccess: async (data, variables, onMutateResult, context) => {
+      await queryClient.invalidateQueries({ queryKey: personnelQueryKeys.all });
+      await options?.onSuccess?.(data, variables, onMutateResult, context);
+    },
   });
 }
 
@@ -173,14 +174,15 @@ export function useUpdatePersonnel(
 ) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }) => personnelApi.update(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: personnelQueryKeys.lists() });
-      queryClient.invalidateQueries({
-        queryKey: personnelQueryKeys.detail(id),
-      });
-    },
     ...options,
+    mutationFn: ({ id, data }) => personnelApi.update(id, data),
+    onSuccess: async (data, variables, onMutateResult, context) => {
+      await queryClient.invalidateQueries({ queryKey: personnelQueryKeys.all });
+      await queryClient.invalidateQueries({
+        queryKey: personnelQueryKeys.detail(variables.id),
+      });
+      await options?.onSuccess?.(data, variables, onMutateResult, context);
+    },
   });
 }
 

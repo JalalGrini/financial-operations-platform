@@ -29,6 +29,8 @@ SUPPORTED_RESOURCES = {
     "configuration.reporttype": "/configuration?report_type={id}",
     "configuration.notificationtype": "/configuration?notification_type={id}",
     "transfers.cashtransfer": "/transfers/{id}",
+    "transfers.transfer": "/transfers/{id}",
+    "deadlines.deadline": "/deadlines?deadline={id}",
 }
 
 

@@ -231,7 +231,7 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     name: "Configuration",
     href: "/configuration",
     icon: SlidersHorizontal,
-    roles: ["Administrator"],
+    roles: ["Administrator", "Assistant"],
     section: "Administration",
   },
   {

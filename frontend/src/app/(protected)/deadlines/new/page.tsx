@@ -11,8 +11,8 @@ export default function NewDeadlinePage() {
     <div className="space-y-6">
       <Breadcrumb
         items={[
-          { label: "Deadlines", href: "/deadlines" },
-          { label: "New deadline", isCurrent: true },
+          { label: sourceText("Deadlines"), href: "/deadlines" },
+          { label: sourceText("New deadline"), isCurrent: true },
         ]}
       />
       <PageHero

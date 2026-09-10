@@ -192,18 +192,6 @@ class EndpointRoleMatrixTests(APITestCase):
         for label, list_url, detail_url, payload in self.endpoints():
             with self.subTest(domain=label):
                 self.assert_passed_permission_layer(client.get(list_url), f"Assistant GET {label}")
-                if label == "configuration categories":
-                    self.assertEqual(
-                        client.post(list_url, payload, format="json").status_code,
-                        FORBIDDEN,
-                        "Assistant must not create configuration.",
-                    )
-                    self.assertEqual(
-                        client.patch(detail_url, {"name": "Renamed"}, format="json").status_code,
-                        FORBIDDEN,
-                        "Assistant must not update configuration.",
-                    )
-                    continue
                 self.assert_passed_permission_layer(
                     client.post(list_url, payload, format="json"),
                     f"Assistant POST {label}",

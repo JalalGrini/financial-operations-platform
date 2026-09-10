@@ -108,8 +108,8 @@ class Leave(models.Model):
         qs = Leave.objects.filter(
             personnel=self.personnel,
             status=Leave.STATUS_OFFICIAL,
-            start_date__lte=self.end_date,
-            end_date__gte=self.start_date,
+            start_date__lt=self.end_date,
+            end_date__gt=self.start_date,
         )
         if self.pk:
             qs = qs.exclude(pk=self.pk)
@@ -122,5 +122,5 @@ def is_on_leave(personnel, date=None):
     return personnel.leaves.filter(
         status=Leave.STATUS_OFFICIAL,
         start_date__lte=today,
-        end_date__gte=today,
+        end_date__gt=today,
     ).exists()

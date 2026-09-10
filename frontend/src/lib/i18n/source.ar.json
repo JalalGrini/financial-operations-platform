@@ -3191,5 +3191,9 @@
   "Continue": "متابعة",
   "We could not send the email. Please try again.": "تعذر إرسال البريد الإلكتروني. يرجى المحاولة مرة أخرى.",
   "The reply was saved but the email could not be sent.": "تم حفظ الرد لكن تعذر إرسال البريد الإلكتروني.",
-  "This subject will be used on the email we send.": "سيُستخدم هذا الموضوع في البريد المُرسَل."
+  "This subject will be used on the email we send.": "سيُستخدم هذا الموضوع في البريد المُرسَل.",
+  "locked": "مقفل",
+  "Unable to load eligible users": "تعذر تحميل المستخدمين المؤهلين",
+  "Business configuration": "إعدادات العمل",
+  "Configuration guidance": "إرشادات الإعداد"
 }

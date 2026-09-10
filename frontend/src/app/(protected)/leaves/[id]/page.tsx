@@ -5,7 +5,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Loader2, CheckCircle2, XCircle, Trash2, Calendar } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { TagAction } from "@/components/collaboration/TagAction";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -84,7 +83,6 @@ export default function LeaveDetailPage() {
         <Badge className={cn("text-xs", LEAVE_STATUS_COLORS[leave.status])}>
           {LEAVE_STATUS_LABELS[leave.status]}
         </Badge>
-        <TagAction resourceType="leaves.leaverecord" targetId={String(leave.id)} compact />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

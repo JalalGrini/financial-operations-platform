@@ -39,12 +39,19 @@ export function TagAction({
     if (open)
       collaborationApi
         .users()
-        .then(setUsers)
+        .then((payload) => {
+          if (Array.isArray(payload)) {
+            setUsers(payload);
+            return;
+          }
+          const obj = (payload ?? {}) as { results?: EligibleUser[] };
+          setUsers(Array.isArray(obj.results) ? obj.results : []);
+        })
         .catch((error) =>
           toast.error(
             error instanceof Error
               ? error.message
-              : "Unable to load eligible users",
+              : sourceText("Unable to load eligible users"),
           ),
         );
   }, [open]);

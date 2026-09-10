@@ -67,12 +67,6 @@ ADMIN_ONLY_ENDPOINTS = TREASURY_ENDPOINTS + PERSONNEL_REPORT_ENDPOINTS + [
     ("users", "get", "/api/v1/accounts/users/", None),
     ("audit events", "get", "/api/v1/audit-log/events/", None),
     ("help tickets staff", "get", "/api/v1/help/tickets/list/", None),
-    (
-        "configuration write",
-        "post",
-        "/api/v1/configuration/categories/",
-        {"name": "Admin-only config probe"},
-    ),
 ]
 
 

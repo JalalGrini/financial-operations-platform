@@ -131,4 +131,28 @@ describe("role-normalized navigation", () => {
     const obsolete = path.resolve(__dirname, "../components/ui/sidebar.tsx");
     expect(fs.existsSync(obsolete)).toBe(false);
   });
+
+  it("shows Configuration to Assistant but not Users, Audit Log, or Document Templates", () => {
+    const visible = NAVIGATION.filter((item) =>
+      canAccessNavigationItem(user(["Assistant"]), item),
+    ).map((item) => item.href);
+    expect(visible).toContain("/configuration");
+    expect(visible).not.toContain("/configuration/templates");
+    expect(visible).not.toContain("/users");
+    expect(visible).not.toContain("/audit-log");
+    expect(visible).not.toContain("/personnel/settings");
+  });
+
+  it("keeps Users, Audit Log and Document Templates administrator-only", () => {
+    const adminOnly = ["/users", "/audit-log", "/configuration/templates"];
+    const visibleFor = (audience: User) =>
+      NAVIGATION.filter((item) => canAccessNavigationItem(audience, item)).map(
+        (item) => item.href,
+      );
+    for (const href of adminOnly) {
+      expect(visibleFor(user(["Administrator"]))).toContain(href);
+      expect(visibleFor(user(["Assistant"]))).not.toContain(href);
+      expect(visibleFor(user(["Director"]))).not.toContain(href);
+    }
+  });
 });

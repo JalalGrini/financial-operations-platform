@@ -29,7 +29,6 @@ import { cn } from "@/lib/utils";
 import { companyDisplayName, companyFieldToApi } from "@/lib/company-scope";
 import { useCompanies } from "@/features/personnel/hooks";
 import { ExpandingActions } from "@/components/ui/expanding-actions";
-import { TagAction } from "@/components/collaboration/TagAction";
 import { ExportButton } from "@/components/ui/export-button";
 import { listExportApi } from "@/features/exports/api";
 import { BlurFade } from "@/components/ui/blur-fade";
@@ -57,8 +56,8 @@ function classifyLeave(leave: Leave, today: string): TabId {
   const in7Days = new Date();
   in7Days.setDate(in7Days.getDate() + 7);
   const in7Str = in7Days.toISOString().split("T")[0];
-  if (leave.end_date < today) return "past";
-  if (leave.start_date <= today && leave.end_date >= today) return "current";
+  if (leave.end_date <= today) return "past";
+  if (leave.start_date <= today && leave.end_date > today) return "current";
   if (leave.start_date > today && leave.start_date <= in7Str) return "soon";
   return "future";
 }

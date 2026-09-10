@@ -24,6 +24,7 @@ from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
 from apps.companies.permissions import CanManageCompany
+from apps.configuration.permissions import CanManageConfiguration
 from apps.parties.permissions import CanManageParty
 
 User = get_user_model()
@@ -32,6 +33,7 @@ User = get_user_model()
 # domain? Add its class here and the whole matrix is enforced on it for free.
 MATRIX_PERMISSION_CLASSES = (
     CanManageCompany,
+    CanManageConfiguration,
     CanManageParty,
 )
 
