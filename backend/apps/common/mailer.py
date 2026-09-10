@@ -51,6 +51,12 @@ def send_platform_email(*, to: str, subject: str, body: str) -> None:
     try:
         sent = send_mail(**send_kwargs)
     except Exception as exc:
+        logger.warning(
+            "smtp send failed host=%s port=%s err=%s",
+            getattr(settings, "EMAIL_HOST", ""),
+            getattr(settings, "EMAIL_PORT", ""),
+            exc,
+        )
         raise MailerError(str(exc)) from exc
     if not sent:
         raise MailerError("The email backend did not send the message.")
